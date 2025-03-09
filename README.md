@@ -14,13 +14,20 @@ This repository contains scripts organized into the following categories:
 ## Available Scripts
 
 ### ArgoCD Scripts
-- `argocd-env.sh`: Installs ArgoCD on your own Kubernetes cluster
+- `install-argocd.sh`: Installs ArgoCD on your own Kubernetes cluster
 
 ### Kubernetes Scripts
 - `ini_k8s.sh`: Kubernetes initialization script (recently fixed)
 
 ### Terraform Scripts
-- Scripts for installing all needed dependencies for Terraform
+- `envsetup.sh`: Scripts for installing all needed dependencies for Terraform
+- `tr_init.sh`: Scripts for checking if all needed dependencies for Terraform are installed
+
+### Docker Scirpts
+- `check_docker.sh`: Checks if docker and compose exists whitin you sys
+- `docker_login.sh`: Check if you are logged into your DockerHub acc
+- `docker_push_to_repo.sh`: Build & Push an existing image to Docker Hub
+- `test_bash.sh`: Testing bash commands
 
 ## Usage
 
