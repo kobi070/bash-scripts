@@ -51,7 +51,8 @@ git config --local user.email "user@example.com"
 git config --local user.name "Azure DevOps Script"
 
 # Create sample Python code
-echo "def test_example(): assert 1 == 1" > test_example.py
+mkdir tests
+echo "def test_example(): assert 1 == 1" > tests/test_example.py
 
 # Create requirements.txt with pytest
 echo "pytest" > requirements.txt
@@ -88,7 +89,7 @@ steps:
   displayName: 'Install dependencies'
 
 - script: |
-    pytest  # Run the tests using pytest
+    python tests/test_example.py  # Run the tests using pytest
   displayName: 'Run tests with pytest'
 EOL
 
