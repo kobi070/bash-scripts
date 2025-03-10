@@ -55,5 +55,3 @@ chmod +x <script_name>.sh
 Feel free to submit pull requests with additional scripts or improvements to existing ones.
 
 ## License
-
-[Add your license information here]
