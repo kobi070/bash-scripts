@@ -29,6 +29,12 @@ This repository contains scripts organized into the following categories:
 - `docker_push_to_repo.sh`: Build & Push an existing image to Docker Hub
 - `test_bash.sh`: Testing bash commands
 
+### Azure Scripts
+- `az_script_advance.py`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it 
+- `az_script_advance.sh`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it
+- `az_script.sh`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it (Hard Coded)
+- `az_script_with_user.sh`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it (Lets user chose everything)
+
 ## Usage
 
 Each script directory contains specific instructions for running the scripts. Most scripts can be executed directly after making them executable:
