@@ -6,9 +6,9 @@ read -p "Enter the name for the repository: " repo_name
 read -p "Enter the name for the pipeline: " pipeline_name
 read -p "Enter the name for the container registry: " acr_name
 read -p "Enter the name of the resource group: " resource_group
-read -p "Enter the Azure DevOps organization URL (e.g., https://dev.azure.com/markveltzer): " org_url
-read -p "Enter the Azure DevOps project name (e.g., training): " project_name
 
+org_url="https://dev.azure.com/markveltzer"
+project_name="training"
 # Create a new source code repository
 az repos create --name "$repo_name" --project "$project_name" --organization "$org_url"
 
