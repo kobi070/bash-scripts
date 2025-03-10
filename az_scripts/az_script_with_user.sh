@@ -1,111 +1,124 @@
 #!/bin/bash
-
-# Exit on error
 set -e
 
-# Configuration
-AZURE_SUBSCRIPTION="3f79a68d-cf0d-4291-a31f-185897f7fda1"
-AZURE_DEVOPS_ORG="markveltzer"
-AZURE_DEVOPS_PROJECT="training"
-RESOURCE_GROUP="KobiResourceGroup"
-LOCATION="eastus"
-ACR_NAME="kobi070"
-REPO_NAME="kobi_script_rep2"
-PIPELINE_NAME="kobi_pipeline2"
-SERVICE_CONNECTION_NAME="kobiconnect"
-SP_APP_ID="8ecdf10e-c3e0-4349-b9f2-ef531b1222a5"
-SP_TENANT_ID="d12c5e26-8134-4d75-adb9-89c53343dc6b"
-SUBSCRIPTION_NAME="Basic"
-PAT="EXysGY6nOWBETGkJNovT9vkeSAxLdoDp1uPYrCRgB2uospP7IVY7JQQJ99BCACAAAAAAAAAAAAASAZDO0Tu4"  # Your PAT
+# Ask the user for input values
+read -p "Enter the name for the repository: " repo_name
+read -p "Enter the name for the pipeline: " pipeline_name
+read -p "Enter the name of the resource group: " resource_group
 
-# Function to run commands with debug output
-run_command() {
-    echo "Executing: $*"
-    output=$("$@" 2>&1)
-    result=$?
-    echo "Output: $output"
-    
-    if [ $result -ne 0 ]; then
-        echo "Command failed: $*"
-        echo "Exit code: $result"
-        exit 1
-    fi
-}
+org_url="https://dev.azure.com/markveltzer"
+project_name="training"
+location="eastus"
+pat="EXysGY6nOWBETGkJNovT9vkeSAxLdoDp1uPYrCRgB2uospP7IVY7JQQJ99BCACAAAAAAAAAAAAASAZDO0Tu4"
 
-# Set Azure subscription
-echo "Setting Azure subscription..."
-run_command az account set --subscription "$AZURE_SUBSCRIPTION"
+# Check if an Azure subscription is already set
+current_subscription=$(az account show --query "id" --output tsv 2>/dev/null)
+if [[ -z "$current_subscription" ]]; then
+    read -s -p "Enter the Azure subscription ID: " subscription_id
+    echo ""
+    az account set --subscription "$subscription_id"
+else
+    echo "Using already configured subscription: $current_subscription"
+fi
 
-echo "Verifying active subscription..."
-run_command az account show --output table
+# Extract organization name from URL
+org_name=$(echo "$org_url" | sed 's|https://dev.azure.com/||')
 
-# Create resource group
-echo "Creating resource group $RESOURCE_GROUP..."
-run_command az group create --name "$RESOURCE_GROUP" --location "$LOCATION"
+# Configure Azure and Azure DevOps CLI
+echo "Configuring Azure CLI and DevOps extension..."
+az devops configure --defaults organization="$org_url" project="$project_name"
 
-# Create Azure Container Registry
-echo "Creating Azure Container Registry $ACR_NAME..."
-run_command az acr create --resource-group "$RESOURCE_GROUP" --name "$ACR_NAME" --sku Basic
+# Create the resource group
+echo "Creating resource group $resource_group in $location..."
+az group create --name "$resource_group" --location "$location"
 
-# Configure Azure DevOps CLI
-echo "Configuring Azure DevOps CLI..."
-run_command az devops configure --defaults "organization=https://dev.azure.com/$AZURE_DEVOPS_ORG" "project=$AZURE_DEVOPS_PROJECT"
+# Check if repository exists
+repo_exists=$(az repos show --repository "$repo_name" --project "$project_name" --organization "$org_url" --output tsv --query "name" || echo "not found")
 
-# Create a new repository in Azure Repos
-echo "Creating repository $REPO_NAME..."
-run_command az repos create --name "$REPO_NAME"
+if [[ "$repo_exists" == "$repo_name" ]]; then
+    echo "Repository $repo_name already exists, using it."
+else
+    echo "Creating repository $repo_name..."
+    az repos create --name "$repo_name" --project "$project_name" --organization "$org_url"
+fi
 
-# Clone the repository locally and upload sample code
-echo "Cloning repository and uploading sample code..."
-repo_url="https://$PAT@dev.azure.com/$AZURE_DEVOPS_ORG/$AZURE_DEVOPS_PROJECT/_git/$REPO_NAME"
-run_command git clone "$repo_url"
-cd "$REPO_NAME" || exit 1
+# Upload some code to the repository
+echo "Setting up local repository and adding code..."
+temp_dir=$(mktemp -d)
+cd "$temp_dir"
+git init
+git config --local user.email "user@example.com"
+git config --local user.name "Azure DevOps Script"
 
-# Create a sample Dockerfile
-echo "FROM alpine" > Dockerfile
-echo 'CMD ["echo", "Hello from my container!"]' >> Dockerfile
+# Create sample Python code
+echo "def test_example(): assert 1 == 1" > test_example.py
 
-# Git commands to commit and push
-run_command git add .
-run_command git commit -m "Initial commit with sample Dockerfile"
-run_command git push "https://$PAT@dev.azure.com/$AZURE_DEVOPS_ORG/$AZURE_DEVOPS_PROJECT/_git/$REPO_NAME" master
+# Create requirements.txt with pytest
+echo "pytest" > requirements.txt
 
-# Create the pipeline YAML file
-cat > azure-pipelines.yml << EOF
+# Commit and push the code
+git add .
+git commit -m "Initial commit with test code and requirements"
+
+git remote add origin "https://${pat}@dev.azure.com/${org_name}/${project_name}/_git/${repo_name}"
+
+echo "Pushing code to repository..."
+git push -u origin master
+
+# Create azure-pipelines.yml file dynamically
+echo "Creating azure-pipelines.yml file..."
+
+cat <<EOL > azure-pipelines.yml
 trigger:
-- master
+- master  # This can be changed to any branch you want to trigger the pipeline from
+
 pool:
-  vmImage: 'ubuntu-latest'
-variables:
-  dockerRegistryServiceConnection: '$SERVICE_CONNECTION_NAME'
-  imageRepository: 'myimage'
-  tag: '\$(Build.BuildId)'
+  vmImage: 'ubuntu-latest'  # Using Ubuntu for the build agent
+
 steps:
-- task: Docker@2
-  displayName: 'Build and push Docker image'
+- task: UsePythonVersion@0
   inputs:
-    command: 'buildAndPush'
-    repository: '\$(imageRepository)'
-    dockerfile: '\$(Build.SourcesDirectory)/Dockerfile'
-    containerRegistry: '\$(dockerRegistryServiceConnection)'
-    tags: '\$(tag)'
-EOF
+    versionSpec: '3.x'  # Specify the version of Python you need, for example, 3.x
+    addToPath: true
 
-# Commit and push the pipeline file
-run_command git add azure-pipelines.yml
-run_command git commit -m "Add pipeline configuration"
-run_command git push "https://$PAT@dev.azure.com/$AZURE_DEVOPS_ORG/$AZURE_DEVOPS_PROJECT/_git/$REPO_NAME" master
+- script: |
+    python -m venv venv  # Create a virtual environment
+    source venv/bin/activate  # Activate the virtual environment
+    pip install -r requirements.txt  # Install dependencies from requirements.txt
+  displayName: 'Install dependencies'
 
-# Create and run the pipeline
-echo "Creating pipeline $PIPELINE_NAME..."
-run_command az pipelines create \
-    --name "$PIPELINE_NAME" \
-    --repository "$REPO_NAME" \
-    --branch "master" \
-    --yaml-path "azure-pipelines.yml" \
-    --repository-type "tfsgit"
+- script: |
+    pytest  # Run the tests using pytest
+  displayName: 'Run tests with pytest'
+EOL
 
-echo "Triggering pipeline $PIPELINE_NAME run..."
-run_command az pipelines run --name "$PIPELINE_NAME"
+# Add the azure-pipelines.yml file to the repository
+git add azure-pipelines.yml
+git commit -m "Add azure-pipelines.yml for CI pipeline"
 
-echo "Script completed successfully!"
+# Push the changes (including the YAML file) to the repository
+git push
+
+# Step 6: Ensure the pipeline exists
+echo "Checking if pipeline '$pipeline_name' exists..."
+pipeline_exists=$(az pipelines list --name "$pipeline_name" --project "$project_name" --organization "$org_url" --query "[].id" --output tsv)
+
+if [ -z "$pipeline_exists" ]; then
+    echo "Creating new pipeline: $pipeline_name..."
+    az pipelines create --name "$pipeline_name" --repository "$repo_name" --repository-type tfsgit --branch master --yml-path azure-pipelines.yml --project "$project_name" --organization "$org_url"
+else
+    echo "Pipeline '$pipeline_name' already exists."
+fi
+
+# Trigger the pipeline run
+pipeline_id=$(az pipelines list --name "$pipeline_name" --project "$project_name" --organization "$org_url" --query "[].id" --output tsv)
+az pipelines run --name $pipeline_name --project $project_name --organization $org_url
+
+# Clean up temporary directory
+cd "$OLDPWD"
+rm -rf "$temp_dir"
+
+echo "Setup completed successfully!"
+echo "Resource Group: $resource_group"
+echo "Repository: $repo_name"
+echo "Pipeline: $pipeline_name"
