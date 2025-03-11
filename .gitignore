@@ -1,1 +1,5 @@
+# Ignore all input.txt files in the bash_scripts directory
 input.txt
+
+#  Ignore testing folder
+testing/
