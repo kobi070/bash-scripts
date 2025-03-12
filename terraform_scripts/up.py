@@ -1,7 +1,7 @@
 # Import the needed credential and management objects from the libraries.
 import os
 
-from azure.identity import DefaultAzureCredential
+from azure.identity import ClientSecretCredential
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.network import NetworkManagementClient
 from azure.mgmt.resource import ResourceManagementClient
@@ -20,8 +20,9 @@ app_id = os.environ["AZURE_CLIENT_ID"]
 app_secret = os.environ["AZURE_CLIENT_SECRET"]
 tenant_id = os.environ["AZURE_TENANT_ID"]
 
+
 # Acquire a credential object.
-credential = DefaultAzureCredential(
+credential = ClientSecretCredential(
     client_id=app_id, client_secret=app_secret, tenant_id=tenant_id
 )
 
