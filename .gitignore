@@ -3,3 +3,6 @@ input.txt
 
 #  Ignore testing folder
 testing/
+
+# ignore all venv
+venv/
