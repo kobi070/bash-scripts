@@ -13,12 +13,12 @@ credential = DefaultAzureCredential()
 subscription_id = os.environ["AZURE_SUBSCRIPTION_ID"]
 
 # Resource names
-RESOURCE_GROUP_NAME = "oleg-terraform-rg"
-# VNET_NAME = "python-kobi-vnet"
-# SUBNET_NAME = "python-kobi-subnet"
-# IP_NAME = "python-kobi-ip"
-# NIC_NAME = "python-kobi-nic"
-# VM_NAME = "ExampleVM"
+RESOURCE_GROUP_NAME = "Kobi-VM-rg"
+VNET_NAME = "python-kobi-vnet"
+SUBNET_NAME = "python-kobi-subnet"
+IP_NAME = "python-kobi-ip"
+NIC_NAME = "python-kobi-nic"
+VM_NAME = "ExampleVM"
 
 # Initialize clients
 resource_client = ResourceManagementClient(credential, subscription_id)
