@@ -6,11 +6,16 @@ from azure.mgmt.resource import ResourceManagementClient
 
 print("Deleting Azure resources... This may take a few minutes.")
 
-# Acquire a credential object
-credential = DefaultAzureCredential()
-
-# Retrieve subscription ID from environment variable
+# Retrieve subscription ID from environment variable.
 subscription_id = os.environ["AZURE_SUBSCRIPTION_ID"]
+app_id = os.environ["AZURE_CLIENT_ID"]
+app_secret = os.environ["AZURE_CLIENT_SECRET"]
+tenant_id = os.environ["AZURE_TENANT_ID"]
+
+# Acquire a credential object.
+credential = DefaultAzureCredential(
+    client_id=app_id, client_secret=app_secret, tenant_id=tenant_id
+)
 
 # Resource names
 RESOURCE_GROUP_NAME = "Kobi-VM-rg"
