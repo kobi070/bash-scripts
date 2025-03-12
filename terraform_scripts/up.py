@@ -41,7 +41,7 @@ SUBNET_NAME = "python-kobi-subnet"
 IP_NAME = "python-kobi-ip"
 IP_CONFIG_NAME = "python-kobi-ip-config"
 NIC_NAME = "python-kobi-nic"
-VM_NAME = "ExampleVM"
+VM_NAME = "KobiVM"
 USERNAME = "azureuser"
 PASSWORD = "ChangePa$$w0rd24"
 
@@ -65,8 +65,6 @@ print(
 # requires a virtual network and subnet along with an IP address.
 # Therefore we must provision these downstream components first, then
 # provision the NIC, after which we can provision the VM.
-
-
 
 # Provision the virtual network and wait for completion
 poller = network_client.virtual_networks.begin_create_or_update(
