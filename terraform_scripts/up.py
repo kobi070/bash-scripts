@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Import the needed credential and management objects from the libraries.
 import os
 

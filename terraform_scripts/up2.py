@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Import required libraries
 import os
 from azure.identity import DefaultAzureCredential

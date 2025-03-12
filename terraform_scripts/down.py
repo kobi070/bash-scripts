@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 from azure.identity import ClientSecretCredential
 from azure.mgmt.compute import ComputeManagementClient
