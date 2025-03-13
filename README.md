@@ -10,6 +10,7 @@ This repository contains scripts organized into the following categories:
 - **docker_scripts**: Docker-related automation scripts
 - **k8s_scripts**: Kubernetes installation and configuration utilities
 - **terraform_scripts**: Scripts for automating Terraform installations and dependencies
+- **az_scripts**: Scripts for automating Azure installations and etc
 
 ## Available Scripts
 
