@@ -22,7 +22,13 @@ This repository contains scripts organized into the following categories:
 ### Terraform Scripts
 - `envsetup.sh`: Scripts for installing all needed dependencies for Terraform
 - `tr_init.sh`: Scripts for checking if all needed dependencies for Terraform are installed
-
+- /up_py
+    - `up.py`: Creating a Resource Group and other resource using python to bring up a machine in Azure
+    - `up2.py`: Creating vm using python utilizing an already created Resource Group in Azure
+- /down_py
+    - `down.py`: Deleting a vm on Azure by doing the opposite of creating (Destroying the VM first and etc)
+    - `down2.py`: Deleting a vm on Azure only by the Resource Group (Destroying The Resource Group destroys all the resources inside it)
+    
 ### Docker Scirpts
 - `check_docker.sh`: Checks if docker and compose exists whitin you sys
 - `docker_login.sh`: Check if you are logged into your DockerHub acc
@@ -35,6 +41,7 @@ This repository contains scripts organized into the following categories:
 - `az_script.sh`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it (Hard Coded)
 - `az_script_with_user.sh`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it (Lets user chose everything)
 - `az_script_using_sdk.sh`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it (Uses Azure Python SDK)
+
 
 ## Usage
 
