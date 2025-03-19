@@ -12,6 +12,7 @@ This repository contains scripts organized into the following categories:
 - **terraform_scripts**: Scripts for automating Terraform installations and dependencies
 - **az_scripts**: Scripts for automating Azure installations and etc
 - **general_scripts**: Scripts for general use cases
+- **github_scripts**: Scripts for general use cases in Github repositories
 
 ## Available Scripts
 
@@ -47,6 +48,9 @@ This repository contains scripts organized into the following categories:
 ### General Scripts
 - `kill_proc.sh`: Kill the process by user choice
 - `kill_proc.sh`: Check if the process exited and if hes running or not (also capbale of running the process and stopping it)
+
+### Github Scripts
+- `commit_script.sh`: Commiting the changes you created by branch and message with the files you added
 
 ## Usage
 
