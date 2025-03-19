@@ -19,7 +19,7 @@ fi
 commit_files=$(git status -u -s | awk '{print $2}')
 
 # Generate the commit message
-commit_message="[${branch}] $commit_message on files: $commit_files"
+commit_message="[${branch}] $commit_message - files: $commit_files"
 
 # Commit the message
 git commit -m "$commit_message"
