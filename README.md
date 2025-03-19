@@ -11,6 +11,7 @@ This repository contains scripts organized into the following categories:
 - **k8s_scripts**: Kubernetes installation and configuration utilities
 - **terraform_scripts**: Scripts for automating Terraform installations and dependencies
 - **az_scripts**: Scripts for automating Azure installations and etc
+- **general_scripts**: Scripts for general use cases
 
 ## Available Scripts
 
@@ -43,6 +44,9 @@ This repository contains scripts organized into the following categories:
 - `az_script_with_user.sh`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it (Lets user chose everything)
 - `az_script_using_sdk.sh`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it (Uses Azure Python SDK)
 
+### General Scripts
+- `kill_proc.sh`: Kill the process by user choice
+- `kill_proc.sh`: Check if the process exited and if hes running or not (also capbale of running the process and stopping it)
 
 ## Usage
 
