@@ -68,3 +68,8 @@ chmod +x <script_name>.sh
 Feel free to submit pull requests with additional scripts or improvements to existing ones.
 
 ## License
+MIT
+
+## Contributors
+All rights reserved,
+Made by Kobi Kuzi.
