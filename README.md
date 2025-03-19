@@ -66,6 +66,8 @@ chmod +x <script_name>.sh
 - Added Terraform scripts for installing dependencies
 - Fixed issues with Kubernetes initialization script
 - Added ArgoCD installation script
+- Added Github scripts for repositories
+- Added general usage scripts
 
 ## Contributing
 
