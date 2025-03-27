@@ -9,3 +9,6 @@ venv/
 
 # ignore myscript.py
 myscript.py
+
+# ignore script_gen.sh
+script_gen*.sh
