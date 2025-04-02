@@ -52,6 +52,7 @@ This repository contains scripts organized into the following categories:
 
 ### Github Scripts
 - `commit_script.sh`: Commiting the changes you created by branch and message with the files you added
+- `commit_script_no_push.sh`: Commiting the changes you created by branch and message with the files you added without pushing the changes
 - `check_alias.sh`: Checking which alias is used in your git
 
 ## Usage
