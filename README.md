@@ -39,11 +39,12 @@ This repository contains scripts organized into the following categories:
 - `test_bash.sh`: Testing bash commands
 
 ### Azure Scripts
-- `az_script_advance.py`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it 
+- `/python`: 
+    - `az_script_advance.py`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it 
+    - `az_script_using_sdk.py`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it (Uses Azure Python SDK)
 - `az_script_advance.sh`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it
 - `az_script.sh`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it (Hard Coded)
 - `az_script_with_user.sh`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it (Lets user chose everything)
-- `az_script_using_sdk.py`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it (Uses Azure Python SDK)
 
 ### General Scripts
 - `kill_proc.sh`: Kill the process by user choice
