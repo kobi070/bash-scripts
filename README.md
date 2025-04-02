@@ -40,6 +40,8 @@ This repository contains scripts organized into the following categories:
 - `docker_login.sh`: Check if you are logged into your DockerHub acc
 - `docker_push_to_repo.sh`: Build & Push an existing image to Docker Hub
 - `test_bash.sh`: Testing bash commands
+- `clean_docker_ps.sh`: Clean the Docker from containers
+- `clean_docker_images.sh`: Clean all the Docker images 
 
 ### Azure Scripts
 - `/python`: 
