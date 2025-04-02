@@ -21,6 +21,9 @@ This repository contains scripts organized into the following categories:
 
 ### Kubernetes Scripts
 - `ini_k8s.sh`: Kubernetes initialization script (recently fixed)
+- `minikube_status.sh`: Minikube status script
+- `minikube_start.sh `: Starts minikube
+- `minikube_stop.sh `: Stops minikube
 
 ### Terraform Scripts
 - `envsetup.sh`: Scripts for installing all needed dependencies for Terraform
