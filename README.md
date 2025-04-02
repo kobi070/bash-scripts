@@ -54,6 +54,7 @@ This repository contains scripts organized into the following categories:
 - `commit_script.sh`: Commiting the changes you created by branch and message with the files you added
 - `commit_script_no_push.sh`: Commiting the changes you created by branch and message with the files you added without pushing the changes
 - `check_alias.sh`: Checking which alias is used in your git
+- `init_repo.sh`: Init a new repository with main branch (Work in progress)
 
 ## Usage
 
@@ -71,6 +72,7 @@ chmod +x <script_name>.sh
 - Added ArgoCD installation script
 - Added Github scripts for repositories
 - Added general usage scripts
+- Added 2 new scripts for github folder 
 
 ## Contributing
 
