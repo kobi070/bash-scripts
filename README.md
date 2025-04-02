@@ -48,7 +48,7 @@ This repository contains scripts organized into the following categories:
 
 ### General Scripts
 - `kill_proc.sh`: Kill the process by user choice
-- `kill_proc.sh`: Check if the process exited and if hes running or not (also capbale of running the process and stopping it)
+- `proc_exist_script.sh`: Check if the process exited and if hes running or not (also capbale of running the process and stopping it)
 
 ### Github Scripts
 - `commit_script.sh`: Commiting the changes you created by branch and message with the files you added
