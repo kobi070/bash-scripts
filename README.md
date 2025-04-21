@@ -46,6 +46,7 @@ This repository contains scripts organized into the following categories:
 - `test_bash.sh`: Testing bash commands
 - `clean_docker_ps.sh`: Clean the Docker from containers
 - `clean_docker_images.sh`: Clean all the Docker images
+- `install_docker.sh`: Removes previous version of docker and install the newst one
 
 ### Azure Scripts
 
@@ -85,6 +86,7 @@ chmod +x <script_name>.sh
 - Added Github scripts for repositories
 - Added general usage scripts
 - Added 2 new scripts for github folder
+- Added new script for installtion of docker
 
 ## Contributing
 
