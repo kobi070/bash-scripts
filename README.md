@@ -26,6 +26,7 @@ This repository contains scripts organized into the following categories:
 - `minikube_status.sh`: Minikube status script
 - `minikube_start.sh `: Starts minikube
 - `minikube_stop.sh `: Stops minikube
+- `minikube_install.sh `: Installs minikube if its not installed yet, you need to have docker installed for this to work
 
 ### Terraform Scripts
 
