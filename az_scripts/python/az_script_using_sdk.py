@@ -32,9 +32,7 @@ location = "eastus"
 
 # Create resource group
 print(f"Creating resource group {resource_group} in {location}...")
-resource_group_params = {
-    "location": location
-}
+resource_group_params = {"location": location}
 resource_client.resource_groups.create_or_update(resource_group, resource_group_params)
 
 # Set up a temporary directory
@@ -50,7 +48,13 @@ with tempfile.TemporaryDirectory() as temp_dir:
 
     if repo_exists:
         print(f"Repository {repo_name} already exists, cloning it into temp directory.")
-        subprocess.run(["git", "clone", f"https://{pat}@dev.azure.com/{org_name}/{project_name}/_git/{repo_name}"])
+        subprocess.run(
+            [
+                "git",
+                "clone",
+                f"https://{pat}@dev.azure.com/{org_name}/{project_name}/_git/{repo_name}",
+            ]
+        )
         os.chdir(repo_name)
     else:
         print(f"Creating repository {repo_name}...")
@@ -72,8 +76,18 @@ with tempfile.TemporaryDirectory() as temp_dir:
 
         # Commit and push the code
         subprocess.run(["git", "add", "."])
-        subprocess.run(["git", "commit", "-m", "Initial commit with test code and requirements"])
-        subprocess.run(["git", "remote", "add", "origin", f"https://{pat}@dev.azure.com/{org_name}/{project_name}/_git/{repo_name}"])
+        subprocess.run(
+            ["git", "commit", "-m", "Initial commit with test code and requirements"]
+        )
+        subprocess.run(
+            [
+                "git",
+                "remote",
+                "add",
+                "origin",
+                f"https://{pat}@dev.azure.com/{org_name}/{project_name}/_git/{repo_name}",
+            ]
+        )
         subprocess.run(["git", "push", "-u", "origin", "master"])
 
     # Check if azure-pipelines.yml already exists
@@ -105,7 +119,9 @@ steps:
             """)
 
         subprocess.run(["git", "add", "azure-pipelines.yml"])
-        subprocess.run(["git", "commit", "-m", "Add azure-pipelines.yml for CI pipeline"])
+        subprocess.run(
+            ["git", "commit", "-m", "Add azure-pipelines.yml for CI pipeline"]
+        )
         subprocess.run(["git", "push"])
     else:
         print("azure-pipelines.yml already exists. Skipping creation.")
@@ -121,14 +137,20 @@ steps:
         print(f"Creating new pipeline: {pipeline_name}...")
         pipelines_client.create_pipeline(
             project=project_name,
-            definition={"name": pipeline_name, "repository": {"id": repo_name, "type": "tfsgit"}, "ymlPath": "azure-pipelines.yml"}
+            definition={
+                "name": pipeline_name,
+                "repository": {"id": repo_name, "type": "tfsgit"},
+                "ymlPath": "azure-pipelines.yml",
+            },
         )
     else:
         print(f"Pipeline '{pipeline_name}' already exists.")
 
     # Trigger the pipeline run
     print(f"Triggering the pipeline '{pipeline_name}'...")
-    pipeline = next(pipeline for pipeline in pipelines if pipeline.name == pipeline_name)
+    pipeline = next(
+        pipeline for pipeline in pipelines if pipeline.name == pipeline_name
+    )
     pipelines_client.run_pipeline(pipeline.id)
 
 print("Setup completed successfully!")

@@ -14,10 +14,14 @@ pat = "EXysGY6nOWBETGkJNovT9vkeSAxLdoDp1uPYrCRgB2uospP7IVY7JQQJ99BCACAAAAAAAAAAA
 
 # Check if an Azure subscription is already set
 try:
-    current_subscription = subprocess.check_output(
-        ["az", "account", "show", "--query", "id", "--output", "tsv"],
-        stderr=subprocess.PIPE
-    ).decode().strip()
+    current_subscription = (
+        subprocess.check_output(
+            ["az", "account", "show", "--query", "id", "--output", "tsv"],
+            stderr=subprocess.PIPE,
+        )
+        .decode()
+        .strip()
+    )
 except subprocess.CalledProcessError:
     current_subscription = None
 
@@ -32,18 +36,47 @@ org_name = org_url.replace("https://dev.azure.com/", "")
 
 # Configure Azure and Azure DevOps CLI
 print("Configuring Azure CLI and DevOps extension...")
-subprocess.run(["az", "devops", "configure", "--defaults", f"organization={org_url}", f"project={project_name}"])
+subprocess.run(
+    [
+        "az",
+        "devops",
+        "configure",
+        "--defaults",
+        f"organization={org_url}",
+        f"project={project_name}",
+    ]
+)
 
 # Create the resource group
 print(f"Creating resource group {resource_group} in {location}...")
-subprocess.run(["az", "group", "create", "--name", resource_group, "--location", location])
+subprocess.run(
+    ["az", "group", "create", "--name", resource_group, "--location", location]
+)
 
 # Check if repository exists
 try:
-    repo_exists = subprocess.check_output(
-        ["az", "repos", "show", "--repository", repo_name, "--project", project_name, "--organization", org_url, "--output", "tsv", "--query", "name"],
-        stderr=subprocess.PIPE
-    ).decode().strip()
+    repo_exists = (
+        subprocess.check_output(
+            [
+                "az",
+                "repos",
+                "show",
+                "--repository",
+                repo_name,
+                "--project",
+                project_name,
+                "--organization",
+                org_url,
+                "--output",
+                "tsv",
+                "--query",
+                "name",
+            ],
+            stderr=subprocess.PIPE,
+        )
+        .decode()
+        .strip()
+    )
 except subprocess.CalledProcessError:
     repo_exists = "not found"
 
@@ -53,11 +86,29 @@ with tempfile.TemporaryDirectory() as temp_dir:
 
     if repo_exists == repo_name:
         print(f"Repository {repo_name} already exists, cloning it into temp directory.")
-        subprocess.run(["git", "clone", f"https://{pat}@dev.azure.com/{org_name}/{project_name}/_git/{repo_name}"])
+        subprocess.run(
+            [
+                "git",
+                "clone",
+                f"https://{pat}@dev.azure.com/{org_name}/{project_name}/_git/{repo_name}",
+            ]
+        )
         os.chdir(repo_name)
     else:
         print(f"Creating repository {repo_name}...")
-        subprocess.run(["az", "repos", "create", "--name", repo_name, "--project", project_name, "--organization", org_url])
+        subprocess.run(
+            [
+                "az",
+                "repos",
+                "create",
+                "--name",
+                repo_name,
+                "--project",
+                project_name,
+                "--organization",
+                org_url,
+            ]
+        )
         print("Setting up local repository and adding code...")
 
         subprocess.run(["git", "init"])
@@ -75,8 +126,18 @@ with tempfile.TemporaryDirectory() as temp_dir:
 
         # Commit and push the code
         subprocess.run(["git", "add", "."])
-        subprocess.run(["git", "commit", "-m", "Initial commit with test code and requirements"])
-        subprocess.run(["git", "remote", "add", "origin", f"https://{pat}@dev.azure.com/{org_name}/{project_name}/_git/{repo_name}"])
+        subprocess.run(
+            ["git", "commit", "-m", "Initial commit with test code and requirements"]
+        )
+        subprocess.run(
+            [
+                "git",
+                "remote",
+                "add",
+                "origin",
+                f"https://{pat}@dev.azure.com/{org_name}/{project_name}/_git/{repo_name}",
+            ]
+        )
         subprocess.run(["git", "push", "-u", "origin", "master"])
 
     # Check if azure-pipelines.yml already exists
@@ -108,7 +169,9 @@ steps:
             """)
 
         subprocess.run(["git", "add", "azure-pipelines.yml"])
-        subprocess.run(["git", "commit", "-m", "Add azure-pipelines.yml for CI pipeline"])
+        subprocess.run(
+            ["git", "commit", "-m", "Add azure-pipelines.yml for CI pipeline"]
+        )
         subprocess.run(["git", "push"])
     else:
         print("azure-pipelines.yml already exists. Skipping creation.")
@@ -116,24 +179,71 @@ steps:
     # Ensure the pipeline exists
     print(f"Checking if pipeline '{pipeline_name}' exists...")
     try:
-        pipeline_exists = subprocess.check_output(
-            ["az", "pipelines", "list", "--name", pipeline_name, "--project", project_name, "--organization", org_url, "--query", "[].id", "--output", "tsv"],
-            stderr=subprocess.PIPE
-        ).decode().strip()
+        pipeline_exists = (
+            subprocess.check_output(
+                [
+                    "az",
+                    "pipelines",
+                    "list",
+                    "--name",
+                    pipeline_name,
+                    "--project",
+                    project_name,
+                    "--organization",
+                    org_url,
+                    "--query",
+                    "[].id",
+                    "--output",
+                    "tsv",
+                ],
+                stderr=subprocess.PIPE,
+            )
+            .decode()
+            .strip()
+        )
     except subprocess.CalledProcessError:
         pipeline_exists = ""
 
     if not pipeline_exists:
         print(f"Creating new pipeline: {pipeline_name}...")
-        subprocess.run([
-            "az", "pipelines", "create", "--name", pipeline_name, "--repository", repo_name, "--repository-type", "tfsgit", "--branch", "master",
-            "--yml-path", "azure-pipelines.yml", "--project", project_name, "--organization", org_url
-        ])
+        subprocess.run(
+            [
+                "az",
+                "pipelines",
+                "create",
+                "--name",
+                pipeline_name,
+                "--repository",
+                repo_name,
+                "--repository-type",
+                "tfsgit",
+                "--branch",
+                "master",
+                "--yml-path",
+                "azure-pipelines.yml",
+                "--project",
+                project_name,
+                "--organization",
+                org_url,
+            ]
+        )
     else:
         print(f"Pipeline '{pipeline_name}' already exists.")
 
     # Trigger the pipeline run
-    subprocess.run(["az", "pipelines", "run", "--name", pipeline_name, "--project", project_name, "--organization", org_url])
+    subprocess.run(
+        [
+            "az",
+            "pipelines",
+            "run",
+            "--name",
+            pipeline_name,
+            "--project",
+            project_name,
+            "--organization",
+            org_url,
+        ]
+    )
 
 print("Setup completed successfully!")
 print(f"Resource Group: {resource_group}")
