@@ -1,23 +1,23 @@
 #!/bin/bash
 set -e
 
-function diskUsage(){
+function diskUsage() {
     df -h
 }
 
-function cpuInfo(){
+function cpuInfo() {
     lscpu
 }
 
-function hardwareInfo(){
+function hardwareInfo() {
     sudo lshw
 }
 
-function memoryInfo(){
+function memoryInfo() {
     free -h
 }
 
-function systemInfo(){
+function systemInfo() {
     uname -a
 }
 
