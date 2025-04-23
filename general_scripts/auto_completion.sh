@@ -4,8 +4,14 @@ set -e
 # Parse argument
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        -arg) userapp="$2"; shift ;;
-        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    -arg)
+        userapp="$2"
+        shift
+        ;;
+    *)
+        echo "Unknown parameter passed: $1"
+        exit 1
+        ;;
     esac
     shift
 done
@@ -33,7 +39,7 @@ fi
 echo "Enabling autocomplete for '$userapp'..."
 completion_cmd="source <($userapp completion bash)"
 if ! grep -q "$completion_cmd" ~/.bashrc; then
-    echo "$completion_cmd" >> ~/.bashrc
+    echo "$completion_cmd" >>~/.bashrc
     echo "✅ Added to ~/.bashrc"
 else
     echo "✅ Already enabled in ~/.bashrc"
