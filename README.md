@@ -64,6 +64,8 @@ This repository contains scripts organized into the following categories:
 - `proc_exist_script.sh`: Check if the process exited and if hes running or not (also capbale of running the process and stopping it)
 - `check_sys_info.sh`: Gives various Linux System information: Disk Usage, Sys Info, etc...
 - `auto_completion.sh`: Allows you to insert cli linux apps to auto completion (if they exist on you machine) in .bashrc
+- `bump_version.sh`: Allows you to bump versions for diffrent types of file, also creates a .bak file to backup (Work in Progress)
+- `bump_version_nb.sh`: Allows you to bump versions for diffrent types of file without backup (Work in Progress)
 
 ### Github Scripts
 
