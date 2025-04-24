@@ -48,6 +48,8 @@ This repository contains scripts organized into the following categories:
 - `clean_docker_ps.sh`: Clean the Docker from containers
 - `clean_docker_images.sh`: Clean all the Docker images
 - `install_docker.sh`: Removes previous version of docker and install the newst one
+- `docker-vol-prune.sh`: Prune all unused Docker Volumes
+- `docker-net-prune.sh`: Prune all unused Docker Networks
 
 ### Azure Scripts
 
@@ -83,7 +85,7 @@ chmod +x <script_name>.sh
 ./<script_name>.sh
 ```
 
-## Recent Updates
+## General Recent Updates
 
 - Added Terraform scripts for installing dependencies
 - Fixed issues with Kubernetes initialization script
@@ -92,6 +94,11 @@ chmod +x <script_name>.sh
 - Added general usage scripts
 - Added 2 new scripts for github folder
 - Added new script for installtion of docker
+
+  #### Updates By Week - [ 18.04.25 -> 24.04.25 ]
+  - Added 2 new docker scripts
+    - docker-vol-prune.sh
+    - docker-net-prune.sh
 
 ## Contributing
 
