@@ -17,13 +17,13 @@ alias_name="$1"
 command="$2"
 
 # Check if the alias already exists
-if gh alias list | grep -q "^$alias_name "; then
+if git config --global --list | grep -q "^$alias_name "; then
     echo "Alias '$alias_name' already exists. Please choose a different name."
     exit 1
 fi
 
 # Create the alias
-gh alias set "$alias_name" "$command"
+git config --global alias."$alias_name" "$command"
 
 if [ $? -eq 0 ]; then
     echo "Alias '$alias_name' created successfully for command: $command"
