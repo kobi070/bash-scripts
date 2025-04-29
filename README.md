@@ -24,9 +24,9 @@ This repository contains scripts organized into the following categories:
 
 - `ini_k8s.sh`: Kubernetes initialization script (recently fixed)
 - `minikube_status.sh`: Minikube status script
-- `minikube_start.sh `: Starts minikube
-- `minikube_stop.sh `: Stops minikube
-- `minikube_install.sh `: Installs minikube if its not installed yet, you need to have docker installed for this to work
+- `minikube_start.sh`: Starts minikube
+- `minikube_stop.sh`: Stops minikube
+- `minikube_install.sh`: Installs minikube if its not installed yet, you need to have docker installed for this to work
 
 ### Terraform Scripts
 
@@ -96,6 +96,7 @@ chmod +x <script_name>.sh
 - Added new script for installtion of docker
 
   #### Updates By Week - [ 18.04.25 -> 24.04.25 ]
+
   - Added 2 new docker scripts
     - docker-vol-prune.sh
     - docker-net-prune.sh
