@@ -1,17 +1,17 @@
 #!/bin/bash
 
-# This script tags and pushes a Docker image to a specified repository.
+# This script builds, tags, and pushes a Docker image to a specified repository.
 # Usage: ./docker-tag-push.sh <Dockerfile> <tag> <repository>
 # Example: ./docker-tag-push.sh Dockerfile latest my-repo/my-image
-# Check if the correct number of arguments is provided
 
+# Check if the correct number of arguments is provided
 if [ "$#" -ne 3 ]; then
-    echo "Usage: $0 <image_name> <tag> <repository>"
+    echo "Usage: $0 <Dockerfile> <tag> <repository>"
     exit 1
 fi  
 
 # Assign arguments to variables
-DOCKER_FILE=$1
+DOCKERFILE=$1
 TAG=$2
 REPOSITORY=$3
 
@@ -21,9 +21,20 @@ if ! docker info > /dev/null 2>&1; then
     exit 1
 fi
 
-# Check if the image exists
-if ! docker image inspect "$IMAGE_NAME:$TAG" > /dev/null 2>&1; then
-    echo "Image $IMAGE_NAME:$TAG does not exist. Please check the image name and tag."
+# Check if Dockerfile exists
+if [ ! -f "$DOCKERFILE" ]; then
+    echo "Dockerfile $DOCKERFILE does not exist."
+    exit 1
+fi
+
+# Build image from Dockerfile
+IMAGE_NAME=temp-build-image
+
+echo "Building Docker image from $DOCKERFILE..."
+docker build -f "$DOCKERFILE" -t "$IMAGE_NAME:$TAG" .
+
+if [ $? -ne 0 ]; then
+    echo "Failed to build image from $DOCKERFILE."
     exit 1
 fi
 
@@ -45,11 +56,3 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Image $REPOSITORY:$TAG pushed successfully."
-
-# Check if the image was pushed successfully
-if docker image inspect "$REPOSITORY:$TAG" > /dev/null 2>&1; then
-    echo "Image $REPOSITORY:$TAG is available in the repository."
-else
-    echo "Image $REPOSITORY:$TAG was not found in the repository after push."
-    exit 1
-fi
