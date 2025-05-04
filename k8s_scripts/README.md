@@ -25,3 +25,11 @@ To use any of these scripts, run them from your terminal:
 
 ```bash
 ./script_name.sh
+```
+
+Replace script_name with the name of the script you wish to execute (e.g., init_k8s, minikube_install, etc.).
+
+✅ Prerequisites
+
+- Bash must be installed on your system.
+- For minikube_install.sh, ensure you have internet access to download the necessary packages.
