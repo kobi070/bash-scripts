@@ -2,6 +2,7 @@
 
 # This script creates a Kubernetes namespace and applies a label to it.
 # Usage: ./k8s_create_ns.sh <namespace_name> <label_key> <label_value>
+# Usage: ./k8s_create_ns.sh <namespace_name>
 # Example: ./k8s_create_ns.sh my-namespace env production
 # Check if the correct number of arguments is provided
 if [ "$#" -ne 1 ]; then
