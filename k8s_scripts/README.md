@@ -19,6 +19,9 @@ This repository contains a collection of shell scripts for managing **Minikube**
 5. **minikube_stop.sh**  
    Stops the running Minikube cluster.
 
+6. **k8s_create_ns.sh**
+   Create a new Namespace in your k8s
+
 ## 🚀 Usage
 
 To use any of these scripts, run them from your terminal:
