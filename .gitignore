@@ -12,3 +12,6 @@ myscript.py
 
 # ignore script_gen.sh
 script_gen*.sh
+
+# Ignore test_bash.sh
+test_bash.sh
