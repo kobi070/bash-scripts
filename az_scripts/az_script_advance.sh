@@ -6,10 +6,10 @@ read -p "Enter the name for the repository: " repo_name
 read -p "Enter the name for the pipeline: " pipeline_name
 read -p "Enter the name of the resource group: " resource_group
 
-org_url="https://dev.azure.com/markveltzer"
-project_name="training"
-location="eastus"
-pat="EXysGY6nOWBETGkJNovT9vkeSAxLdoDp1uPYrCRgB2uospP7IVY7JQQJ99BCACAAAAAAAAAAAAASAZDO0Tu4"
+org_url=""
+project_name=""
+location=""
+pat=""
 
 # Check if an Azure subscription is already set
 current_subscription=$(az account show --query "id" --output tsv 2>/dev/null)
