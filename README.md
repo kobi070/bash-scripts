@@ -29,11 +29,13 @@ This repository contains scripts organized into the following categories:
 - `minikube_stop.sh`: Stops minikube
 - `minikube_install.sh`: Installs minikube if its not installed yet, you need to have docker installed for this to work
 - `k8s_wait_ready.sh`: Waits for a Kubernetes resource (deployment, statefulset, daemonset) to reach a ready state
+- `k8s_decode_secret.sh`: Decodes all keys in a Kubernetes secret for easy viewing
 
 ### Terraform Scripts
 
 - `envsetup.sh`: Scripts for installing all needed dependencies for Terraform
 - `tr_init.sh`: Scripts for checking if all needed dependencies for Terraform are installed
+- `tf_check_fmt.sh`: Checks if Terraform code is properly formatted
 - `/up_py`:
   - `up.py`: Creating a Resource Group and other resource using python to bring up a machine in Azure
   - `up2.py`: Creating vm using python utilizing an already created Resource Group in Azure
@@ -53,6 +55,7 @@ This repository contains scripts organized into the following categories:
 - `docker-vol-prune.sh`: Prune all unused Docker Volumes
 - `docker-net-prune.sh`: Prune all unused Docker Networks
 - `docker_tag_exists.sh`: Checks if a Docker tag exists in a remote registry without pulling the image
+- `docker_image_size.sh`: Checks if a local Docker image exceeds a specified size limit
 
 ### Azure Scripts
 
@@ -72,6 +75,7 @@ This repository contains scripts organized into the following categories:
 - `bump_version.sh`: Allows you to bump versions for diffrent types of file, also creates a .bak file to backup (Work in Progress)
 - `bump_version_nb.sh`: Allows you to bump versions for diffrent types of file without backup (Work in Progress)
 - `validate_env_vars.sh`: Validates that required environment variables are set and not empty
+- `wait_for_url.sh`: Waits for a URL to return a 200 OK status code
 
 ### Github Scripts
 
