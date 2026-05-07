@@ -1,38 +1,26 @@
 #!/bin/bash
-set -euo pipefail
+
+# TODO: Add another arg to mabey update by more than one
 
 # Example Usage: 
-# ./bump_version_nb.sh version.txt patch
-# ./bump_version_nb.sh version.txt minor
-# ./bump_version_nb.sh version.txt major
+# ./bump_version.sh version.txt patch
+# ./bump_version.sh version.txt minor
+# ./bump_version.sh version.txt major
 
-usage() {
-    echo "Usage: $0 <file> [major|minor|patch]"
-    exit 1
-}
-
-if [ "$#" -lt 1 ]; then
-    usage
-fi
+# Get the args from the user
+# file - Which file do you want to get the version from
+# part - Which part of the version in the file do you want to update
 
 file=$1
 part=${2:-patch} # default: patch
 
-if [ ! -f "$file" ]; then
-    echo "Error: File '$file' not found."
-    exit 1
-fi
+# Get the version and saving it in version varibale
+version=$(grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' "$file")
 
-# Get the version and saving it in version variable
-version=$(grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' "$file" | head -n 1)
-
-if [ -z "$version" ]; then
-    echo "Error: No version string (x.y.z) found in '$file'."
-    exit 1
-fi
-
-# IFS - split the major.minor.patch
+# IFS - split the major.minor.patch to not havve "." 
 IFS='.' read -r major minor patch <<<"$version"
+
+echo "$(IFS)"
 
 # Switch case for each of the parts based on the user choice
 case "$part" in
@@ -45,11 +33,9 @@ minor)
     ((minor++))
     patch=0
     ;;
-patch)
-    ((patch++))
-    ;;
+patch) ((patch++)) ;;
 *)
-    echo "Unknown part: $part. Use major, minor, or patch."
+    echo "Unknown part: $part"
     exit 1
     ;;
 esac
@@ -57,7 +43,7 @@ esac
 # The new version after the updated state
 new_version="${major}.${minor}.${patch}"
 
-# Replace in file without backup
-sed -i "s/$version/$new_version/g" "$file"
+# Replace in file
+sed -i "s/$version/$new_version/" "$file"
 
 echo "🔁 Bumped $part version: $version → $new_version"
