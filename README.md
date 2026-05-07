@@ -19,6 +19,7 @@ This repository contains scripts organized into the following categories:
 ### ArgoCD Scripts
 
 - `install-argocd.sh`: Installs ArgoCD on your own Kubernetes cluster
+- `argocd_app_sync.sh`: Syncs an ArgoCD application and waits for it to be Healthy and Synced
 
 ### Kubernetes Scripts
 
@@ -27,6 +28,7 @@ This repository contains scripts organized into the following categories:
 - `minikube_start.sh`: Starts minikube
 - `minikube_stop.sh`: Stops minikube
 - `minikube_install.sh`: Installs minikube if its not installed yet, you need to have docker installed for this to work
+- `k8s_wait_ready.sh`: Waits for a Kubernetes resource (deployment, statefulset, daemonset) to reach a ready state
 
 ### Terraform Scripts
 
@@ -50,6 +52,7 @@ This repository contains scripts organized into the following categories:
 - `install_docker.sh`: Removes previous version of docker and install the newst one
 - `docker-vol-prune.sh`: Prune all unused Docker Volumes
 - `docker-net-prune.sh`: Prune all unused Docker Networks
+- `docker_tag_exists.sh`: Checks if a Docker tag exists in a remote registry without pulling the image
 
 ### Azure Scripts
 
@@ -68,6 +71,7 @@ This repository contains scripts organized into the following categories:
 - `auto_completion.sh`: Allows you to insert cli linux apps to auto completion (if they exist on you machine) in .bashrc
 - `bump_version.sh`: Allows you to bump versions for diffrent types of file, also creates a .bak file to backup (Work in Progress)
 - `bump_version_nb.sh`: Allows you to bump versions for diffrent types of file without backup (Work in Progress)
+- `validate_env_vars.sh`: Validates that required environment variables are set and not empty
 
 ### Github Scripts
 
