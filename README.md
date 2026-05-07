@@ -30,12 +30,15 @@ This repository contains scripts organized into the following categories:
 - `minikube_install.sh`: Installs minikube if its not installed yet, you need to have docker installed for this to work
 - `k8s_wait_ready.sh`: Waits for a Kubernetes resource (deployment, statefulset, daemonset) to reach a ready state
 - `k8s_decode_secret.sh`: Decodes all keys in a Kubernetes secret for easy viewing
+- `k8s_pod_restart_detector.sh`: Identifies pods in a Kubernetes namespace that have been restarting frequently
+- `k8s_node_resource_usage.sh`: Summarizes CPU and Memory usage across all nodes in a cluster
 
 ### Terraform Scripts
 
 - `envsetup.sh`: Scripts for installing all needed dependencies for Terraform
 - `tr_init.sh`: Scripts for checking if all needed dependencies for Terraform are installed
 - `tf_check_fmt.sh`: Checks if Terraform code is properly formatted
+- `tf_validate_all.sh`: Finds all directories containing Terraform files and runs 'terraform validate' in each
 - `/up_py`:
   - `up.py`: Creating a Resource Group and other resource using python to bring up a machine in Azure
   - `up2.py`: Creating vm using python utilizing an already created Resource Group in Azure
@@ -56,6 +59,7 @@ This repository contains scripts organized into the following categories:
 - `docker-net-prune.sh`: Prune all unused Docker Networks
 - `docker_tag_exists.sh`: Checks if a Docker tag exists in a remote registry without pulling the image
 - `docker_image_size.sh`: Checks if a local Docker image exceeds a specified size limit
+- `docker_clean_unused.sh`: Safely removes unused Docker images, containers, and volumes with dry-run support
 
 ### Azure Scripts
 
@@ -76,6 +80,8 @@ This repository contains scripts organized into the following categories:
 - `bump_version_nb.sh`: Allows you to bump versions for diffrent types of file without backup (Work in Progress)
 - `validate_env_vars.sh`: Validates that required environment variables are set and not empty
 - `wait_for_url.sh`: Waits for a URL to return a 200 OK status code
+- `check_ssl_expiry.sh`: Checks the expiration date of an SSL certificate for a given domain
+- `find_large_files.sh`: Finds files larger than a specified size in a directory
 
 ### Github Scripts
 
@@ -83,6 +89,8 @@ This repository contains scripts organized into the following categories:
 - `commit_script_no_push.sh`: Commiting the changes you created by branch and message with the files you added without pushing the changes
 - `check_alias.sh`: Checking which alias is used in your git
 - `init_repo.sh`: Init a new repository with main branch (Work in progress)
+- `gh_get_latest_release.sh`: Fetches the latest release tag from a GitHub repository using the GitHub API
+- `gh_download_release_asset.sh`: Downloads a specific asset from the latest GitHub release of a repository
 
 ## Usage
 
