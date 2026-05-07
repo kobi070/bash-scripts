@@ -85,6 +85,10 @@ This repository contains scripts organized into the following categories:
 - `az_script_advance.sh`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it
 - `az_script.sh`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it (Hard Coded)
 - `az_script_with_user.sh`: Creates a Repo inside Azure DevOps, Pushing files and Creating a Pipeline and running it (Lets user chose everything)
+- `az_devops_config.sh`: Configures Azure DevOps CLI with Organization URL and PAT
+- `az_devops_list_pipelines.sh`: Lists Azure DevOps pipelines for a given project
+- `az_devops_run_pipeline.sh`: Triggers an Azure DevOps pipeline run
+- `az_devops_wait_pipeline.sh`: Waits for an Azure DevOps pipeline run to complete
 
 ### General Scripts
 
