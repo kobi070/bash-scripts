@@ -36,8 +36,7 @@ fi
 echo "Searching for files larger than ${MIN_SIZE}MB in $SEARCH_DIR..."
 
 # Use find to locate large files
-# -size +${MIN_SIZE}M finds files strictly larger than MIN_SIZE megabytes
 # Using -size +${MIN_SIZE}M requires an integer.
 # We'll use kilobyte for more precision if the user wants.
-MIN_SIZE_KB=$((MIN_SIZE * 1024))
+MIN_SIZE_KB=$(echo "$MIN_SIZE * 1024 / 1" | bc 2>/dev/null || echo "$((MIN_SIZE * 1024))")
 find "$SEARCH_DIR" -type f -size "+${MIN_SIZE_KB}k" -exec ls -lh {} + | awk '{print $5, $9}' || echo "No files larger than ${MIN_SIZE}MB found."

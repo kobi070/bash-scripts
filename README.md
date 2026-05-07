@@ -11,6 +11,8 @@ This repository contains scripts organized into the following categories:
 - **k8s_scripts**: Kubernetes installation and configuration utilities
 - **terraform_scripts**: Scripts for automating Terraform installations and dependencies
 - **az_scripts**: Scripts for automating Azure installations and etc
+- **aws_scripts**: AWS CLI automation scripts
+- **jfrog_scripts**: JFrog CLI and Artifactory automation scripts
 - **general_scripts**: Scripts for general use cases
 - **github_scripts**: Scripts for general use cases in Github repositories
 
@@ -20,6 +22,7 @@ This repository contains scripts organized into the following categories:
 
 - `install-argocd.sh`: Installs ArgoCD on your own Kubernetes cluster
 - `argocd_app_sync.sh`: Syncs an ArgoCD application and waits for it to be Healthy and Synced
+- `argocd_list_apps.sh`: Lists all ArgoCD applications with their health and sync status
 
 ### Kubernetes Scripts
 
@@ -32,6 +35,8 @@ This repository contains scripts organized into the following categories:
 - `k8s_decode_secret.sh`: Decodes all keys in a Kubernetes secret for easy viewing
 - `k8s_pod_restart_detector.sh`: Identifies pods in a Kubernetes namespace that have been restarting frequently
 - `k8s_node_resource_usage.sh`: Summarizes CPU and Memory usage across all nodes in a cluster
+- `k8s_pod_logs_by_label.sh`: Fetches logs from all pods matching a specific label
+- `k8s_check_resource_limits.sh`: Verifies that all pods in a namespace have CPU and Memory limits defined
 
 ### Terraform Scripts
 
@@ -45,6 +50,16 @@ This repository contains scripts organized into the following categories:
 - `/down_py`:
   - `down.py`: Deleting a vm on Azure by doing the opposite of creating (Destroying the VM first and etc)
   - `down2.py`: Deleting a vm on Azure only by the Resource Group (Destroying The Resource Group destroys all the resources inside it)
+
+### JFrog Scripts
+
+- `jfrog_config.sh`: Configures the JFrog CLI with server details
+- `jfrog_upload.sh`: Uploads files or directories to Artifactory using JFrog CLI
+- `jfrog_download.sh`: Downloads files or directories from Artifactory using JFrog CLI
+- `jfrog_search.sh`: Searches for artifacts in Artifactory using JFrog CLI
+- `jfrog_delete.sh`: Deletes artifacts from Artifactory with dry-run support
+- `upload_generic.sh`: Uploads a file to Artifactory using curl and API key
+- `pull_generic.sh`: Downloads a file from Artifactory using curl and API key
 
 ### Docker Scirpts
 
@@ -60,6 +75,7 @@ This repository contains scripts organized into the following categories:
 - `docker_tag_exists.sh`: Checks if a Docker tag exists in a remote registry without pulling the image
 - `docker_image_size.sh`: Checks if a local Docker image exceeds a specified size limit
 - `docker_clean_unused.sh`: Safely removes unused Docker images, containers, and volumes with dry-run support
+- `docker_build_push.sh`: Builds and pushes a Docker image with support for multiple tags
 
 ### Azure Scripts
 
@@ -82,6 +98,13 @@ This repository contains scripts organized into the following categories:
 - `wait_for_url.sh`: Waits for a URL to return a 200 OK status code
 - `check_ssl_expiry.sh`: Checks the expiration date of an SSL certificate for a given domain
 - `find_large_files.sh`: Finds files larger than a specified size in a directory
+- `check_disk_space.sh`: Checks disk space and warns if usage exceeds a threshold
+- `send_slack_notification.sh`: Sends a message to a Slack channel using a Webhook URL
+- `hadolint_scan.sh`: Scans a Dockerfile using Hadolint (via Docker) to ensure best practices
+
+### AWS Scripts
+
+- `aws_s3_sync.sh`: Syncs a local directory with an S3 bucket
 
 ### Github Scripts
 
@@ -91,6 +114,8 @@ This repository contains scripts organized into the following categories:
 - `init_repo.sh`: Init a new repository with main branch (Work in progress)
 - `gh_get_latest_release.sh`: Fetches the latest release tag from a GitHub repository using the GitHub API
 - `gh_download_release_asset.sh`: Downloads a specific asset from the latest GitHub release of a repository
+- `gh_create_release.sh`: Creates a GitHub release via the API
+- `gh_list_pull_requests.sh`: Lists open pull requests for a repository using the GitHub API
 
 ## Usage
 

@@ -45,7 +45,6 @@ for MODULE in $MODULES; do
 
     # We might need terraform init if it hasn't been run,
     # but validate usually works if .terraform is present or if no providers are needed.
-    # For a robust CI check, init is usually done before.
     if (cd "$MODULE" && terraform validate); then
         echo "  [OK] Module is valid."
     else
