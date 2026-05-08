@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # This script uploads a file to JFrog Artifactory using the generic upload API.
 # Usage: ./upload_generic.sh <local_file_path> <target_path_in_repo>
@@ -9,10 +9,24 @@ if [ $# -ne 2 ]; then
   exit 1
 fi
 
+# Validate environment variables
+for var in JFROG_API_KEY JFROG_URL JFROG_REPO; do
+  if [ -z "${!var:-}" ]; then
+    echo "Error: Environment variable $var is not set."
+    exit 1
+  fi
+done
+
 LOCAL_FILE="$1"
 TARGET_PATH="$2"
 
-curl -v \
+if [ ! -f "$LOCAL_FILE" ]; then
+  echo "Error: Local file '$LOCAL_FILE' not found."
+  exit 1
+fi
+
+# Removed -v to prevent leaking JFROG_API_KEY in logs
+curl -sS \
   -H "X-JFrog-Art-Api: $JFROG_API_KEY" \
   -H "Content-Type: application/octet-stream" \
   -T "$LOCAL_FILE" \
