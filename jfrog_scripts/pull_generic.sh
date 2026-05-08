@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # This script downloads a file from JFrog Artifactory.
 # Usage: ./pull_generic.sh <source_file_path_in_repo> <local_output_filename>
@@ -9,10 +9,19 @@ if [ $# -ne 2 ]; then
   exit 1
 fi
 
+# Validate environment variables
+for var in JFROG_API_KEY JFROG_URL JFROG_REPO; do
+  if [ -z "${!var:-}" ]; then
+    echo "Error: Environment variable $var is not set."
+    exit 1
+  fi
+done
+
 SOURCE_PATH="$1"
 OUTPUT_FILENAME="$2"
 
-curl -v -H "X-JFrog-Art-Api:$JFROG_API_KEY" \
+# Removed -v to prevent leaking JFROG_API_KEY in logs
+curl -sS -H "X-JFrog-Art-Api: $JFROG_API_KEY" \
      -L -o "$OUTPUT_FILENAME" \
      "$JFROG_URL/$JFROG_REPO/$SOURCE_PATH"
 
