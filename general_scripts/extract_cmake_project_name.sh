@@ -10,8 +10,8 @@ if [[ ! -f "$CMAKE_FILE" ]]; then
 fi
 
 # Extract the project name from the first 'project(...)' line
-PROJECT_NAME=$(grep -i '^\s*project\s*(' "$CMAKE_FILE" | head -n1 | \
-  sed -E 's/^[^()]*\(\s*([^ )]+).*/\1/')
+# Optimized: use a single sed command that quits after the first match to reduce process overhead and stop reading the file early.
+PROJECT_NAME=$(sed -nE '/^\s*project\s*\(/I { s/^[^()]*\(\s*([^ )]+).*/\1/p; q }' "$CMAKE_FILE")
 
 if [[ -z "$PROJECT_NAME" ]]; then
   echo "No project name found in $CMAKE_FILE"
