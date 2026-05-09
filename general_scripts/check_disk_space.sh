@@ -27,7 +27,8 @@ echo "Checking disk usage for $MOUNT_POINT (threshold: ${THRESHOLD}%)..."
 
 # Get usage percentage
 # df -h output example: /dev/sda1 50G 20G 30G 40% /
-USAGE=$(df -h "$MOUNT_POINT" | tail -n 1 | awk '{print $5}' | sed 's/%//')
+# Optimization: Consolidated tail, awk, and sed into a single awk command to reduce process forking.
+USAGE=$(df -h "$MOUNT_POINT" | awk 'END { sub(/%/, "", $5); print $5 }')
 
 echo "Current usage: ${USAGE}%"
 
