@@ -1,0 +1,35 @@
+parameters:
+  - name: environment
+    type: string
+  - name: azureServiceConnection
+    type: string
+  - name: resourceGroupName
+    type: string
+  - name: vmName
+    type: string
+  - name: scriptPath
+    type: string
+  - name: scriptArguments
+    type: string
+    default: ''
+
+jobs:
+  - deployment: DeployVM_${{ parameters.environment }}
+    environment: ${{ parameters.environment }}
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - task: AzureCommandOnObjects@0
+              displayName: 'Run script on VM'
+              inputs:
+                azureSubscription: ${{ parameters.azureServiceConnection }}
+                resourceGroupName: ${{ parameters.resourceGroupName }}
+                filterType: 'objectNames'
+                objectNames: ${{ parameters.vmName }}
+                objectType: 'VirtualMachine'
+                scriptType: 'filePath'
+                scriptPath: ${{ parameters.scriptPath }}
+                scriptArguments: ${{ parameters.scriptArguments }}

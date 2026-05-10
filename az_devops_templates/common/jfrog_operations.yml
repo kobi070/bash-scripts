@@ -1,0 +1,67 @@
+parameters:
+  - name: jfrogServiceConnection
+    type: string
+  - name: command
+    type: string
+    values:
+      - upload
+      - download
+      - xray-scan
+      - config
+  - name: sourcePath
+    type: string
+    default: ''
+  - name: targetPath
+    type: string
+    default: ''
+  - name: xrayFailBuild
+    type: boolean
+    default: true
+
+steps:
+  - ${{ if eq(parameters.command, 'config') }}:
+    - task: JFrogConfig@1
+      displayName: 'JFrog Configuration'
+      inputs:
+        jfrogConnection: ${{ parameters.jfrogServiceConnection }}
+
+  - ${{ if eq(parameters.command, 'upload') }}:
+    - task: JFrogGenericArtifacts@1
+      displayName: 'JFrog Upload'
+      inputs:
+        command: 'Upload'
+        connection: ${{ parameters.jfrogServiceConnection }}
+        specSource: 'taskConfiguration'
+        fileSpec: |
+          {
+            "files": [
+              {
+                "pattern": "${{ parameters.sourcePath }}",
+                "target": "${{ parameters.targetPath }}"
+              }
+            ]
+          }
+
+  - ${{ if eq(parameters.command, 'download') }}:
+    - task: JFrogGenericArtifacts@1
+      displayName: 'JFrog Download'
+      inputs:
+        command: 'Download'
+        connection: ${{ parameters.jfrogServiceConnection }}
+        specSource: 'taskConfiguration'
+        fileSpec: |
+          {
+            "files": [
+              {
+                "pattern": "${{ parameters.sourcePath }}",
+                "target": "${{ parameters.targetPath }}"
+              }
+            ]
+          }
+
+  - ${{ if eq(parameters.command, 'xray-scan') }}:
+    - task: JFrogAudit@1
+      displayName: 'JFrog Xray Audit'
+      inputs:
+        jfrogConnection: ${{ parameters.jfrogServiceConnection }}
+        failBuild: ${{ parameters.xrayFailBuild }}

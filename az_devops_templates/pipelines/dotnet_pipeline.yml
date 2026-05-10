@@ -1,8 +1,7 @@
 # .NET CI/CD Pipeline
-templateContext:
-  variables:
-    imageRepository: 'my-dotnet-app'
-    dockerRegistryServiceConnection: 'MyDockerHub'
+variables:
+  imageRepository: 'my-dotnet-app'
+  dockerRegistryServiceConnection: 'MyDockerHub'
 
 trigger:
   branches:

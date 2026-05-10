@@ -17,6 +17,12 @@ parameters:
   - name: buildSteps
     type: stepList
     default: []
+  - name: jfrogServiceConnection
+    type: string
+    default: ''
+  - name: runXrayScan
+    type: boolean
+    default: false
 
 jobs:
   - job: ${{ parameters.jobName }}
@@ -25,6 +31,12 @@ jobs:
       - template: ../common/security_scans.yml
         parameters:
           enableGitleaks: true
+
+      - ${{ if and(ne(parameters.jfrogServiceConnection, ''), eq(parameters.runXrayScan, true)) }}:
+        - template: ../common/jfrog_operations.yml
+          parameters:
+            jfrogServiceConnection: ${{ parameters.jfrogServiceConnection }}
+            command: 'xray-scan'
 
       - ${{ if eq(parameters.language, 'nodejs') }}:
         - task: NodeTool@0

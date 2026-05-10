@@ -89,6 +89,7 @@ This repository contains scripts organized into the following categories:
 - `az_devops_list_pipelines.sh`: Lists Azure DevOps pipelines for a given project
 - `az_devops_run_pipeline.sh`: Triggers an Azure DevOps pipeline run
 - `az_devops_wait_pipeline.sh`: Waits for an Azure DevOps pipeline run to complete
+- `az_devops_vars_util.sh`: Manages Azure DevOps variable groups via CLI.
 
 ### Azure DevOps Templates
 
