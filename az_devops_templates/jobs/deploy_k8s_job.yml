@@ -1,0 +1,38 @@
+parameters:
+  - name: environment
+    type: string
+  - name: kubernetesServiceConnection
+    type: string
+  - name: namespace
+    type: string
+    default: 'default'
+  - name: helmChartPath
+    type: string
+  - name: releaseName
+    type: string
+  - name: valueFile
+    type: string
+
+jobs:
+  - deployment: DeployToK8s_${{ parameters.environment }}
+    displayName: Deploy to ${{ parameters.environment }}
+    environment: ${{ parameters.environment }}
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - task: HelmDeploy@0
+              displayName: 'Helm Upgrade'
+              inputs:
+                connectionType: 'Kubernetes Service Connection'
+                kubernetesServiceConnection: ${{ parameters.kubernetesServiceConnection }}
+                namespace: ${{ parameters.namespace }}
+                command: 'upgrade'
+                chartType: 'FilePath'
+                chartPath: ${{ parameters.helmChartPath }}
+                releaseName: ${{ parameters.releaseName }}
+                overrideValues: 'image.tag=$(Build.BuildId)'
+                valueFile: ${{ parameters.valueFile }}
+                waitForExecution: true

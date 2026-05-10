@@ -1,0 +1,55 @@
+parameters:
+  - name: jobName
+    type: string
+    default: 'BuildAndTest'
+  - name: pool
+    type: object
+    default:
+      vmImage: 'ubuntu-latest'
+  - name: language
+    type: string
+    values:
+      - nodejs
+      - python
+      - java
+  - name: buildSteps
+    type: stepList
+    default: []
+
+jobs:
+  - job: ${{ parameters.jobName }}
+    pool: ${{ parameters.pool }}
+    steps:
+      - template: ../common/security_scans.yml
+        parameters:
+          enableGitleaks: true
+
+      - ${{ if eq(parameters.language, 'nodejs') }}:
+        - task: NodeTool@0
+          inputs:
+            versionSpec: '18.x'
+          displayName: 'Install Node.js'
+        - script: |
+            npm install
+            npm test
+          displayName: 'NPM Install and Test'
+
+      - ${{ if eq(parameters.language, 'python') }}:
+        - task: UsePythonVersion@0
+          inputs:
+            versionSpec: '3.x'
+          displayName: 'Install Python'
+        - script: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+            pytest
+          displayName: 'Pip Install and Test'
+
+      - ${{ if eq(parameters.language, 'java') }}:
+        - task: Maven@3
+          inputs:
+            mavenPomFile: 'pom.xml'
+            goals: 'clean test'
+          displayName: 'Maven Build and Test'
+
+      - ${{ parameters.buildSteps }}
