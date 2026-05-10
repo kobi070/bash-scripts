@@ -1,0 +1,20 @@
+# This file serves as a reference for GitFlow triggers in Azure Pipelines.
+# It is not meant to be called as a template but used as a configuration snippet.
+
+# GitFlow Triggers Configuration
+trigger:
+  batch: true
+  branches:
+    include:
+      - main     # Production
+      - develop  # Integration
+      - release/* # Release candidates
+      - feature/* # Feature branches
+      - hotfix/*  # Critical fixes
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+      - release/*

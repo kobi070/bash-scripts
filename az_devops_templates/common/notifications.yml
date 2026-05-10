@@ -1,0 +1,21 @@
+parameters:
+  - name: sendEmail
+    type: boolean
+    default: true
+  - name: emailRecipients
+    type: string
+  - name: subject
+    type: string
+  - name: body
+    type: string
+
+steps:
+  - ${{ if eq(parameters.sendEmail, true) }}:
+    - task: SendEmail@1
+      displayName: 'Send Email Notification'
+      inputs:
+        To: ${{ parameters.emailRecipients }}
+        From: 'azure-devops@yourdomain.com'
+        Subject: ${{ parameters.subject }}
+        Body: ${{ parameters.body }}
+        BodyType: 'html'

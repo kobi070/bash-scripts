@@ -96,10 +96,12 @@ Located in `az_devops_templates/`, these are reusable YAML templates for pipelin
 
 - `common/security_scans.yml`: Steps for Secret Scanning and SAST/SCA.
 - `common/docker_build_push.yml`: Steps for Docker build, Trivy scan, and push.
-- `jobs/build_test_job.yml`: Multi-language build/test job.
+- `jobs/build_test_job.yml`: Multi-language build/test job (.NET, C++, Node, etc).
 - `jobs/deploy_k8s_job.yml`: Helm-based deployment job.
 - `pipelines/nodejs_pipeline.yml`: Example Node.js CI/CD.
 - `pipelines/python_pipeline.yml`: Example Python CI/CD.
+- `pipelines/dotnet_pipeline.yml`: Example .NET CI/CD.
+- `pipelines/cpp_pipeline.yml`: Example C++ CI.
 
 ### General Scripts
 
