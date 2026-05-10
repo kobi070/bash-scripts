@@ -1,0 +1,40 @@
+parameters:
+  - name: enableGitleaks
+    type: boolean
+    default: true
+  - name: enableSonar
+    type: boolean
+    default: false
+  - name: sonarProjectKey
+    type: string
+    default: ''
+  - name: sonarCloudServiceConnection
+    type: string
+    default: 'SonarCloudServiceConnection'
+  - name: sonarOrganization
+    type: string
+    default: 'your-org'
+
+steps:
+  - ${{ if eq(parameters.enableGitleaks, true) }}:
+    - task: Gitleaks@2
+      displayName: 'Gitleaks Scan'
+      inputs:
+        scanlocation: '$(Build.SourcesDirectory)'
+        configtype: 'predefined'
+        reportformat: 'sarif'
+
+  - ${{ if eq(parameters.enableSonar, true) }}:
+    - task: SonarCloudPrepare@1
+      displayName: 'Prepare analysis on SonarCloud'
+      inputs:
+        SonarCloud: ${{ parameters.sonarCloudServiceConnection }}
+        organization: ${{ parameters.sonarOrganization }}
+        scannerMode: 'CLI'
+        configMode: 'manual'
+        projectKey: ${{ parameters.sonarProjectKey }}
+
+  - script: |
+      echo "Running generic security checks..."
+      # Add custom security scripts here
+    displayName: 'Custom Security Checks'

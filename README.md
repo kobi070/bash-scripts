@@ -89,6 +89,20 @@ This repository contains scripts organized into the following categories:
 - `az_devops_list_pipelines.sh`: Lists Azure DevOps pipelines for a given project
 - `az_devops_run_pipeline.sh`: Triggers an Azure DevOps pipeline run
 - `az_devops_wait_pipeline.sh`: Waits for an Azure DevOps pipeline run to complete
+- `az_devops_vars_util.sh`: Manages Azure DevOps variable groups via CLI.
+
+### Azure DevOps Templates
+
+Located in `az_devops_templates/`, these are reusable YAML templates for pipelines.
+
+- `common/security_scans.yml`: Steps for Secret Scanning and SAST/SCA.
+- `common/docker_build_push.yml`: Steps for Docker build, Trivy scan, and push.
+- `jobs/build_test_job.yml`: Multi-language build/test job (.NET, C++, Node, etc).
+- `jobs/deploy_k8s_job.yml`: Helm-based deployment job.
+- `pipelines/nodejs_pipeline.yml`: Example Node.js CI/CD.
+- `pipelines/python_pipeline.yml`: Example Python CI/CD.
+- `pipelines/dotnet_pipeline.yml`: Example .NET CI/CD.
+- `pipelines/cpp_pipeline.yml`: Example C++ CI.
 
 ### General Scripts
 

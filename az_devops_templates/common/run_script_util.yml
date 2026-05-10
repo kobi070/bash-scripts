@@ -1,0 +1,31 @@
+parameters:
+  - name: scriptPath
+    type: string
+  - name: scriptArguments
+    type: string
+    default: ''
+  - name: displayName
+    type: string
+    default: 'Run Utility Script'
+  - name: useBash
+    type: boolean
+    default: true
+  - name: workingDirectory
+    type: string
+    default: '$(System.DefaultWorkingDirectory)'
+
+steps:
+  - ${{ if eq(parameters.useBash, true) }}:
+    - script: |
+        chmod +x ${{ parameters.scriptPath }}
+        ./${{ parameters.scriptPath }} ${{ parameters.scriptArguments }}
+      displayName: ${{ parameters.displayName }}
+      workingDirectory: ${{ parameters.workingDirectory }}
+
+  - ${{ if eq(parameters.useBash, false) }}:
+    - task: PowerShell@2
+      displayName: ${{ parameters.displayName }}
+      inputs:
+        filePath: ${{ parameters.scriptPath }}
+        arguments: ${{ parameters.scriptArguments }}
+        workingDirectory: ${{ parameters.workingDirectory }}
