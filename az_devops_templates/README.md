@@ -11,6 +11,7 @@ The templates are organized into three main categories:
 - `docker_build_push.yml`: Standardized workflow for building, scanning, and pushing Docker images.
 - `gitflow_logic.yml`: Shared logic for branch-based environment detection.
 - `jfrog_operations.yml`: Common tasks for interacting with JFrog Artifactory.
+- `tag_watcher_task.yml`: Checks for new tags in a repository and triggers a pipeline.
 
 ### 2. Standardized Jobs (`jobs/`)
 - `build_test_job.yml`: A multi-language job template supporting .NET, C++, Node.js, and Python.
@@ -21,6 +22,7 @@ The templates are organized into three main categories:
 ### 3. Pipeline Examples (`pipelines/`)
 Ready-to-use pipeline examples for different stacks:
 - `nodejs_pipeline.yml`, `python_pipeline.yml`, `dotnet_pipeline.yml`, `cpp_pipeline.yml`.
+- `utils/tag_watcher_pipeline.yml`: Scheduled pipeline to monitor multiple repositories for new tags.
 
 ## 🚀 Usage
 

@@ -1,0 +1,51 @@
+# Tag Watcher Pipeline
+# This pipeline runs on a schedule and checks for new tags in specified repositories.
+# If a new tag is found, it triggers the corresponding CI pipeline.
+
+schedules:
+  - cron: "0 * * * *" # Every hour
+    displayName: Hourly tag check
+    branches:
+      include:
+        - main
+    always: true
+
+trigger: none # Disable CI trigger for this pipeline
+pr: none      # Disable PR trigger for this pipeline
+
+variables:
+  - group: tag-watcher-state # Variable group to store last seen tags
+  - name: organization
+    value: 'https://dev.azure.com/your-org'
+  - name: project
+    value: 'your-project'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+jobs:
+  - job: WatchTags
+    displayName: 'Watch Repositories for New Tags'
+    steps:
+      # Checkout the repository containing the scripts
+      - checkout: self
+
+      # Example 1: Monitor 'service-a' repository
+      - template: ../../common/tag_watcher_task.yml
+        parameters:
+          organization: $(organization)
+          project: $(project)
+          repository: 'service-a'
+          targetPipeline: 'service-a-ci'
+          variableGroup: 'tag-watcher-state'
+          displayName: 'Check service-a for new tags'
+
+      # Example 2: Monitor 'service-b' repository
+      - template: ../../common/tag_watcher_task.yml
+        parameters:
+          organization: $(organization)
+          project: $(project)
+          repository: 'service-b'
+          targetPipeline: 'service-b-ci'
+          variableGroup: 'tag-watcher-state'
+          displayName: 'Check service-b for new tags'

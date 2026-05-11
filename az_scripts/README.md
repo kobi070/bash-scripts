@@ -20,6 +20,9 @@ This directory contains shell scripts for managing **Azure** resources and **Azu
 5. **az_list_repos.sh**
    Lists all repositories within an Azure DevOps project.
 
+6. **az_repo_tag_watcher.sh**
+   Monitors a repository for new tags and triggers a target pipeline, using a variable group for state persistence.
+
 ### Resource Management
 6. **az_script_advance.sh**
    An end-to-end script that creates a repo, pushes code, and sets up a CI/CD pipeline in Azure DevOps.
