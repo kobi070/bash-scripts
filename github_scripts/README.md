@@ -1,39 +1,45 @@
 # github_scripts
 
-This repository contains a set of shell scripts designed to streamline common Git and GitHub operations. These scripts help automate tasks such as initializing repositories, committing changes, managing aliases, and viewing logs.
+This directory contains scripts for automating **GitHub** workflows and interacting with the GitHub API.
 
 ## 📜 Scripts Overview
 
-1. **check_alias.sh**  
-   Checks if specific Git command aliases are set up in your shell environment.
+1. **gh_create_release.sh**
+   Creates a new GitHub release using the API. Requires `GITHUB_TOKEN`.
 
-2. **commit_script_no_push.sh**  
-   Commits staged changes with a message but does not push them to the remote repository.
+2. **gh_get_latest_release.sh**
+   Fetches the tag name of the latest release for a repository.
 
-3. **commit_script.sh**  
-   Commits staged changes and pushes them to the remote repository.
+3. **gh_download_release_asset.sh**
+   Downloads a specific asset from the latest GitHub release.
 
-4. **create_command_alias.sh**  
-   Creates convenient command aliases for frequently used Git operations.
+4. **gh_list_pull_requests.sh**
+   Lists open pull requests for a given repository.
 
-5. **init_repo.sh**  
-   Initializes a new Git repository in the current directory.
+5. **commit_script.sh / commit_script_no_push.sh**
+   Simplifies the workflow of adding, committing, and optionally pushing changes.
 
-6. **logs_script.sh**  
-   Displays the Git commit log in a readable format.
+6. **init_repo.sh**
+   Initializes a new Git repository with a default `main` branch.
+
+7. **create_command_alias.sh / check_alias.sh**
+   Utilities for managing Git aliases.
+
+8. **logs_script.sh**
+   Displays formatted Git logs for better readability.
 
 ## 🚀 Usage
 
-To execute any script, run it from your terminal:
-
 ```bash
-./script_name.sh
+chmod +x <script_name>.sh
+./<script_name>.sh
 ```
-
-Replace script_name with the name of the script you want to run (e.g., init_repo, commit_script, etc.).
 
 ✅ Prerequisites
 
-- Bash shell must be available on your system.
-- Git must be installed and configured.
-- For scripts involving remote operations, ensure you have access to the relevant GitHub repository.
+- Git installed and configured.
+- `curl` and `jq` installed.
+- `GITHUB_TOKEN` environment variable for API-based scripts.
+
+📘 Notes
+- API scripts prefer `curl` and `jq` over the `gh` CLI for better portability in CI environments.
