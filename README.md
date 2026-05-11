@@ -37,6 +37,7 @@ This repository contains scripts organized into the following categories:
 - `k8s_node_resource_usage.sh`: Summarizes CPU and Memory usage across all nodes in a cluster
 - `k8s_pod_logs_by_label.sh`: Fetches logs from all pods matching a specific label
 - `k8s_check_resource_limits.sh`: Verifies that all pods in a namespace have CPU and Memory limits defined
+- `k8s_unused_secrets_finder.sh`: Identifies Kubernetes secrets in a namespace that are not currently used by any Pod or ServiceAccount
 
 ### Terraform Scripts
 
@@ -76,6 +77,7 @@ This repository contains scripts organized into the following categories:
 - `docker_image_size.sh`: Checks if a local Docker image exceeds a specified size limit
 - `docker_clean_unused.sh`: Safely removes unused Docker images, containers, and volumes with dry-run support
 - `docker_build_push.sh`: Builds and pushes a Docker image with support for multiple tags
+- `docker_list_latest_images.sh`: Lists local Docker images using the 'latest' tag
 
 ### Azure Scripts
 
@@ -119,10 +121,12 @@ Located in `az_devops_templates/`, these are reusable YAML templates for pipelin
 - `check_disk_space.sh`: Checks disk space and warns if usage exceeds a threshold
 - `send_slack_notification.sh`: Sends a message to a Slack channel using a Webhook URL
 - `hadolint_scan.sh`: Scans a Dockerfile using Hadolint (via Docker) to ensure best practices
+- `check_url_content.sh`: Waits for a URL to return 200 OK and verifies that the body contains a specific string
 
 ### AWS Scripts
 
 - `aws_s3_sync.sh`: Syncs a local directory with an S3 bucket
+- `aws_list_old_ebs_snapshots.sh`: Lists AWS EBS snapshots older than a specified number of days
 
 ### Github Scripts
 
@@ -134,6 +138,7 @@ Located in `az_devops_templates/`, these are reusable YAML templates for pipelin
 - `gh_download_release_asset.sh`: Downloads a specific asset from the latest GitHub release of a repository
 - `gh_create_release.sh`: Creates a GitHub release via the API
 - `gh_list_pull_requests.sh`: Lists open pull requests for a repository using the GitHub API
+- `git_cleanup_merged_branches.sh`: Deletes local branches that have been merged into the default branch
 
 ## Usage
 
