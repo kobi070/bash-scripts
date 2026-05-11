@@ -1,32 +1,32 @@
 # terraform_scripts
 
-This repository contains scripts and configuration files to help set up and manage Terraform environments efficiently. It includes environment setup, initialization, and dependency management.
+This directory contains scripts for setting up and managing **Terraform** environments.
 
-## 📜 Files Overview
+## 📜 Scripts Overview
 
 1. **envsetup.sh**  
-   Prepares the environment for Terraform usage. This may include setting environment variables, configuring backends, or installing required tools.
+   Installs Terraform and its dependencies (like `tfenv` or specific CLI versions).
 
 2. **tr_init.sh**  
-   Initializes a Terraform working directory. This script typically runs `terraform init` and may include additional setup steps.
+   Validates that the environment is ready for Terraform operations.
 
-3. **requirements.txt**  
-   Lists Python dependencies (if any) required for auxiliary scripts or tooling related to Terraform.
+3. **tf_validate_all.sh**
+   Recursively searches for Terraform modules and runs `terraform validate` in each.
+
+4. **tf_check_fmt.sh**
+   Checks if all Terraform files in the project are properly formatted.
 
 ## 🚀 Usage
 
-To set up and initialize your Terraform environment, run the following commands:
-
 ```bash
-./envsetup.sh
-./tr_init.sh
+chmod +x <script_name>.sh
+./<script_name>.sh
 ```
 
 ✅ Prerequisites
 
-- Terraform must be installed and available in your system's PATH.
-- Bash shell must be available.
-- Python and pip should be installed if using requirements.txt.
+- Terraform CLI installed.
+- Python 3 (if using auxiliary Python tools).
+
 📘 Notes
-- Always review and customize the scripts to match your infrastructure and backend configuration.
-- For more information on Terraform, visit the official Terraform documentation.
+- Always run `tf_check_fmt.sh` before committing changes to ensure code quality.
