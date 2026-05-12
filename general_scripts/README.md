@@ -4,7 +4,7 @@ This directory contains general-purpose utility scripts for system monitoring, d
 
 ## 📜 Scripts Overview
 
-### System Monitoring
+### System Monitoring & Info
 1. **check_sys_info.sh**
    Provides a detailed summary of CPU, memory, disk usage, and OS details.
 
@@ -14,27 +14,40 @@ This directory contains general-purpose utility scripts for system monitoring, d
 3. **find_large_files.sh**
    Identifies files larger than a specified size in a directory tree.
 
-### Development Utilities
-4. **bump_version.sh / bump_version_nb.sh**
+4. **check_ssl_expiry.sh**
+   Checks the expiration date of an SSL certificate for a given domain.
+
+### Process Management
+5. **kill_proc.sh**
+   Finds and kills a process by name or port.
+
+6. **proc_exist_script.sh**
+   Checks if a specific process is running.
+
+### Development & Automation
+7. **bump_version.sh / bump_version_nb.sh**
    Automates version bumping in files (with or without backups).
 
-5. **validate_env_vars.sh**
+8. **validate_env_vars.sh**
    Ensures required environment variables are set before proceeding with a task.
 
-6. **wait_for_url.sh**
+9. **wait_for_url.sh**
    Polls a URL until it returns a 200 OK status.
 
-7. **send_slack_notification.sh**
-   Sends custom messages to Slack via Webhooks.
+10. **send_slack_notification.sh**
+    Sends custom messages to Slack via Webhooks.
 
-### Tools & Linting
-8. **hadolint_scan.sh**
-   Lints Dockerfiles using Hadolint via a temporary Docker container.
+11. **auto_completion.sh**
+    Configures bash auto-completion for common CLI tools.
 
-9. **get_helm.sh / install_boost.sh**
-   Installation scripts for Helm and Boost libraries.
+### Tools & Installation
+12. **hadolint_scan.sh**
+    Lints Dockerfiles using Hadolint via a temporary Docker container.
 
-10. **extract_cmake_project_name.sh**
+13. **get_helm.sh / install_boost.sh**
+    Installation scripts for Helm and Boost libraries.
+
+14. **extract_cmake_project_name.sh**
     Utility to extract the project name from a `CMakeLists.txt` file.
 
 ## 🚀 Usage
