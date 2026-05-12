@@ -8,16 +8,13 @@
 
 A comprehensive collection of specialized DevOps scripts and Azure DevOps YAML templates designed to automate installations, configurations, and CI/CD workflows across various environments.
 
-## 🌟 Overview
+## 🚀 Key Features
 
-This repository serves as a centralized hub for automation assets, covering:
-- **Cloud Providers**: AWS, Azure
-- **Containerization**: Docker, Trivy
-- **Orchestration**: Kubernetes, ArgoCD, Minikube
-- **Infrastructure as Code**: Terraform
-- **Artifact Management**: JFrog Artifactory
-- **CI/CD**: Azure DevOps Templates, GitHub API automation
-- **Utility**: System monitoring, versioning, and general-purpose Linux scripts
+- **Modularity**: Small, single-purpose scripts and templates that can be easily composed.
+- **Security-First (Sentinel)**: Integrated secret scanning, vulnerability checks, and best practices for credential handling.
+- **Cloud Native**: Native support for AWS, Azure, Docker, and Kubernetes.
+- **CI/CD Ready**: Reusable Azure DevOps templates and GitHub API automation.
+- **Standardized**: Consistent usage patterns, help functions, and error handling across all scripts.
 
 ## 📂 Repository Structure
 
@@ -27,7 +24,7 @@ The repository is organized into technology-specific directories:
 - [aws_scripts/](./aws_scripts/): AWS CLI and S3 automation.
 - [az_devops_templates/](./az_devops_templates/): Reusable YAML templates for Azure DevOps pipelines.
 - [az_scripts/](./az_scripts/): Azure CLI and Azure DevOps automation.
-- [docker_scripts/](./docker_scripts/): Docker environment management, image handling, and security scanning.
+- [docker_scripts/](./docker_scripts/): Docker environment management and security.
 - [general_scripts/](./general_scripts/): System utilities, versioning, and monitoring.
 - [github_scripts/](./github_scripts/): GitHub API and Git workflow automation.
 - [jfrog_scripts/](./jfrog_scripts/): JFrog CLI and Artifactory management.
@@ -37,104 +34,102 @@ The repository is organized into technology-specific directories:
 ## 🛠️ Prerequisites
 
 Most scripts require specific CLI tools. Ensure you have the relevant ones installed:
-- **Bash**: Most scripts use `set -euo pipefail`.
-- **Docker**: Required for `docker_scripts` and `hadolint_scan.sh`.
-- **kubectl**: Required for `k8s_scripts` and `argocd_scripts`.
-- **Azure CLI (`az`)**: Required for `az_scripts`.
-- **AWS CLI (`aws`)**: Required for `aws_scripts`.
-- **JFrog CLI (`jf` or `jfrog`)**: Required for `jfrog_scripts`.
-- **GitHub CLI (`gh`)** or `curl`/`jq`: Required for `github_scripts`.
-- **Terraform**: Required for `terraform_scripts`.
-- **jq**: Essential for parsing JSON output from various APIs (GitHub, K8s, Azure).
+
+| Tool | Purpose |
+|------|---------|
+| **Bash** | Core execution environment (uses `set -euo pipefail`). |
+| **jq** | Essential for JSON parsing across almost all scripts. |
+| **Docker** | For `docker_scripts`, Trivy scans, and Hadolint. |
+| **kubectl** | For `k8s_scripts` and `argocd_scripts`. |
+| **Azure CLI** | For `az_scripts` (requires `azure-devops` extension). |
+| **AWS CLI** | For `aws_scripts`. |
+| **JFrog CLI** | For `jfrog_scripts`. |
+| **Terraform** | For `terraform_scripts`. |
+
+## ⚡ Quick Start
+
+1. **Clone the repo**:
+   ```bash
+   git clone https://github.com/your-repo/devops-automation.git
+   cd devops-automation
+   ```
+
+2. **Run a system check**:
+   ```bash
+   ./general_scripts/check_sys_info.sh
+   ```
+
+3. **Check Kubernetes resources**:
+   ```bash
+   ./k8s_scripts/k8s_node_resource_usage.sh
+   ```
+
+4. **Scan a Docker image**:
+   ```bash
+   ./docker_scripts/trivyScans.sh my-image:latest
+   ```
 
 ## 📜 Available Scripts
 
-### ArgoCD Scripts
-- `install-argocd.sh`: Installs ArgoCD on your Kubernetes cluster.
-- `argocd_app_sync.sh`: Syncs an ArgoCD application and waits for it to be Healthy.
-- `argocd_list_apps.sh`: Lists all ArgoCD applications with status.
-
 ### Kubernetes Scripts
-- `ini_k8s.sh`: Kubernetes initialization script.
-- `minikube_install.sh`: Installs Minikube.
-- `minikube_start.sh` / `minikube_stop.sh`: Manage Minikube lifecycle.
+- `init_k8s.sh`: Kubernetes initialization and health check.
+- `minikube_install.sh`: Automated Minikube installation.
 - `k8s_wait_ready.sh`: Waits for resources to reach a ready state.
-- `k8s_decode_secret.sh`: Decodes all keys in a Kubernetes secret.
 - `k8s_node_resource_usage.sh`: Summarizes cluster resource usage.
+- `k8s_check_resource_limits.sh`: Verifies CPU/Memory limits on all pods.
+- `k8s_decode_secret.sh`: Decodes all keys in a Kubernetes secret.
 
 ### Docker Scripts
-- `install_docker.sh`: Removes old versions and installs the latest Docker.
+- `install_docker.sh`: Clean installation of the latest Docker.
 - `docker_build_push.sh`: Advanced build and push with multi-tag support.
-- `trivyScans.sh`: Scans Docker images for vulnerabilities.
-- `docker_tag_exists.sh`: Checks remote registry for tags without pulling.
-- `docker_clean_unused.sh`: Safely prunes unused Docker resources.
+- `trivyScans.sh`: Vulnerability scanning using Trivy.
+- `docker_tag_exists.sh`: Remote registry tag verification.
+- `docker_image_size.sh`: Validates image size constraints.
+- `docker_clean_unused.sh`: Safe pruning of unused resources.
+
+### Azure & Azure DevOps Scripts
+- `az_devops_config.sh`: Configures CLI with Org URL and PAT.
+- `az_devops_run_pipeline.sh`: Triggers and monitors a pipeline run.
+- `az_repo_tag_watcher.sh`: Automated pipeline triggering based on Git tags.
+- `az_devops_vars_util.sh`: Manages Azure DevOps variable groups.
+- `az_script_advance.sh`: E2E project and pipeline setup.
 
 ### JFrog Scripts
-- `jfrog_config.sh`: Configures JFrog CLI server details.
-- `jfrog_upload.sh` / `jfrog_download.sh`: Artifact management using JFrog CLI.
-- `jf_xray_scan.sh`: Initiates Xray security scans on artifacts.
-- `upload_generic.sh` / `pull_generic.sh`: API-based artifact handling via `curl`.
-
-### Azure Scripts
-- `az_devops_config.sh`: Configures Azure DevOps CLI with PAT.
-- `az_script_advance.sh`: End-to-end Azure DevOps project and pipeline setup.
-- `az_devops_vars_util.sh`: Manages Azure DevOps variable groups.
-
-### Terraform Scripts
-- `envsetup.sh`: Installs all needed dependencies for Terraform.
-- `tf_validate_all.sh`: Recursively validates all Terraform modules in the project.
-- `tf_check_fmt.sh`: Ensures Terraform code adheres to canonical format.
-
-### AWS Scripts
-- `aws_s3_sync.sh`: Efficiently syncs local directories with S3 buckets.
+- `jfrog_config.sh`: Server configuration for JFrog CLI.
+- `jf_xray_scan.sh`: Security scans for artifacts and builds.
+- `jf_node_config.sh` / `jf_python_config.sh`: Configures package managers for Artifactory.
+- `jfrog_upload.sh` / `jfrog_download.sh`: High-level artifact management.
 
 ### GitHub Scripts
-- `gh_create_release.sh`: Automates GitHub release creation via API.
+- `gh_create_release.sh`: Automated release creation via API.
 - `gh_get_latest_release.sh`: Fetches the latest release tag.
-- `commit_script.sh`: Streamlines the add-commit-push workflow.
+- `commit_script.sh`: Streamlined add-commit-push workflow.
 
-### Azure DevOps Templates
-Located in `az_devops_templates/`, these follow a modular design for maximum reusability:
-- **`common/`**: Step-level templates for:
-  - `security_scans.yml`: Gitleaks, SonarCloud, Trivy, and JFrog Xray.
-  - `docker_build_push.yml`: Standardized Docker workflow with integrated security.
-  - `gitflow_logic.yml`: Environment detection based on branch naming.
-- **`jobs/`**: Job-level templates:
-  - `build_test_job.yml`: Parameterized job supporting .NET, C++, Node.js, and Python.
-  - `deploy_k8s_job.yml`: Helm-based deployments to Kubernetes.
-  - `deploy_webapp_job.yml`: Azure Web App deployments.
-- **`pipelines/`**: End-to-end pipeline examples demonstrating how to compose the above templates.
+### Terraform Scripts
+- `envsetup.sh`: Installs Terraform and dependencies.
+- `tf_validate_all.sh`: Recursive module validation.
+- `tf_check_fmt.sh`: Canonical formatting enforcement.
 
-### General Scripts
-- `check_sys_info.sh`: Comprehensive Linux system information.
-- `check_disk_space.sh`: Monitoring with configurable warning thresholds.
-- `send_slack_notification.sh`: Pipeline notifications via Webhooks.
+### General Utilities
+- `check_sys_info.sh`: Linux system health summary.
+- `check_disk_space.sh`: Monitoring with alerting thresholds.
+- `check_ssl_expiry.sh`: Monitors SSL certificate expiration.
+- `find_large_files.sh`: Identifies storage consumers.
+- `send_slack_notification.sh`: Pipeline-integrated Slack alerts.
 - `hadolint_scan.sh`: Dockerfile linting via Docker.
 
-## 🚀 Usage
-
-Most scripts can be executed directly after making them executable:
-
-```bash
-chmod +x <script_name>.sh
-./<script_name>.sh
-```
-
-For scripts that handle secrets, it is highly recommended to use **Environment Variables** instead of positional arguments to prevent exposure in process lists.
+## 🏗️ Azure DevOps Templates
+Located in `az_devops_templates/`, these follow a modular design:
+- **`common/`**: Step-level templates for security, docker, and gitflow.
+- **`jobs/`**: Parameterized job templates for multi-language builds and deployments.
+- **`pipelines/`**: End-to-end example pipelines.
 
 ## 🛡️ Security
 
 This repository follows **Sentinel** security principles:
-- **Secret Management**: Prefer environment variables over command-line arguments.
-- **Left-Shift**: CI/CD templates integrate Gitleaks, Trivy, and Xray by default.
-- **Verbose Logging**: Avoid `curl -v` with sensitive headers to prevent credential leakage.
-
-## 📈 Recent Updates
-
-- **Enhanced Azure DevOps**: Added comprehensive YAML templates for multi-language CI/CD.
-- **Security Scans**: Integrated Trivy and Hadolint into automation workflows.
-- **JFrog Integration**: Expanded scripts for Xray scanning and release management.
-- **Utility Improvements**: Added disk monitoring and Slack notification scripts.
+- **Secret Management**: Mandatory use of environment variables for secrets.
+- **Left-Shift**: Early integration of Gitleaks, Trivy, and Xray in all workflows.
+- **Safe Logging**: Prevention of credential leakage in CI/CD logs.
 
 ## 🤝 Contributing
 
