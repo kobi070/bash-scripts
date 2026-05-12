@@ -7,6 +7,9 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 1. **aws_s3_sync.sh**
    Syncs a local directory with an S3 bucket. Supports optional `--delete` and `--dryrun` flags to match AWS CLI behavior.
 
+2. **aws_ec2_inventory.sh**
+   Generates a quick inventory of EC2 instances, providing ID, State, Public IP, and Name tag.
+
 ## 🚀 Usage
 
 ```bash
