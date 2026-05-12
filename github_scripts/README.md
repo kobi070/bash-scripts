@@ -4,6 +4,7 @@ This directory contains scripts for automating **GitHub** workflows and interact
 
 ## 📜 Scripts Overview
 
+### GitHub API Automation
 1. **gh_create_release.sh**
    Creates a new GitHub release using the API. Requires `GITHUB_TOKEN`.
 
@@ -14,22 +15,24 @@ This directory contains scripts for automating **GitHub** workflows and interact
    Downloads a specific asset from the latest GitHub release.
 
 4. **gh_list_pull_requests.sh**
-   Lists open pull requests for a given repository.
+   Lists open pull requests for a given repository with their status.
 
-5. **commit_script.sh / commit_script_no_push.sh**
-   Simplifies the workflow of adding, committing, and optionally pushing changes.
+5. **gh_delete_old_workflow_runs.sh**
+   Deletes GitHub Actions workflow runs older than a specified number of days.
 
+### Repository Management
 6. **init_repo.sh**
    Initializes a new Git repository with a default `main` branch.
 
-7. **create_command_alias.sh / check_alias.sh**
-   Utilities for managing Git aliases.
+7. **commit_script.sh / commit_script_no_push.sh**
+   Simplifies the workflow of adding, committing, and optionally pushing changes.
 
 8. **logs_script.sh**
    Displays formatted Git logs for better readability.
 
-9. **gh_delete_old_workflow_runs.sh**
-   Deletes GitHub Actions workflow runs older than a specified number of days.
+### Git Configuration & Utilities
+9. **create_command_alias.sh / check_alias.sh**
+   Utilities for managing and verifying Git aliases.
 
 ## 🚀 Usage
 

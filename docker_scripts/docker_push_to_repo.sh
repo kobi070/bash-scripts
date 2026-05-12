@@ -13,7 +13,8 @@ if ! command -v docker &> /dev/null; then
 fi
 
 # Check if login is required
-if [ -z "$(docker info | grep 'Username: ' | awk '{print $2}')" ]; then
+# Optimization: Consolidated grep and awk into a single awk command to reduce process forking.
+if [ -z "$(docker info | awk '/Username: / {print $2}')" ]; then
     echo "You are not logged in to Docker Hub."
     read -p "Enter DockerHub Username: " username
     read -s -p "Enter DockerHub Password: " password
