@@ -1,0 +1,27 @@
+# C/C++ CI Pipeline
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+stages:
+  - stage: BuildAndTest
+    jobs:
+      - template: ../jobs/build_test_job.yml
+        parameters:
+          language: 'cpp'
+
+  - stage: Notify
+    dependsOn: BuildAndTest
+    condition: failed()
+    jobs:
+      - job: FailureNotification
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - template: ../common/notifications.yml
+            parameters:
+              emailRecipients: 'leads@example.com'
+              subject: 'ALERT: C++ Pipeline Failed'
+              body: 'The C++ pipeline build $(Build.BuildId) has failed.'

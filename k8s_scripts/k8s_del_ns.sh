@@ -12,16 +12,22 @@ fi
 # Assign arguments to variables
 NAMESPACE_NAME=$1
 
-minikube kubectl -- --help >/dev/null 2>&1
-if [ $? -ne 0 ]; then
-    echo "kubectl command not found. Please install kubectl."
+# Verify kubectl/minikube existence
+if ! command -v kubectl &> /dev/null && ! command -v minikube &> /dev/null; then
+    echo "Error: kubectl or minikube not found. Please install one of them."
     exit 1
 fi
 
+# Use kubectl if available, otherwise fallback to minikube kubectl
+KUBECTL_BIN="kubectl"
+if ! command -v kubectl &> /dev/null; then
+    KUBECTL_BIN="minikube kubectl --"
+fi
+
 # Check if the namespace already exists
-if minikube kubectl -- get namespace "$NAMESPACE_NAME" >/dev/null 2>&1; then
+if $KUBECTL_BIN get namespace "$NAMESPACE_NAME" >/dev/null 2>&1; then
     # Delete the namespace
-    minikube kubectl -- delete namespace "$NAMESPACE_NAME"
+    $KUBECTL_BIN delete namespace "$NAMESPACE_NAME"
     echo "Namespace '$NAMESPACE_NAME' deleted."
 else
     echo "Namespace '$NAMESPACE_NAME' does not exist."

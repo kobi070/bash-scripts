@@ -1,0 +1,43 @@
+parameters:
+  - name: imageRepository
+    type: string
+  - name: dockerfilePath
+    type: string
+    default: '$(Build.SourcesDirectory)/Dockerfile'
+  - name: dockerRegistryServiceConnection
+    type: string
+  - name: tag
+    type: string
+    default: '$(Build.BuildId)'
+  - name: runTrivyScan
+    type: boolean
+    default: true
+
+steps:
+  - task: Docker@2
+    displayName: 'Build Docker Image'
+    inputs:
+      command: 'build'
+      containerRegistry: ${{ parameters.dockerRegistryServiceConnection }}
+      repository: ${{ parameters.imageRepository }}
+      dockerfile: ${{ parameters.dockerfilePath }}
+      tags: |
+        ${{ parameters.tag }}
+        latest
+
+  - ${{ if eq(parameters.runTrivyScan, true) }}:
+    - script: |
+        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+          aquasec/trivy:latest image --exit-code 1 --severity CRITICAL \
+          ${{ parameters.imageRepository }}:${{ parameters.tag }}
+      displayName: 'Trivy Security Scan'
+
+  - task: Docker@2
+    displayName: 'Push Docker Image'
+    inputs:
+      command: 'push'
+      containerRegistry: ${{ parameters.dockerRegistryServiceConnection }}
+      repository: ${{ parameters.imageRepository }}
+      tags: |
+        ${{ parameters.tag }}
+        latest

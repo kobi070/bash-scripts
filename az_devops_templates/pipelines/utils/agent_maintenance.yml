@@ -1,0 +1,24 @@
+# Maintenance pipeline for self-hosted agents
+schedules:
+  - cron: "0 0 * * *"
+    displayName: "Daily midnight cleanup"
+    branches:
+      include:
+        - main
+    always: true
+
+jobs:
+  - job: AgentCleanup
+    pool:
+      name: 'Default' # Replace with your self-hosted pool
+    steps:
+      - template: ../../common/run_script_util.yml
+        parameters:
+          scriptPath: 'docker_scripts/docker_clean_unused.sh'
+          scriptArguments: '--force'
+          displayName: 'Cleanup Docker'
+
+      - script: |
+          echo "Cleaning up temp files..."
+          rm -rf $(Agent.TempDirectory)/*
+        displayName: 'Cleanup Temp Dir'

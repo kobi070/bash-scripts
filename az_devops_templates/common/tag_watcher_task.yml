@@ -1,0 +1,31 @@
+parameters:
+  - name: organization
+    type: string
+  - name: project
+    type: string
+  - name: repository
+    type: string
+  - name: targetPipeline
+    type: string
+  - name: variableGroup
+    type: string
+  - name: variableName
+    type: string
+    default: ''
+  - name: displayName
+    type: string
+    default: 'Check for new tags and trigger pipeline'
+
+steps:
+  - script: |
+      bash $(System.DefaultWorkingDirectory)/az_scripts/az_repo_tag_watcher.sh \
+        --org "${{ parameters.organization }}" \
+        --project "${{ parameters.project }}" \
+        --repo "${{ parameters.repository }}" \
+        --pipeline "${{ parameters.targetPipeline }}" \
+        --group "${{ parameters.variableGroup }}" \
+        ${{ if ne(parameters.variableName, '') }}:
+          --variable "${{ parameters.variableName }}"
+    displayName: ${{ parameters.displayName }}
+    env:
+      AZURE_DEVOPS_EXT_PAT: $(AZ_DEVOPS_PAT)

@@ -5,23 +5,31 @@ This repository contains shell scripts for setting up and managing **Argo CD**, 
 ## 📜 Scripts Overview
 
 1. **install-argocd.sh**  
-   Installs Argo CD on a Kubernetes cluster. This script typically applies the official Argo CD manifests and may include additional setup steps such as namespace creation and port forwarding.
+   Installs Argo CD on a Kubernetes cluster by applying the official manifests and setting up the necessary namespace.
+
+2. **argocd_app_sync.sh**
+   Syncs an Argo CD application and waits for it to reach a `Healthy` and `Synced` status. Includes timeout handling.
+
+3. **argocd_list_apps.sh**
+   Lists all applications managed by Argo CD along with their health and synchronization status.
 
 ## 🚀 Usage
 
-To install Argo CD, run the following command in your terminal:
-
+To install Argo CD:
 ```bash
 ./install-argocd.sh
 ```
 
-Ensure you have the necessary permissions and that your Kubernetes context is correctly configured.
+To sync an app:
+```bash
+./argocd_app_sync.sh <app_name>
+```
 
 ✅ Prerequisites
 
-- A running Kubernetes cluster (e.g., Minikube, kind, or a cloud provider).
-- kubectl installed and configured.
-- Internet access to fetch Argo CD manifests from the official repository.
+- A running Kubernetes cluster.
+- `kubectl` installed and configured.
+- `argocd` CLI installed for app management scripts.
+
 📘 Notes
-- After installation, you can access the Argo CD UI by port-forwarding the Argo CD server service.
-- Default credentials and further configuration steps can be found in the official Argo CD documentation.
+- After installation, use `kubectl port-forward` to access the Argo CD UI.

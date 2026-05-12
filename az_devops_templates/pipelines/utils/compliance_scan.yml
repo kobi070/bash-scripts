@@ -1,0 +1,26 @@
+# Compliance and Security Audit Pipeline
+trigger: none
+
+parameters:
+  - name: runGitleaks
+    type: boolean
+    default: true
+  - name: runHadolint
+    type: boolean
+    default: true
+
+jobs:
+  - job: ComplianceAudit
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - ${{ if eq(parameters.runGitleaks, true) }}:
+        - template: ../../common/security_scans.yml
+          parameters:
+            enableGitleaks: true
+
+      - ${{ if eq(parameters.runHadolint, true) }}:
+        - template: ../../common/run_script_util.yml
+          parameters:
+            scriptPath: 'general_scripts/hadolint_scan.sh'
+            displayName: 'Dockerfile Linting'
