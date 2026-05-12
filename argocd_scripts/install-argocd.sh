@@ -4,11 +4,14 @@ ROOTFOLDER="/home/ubuntu/workarea/devopshift/welcome/argocd/"
 
 # Function to prompt user for installation choice
 function prompt_installation_choice() {
+    if [ -n "$1" ]; then
+        return "$1"
+    fi
     echo "Choose installation option:"
     echo "1. Install/Reinstall all components (ArgoCD)"
     echo "2. Validate / Show access to ArgoCD"
     read -rp "Enter your choice (1 or 2): " choice
-    return $choice
+    return "$choice"
 }
 
 # Function to run a command with retries
@@ -142,7 +145,7 @@ function validate_installation() {
 }
 
 # Main script execution
-prompt_installation_choice
+prompt_installation_choice "$1"
 choice=$?
 
 if [ "$choice" -eq 1 ]; then

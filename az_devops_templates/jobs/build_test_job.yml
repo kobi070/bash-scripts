@@ -1,0 +1,94 @@
+parameters:
+  - name: jobName
+    type: string
+    default: 'BuildAndTest'
+  - name: pool
+    type: object
+    default:
+      vmImage: 'ubuntu-latest'
+  - name: language
+    type: string
+    values:
+      - nodejs
+      - python
+      - java
+      - dotnet
+      - cpp
+  - name: buildSteps
+    type: stepList
+    default: []
+  - name: jfrogServiceConnection
+    type: string
+    default: ''
+  - name: runXrayScan
+    type: boolean
+    default: false
+
+jobs:
+  - job: ${{ parameters.jobName }}
+    pool: ${{ parameters.pool }}
+    steps:
+      - template: ../common/security_scans.yml
+        parameters:
+          enableGitleaks: true
+
+      - ${{ if and(ne(parameters.jfrogServiceConnection, ''), eq(parameters.runXrayScan, true)) }}:
+        - template: ../common/jfrog_operations.yml
+          parameters:
+            jfrogServiceConnection: ${{ parameters.jfrogServiceConnection }}
+            command: 'xray-scan'
+
+      - ${{ if eq(parameters.language, 'nodejs') }}:
+        - task: NodeTool@0
+          inputs:
+            versionSpec: '18.x'
+          displayName: 'Install Node.js'
+        - script: |
+            npm install
+            npm test
+          displayName: 'NPM Install and Test'
+
+      - ${{ if eq(parameters.language, 'python') }}:
+        - task: UsePythonVersion@0
+          inputs:
+            versionSpec: '3.x'
+          displayName: 'Install Python'
+        - script: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+            pytest
+          displayName: 'Pip Install and Test'
+
+      - ${{ if eq(parameters.language, 'java') }}:
+        - task: Maven@3
+          inputs:
+            mavenPomFile: 'pom.xml'
+            goals: 'clean test'
+          displayName: 'Maven Build and Test'
+
+      - ${{ if eq(parameters.language, 'dotnet') }}:
+        - task: DotNetCoreCLI@2
+          inputs:
+            command: 'restore'
+          displayName: 'Dotnet Restore'
+        - task: DotNetCoreCLI@2
+          inputs:
+            command: 'build'
+            arguments: '--configuration Release'
+          displayName: 'Dotnet Build'
+        - task: DotNetCoreCLI@2
+          inputs:
+            command: 'test'
+            arguments: '--configuration Release'
+          displayName: 'Dotnet Test'
+
+      - ${{ if eq(parameters.language, 'cpp') }}:
+        - script: |
+            mkdir build
+            cd build
+            cmake ..
+            make
+            ./run_tests
+          displayName: 'CMake Build and Test'
+
+      - ${{ parameters.buildSteps }}

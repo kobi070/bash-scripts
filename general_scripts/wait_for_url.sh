@@ -38,10 +38,10 @@ INTERVAL=${3:-5}
 
 echo "Waiting for URL $URL to return 200 OK (timeout: ${TIMEOUT}s, interval: ${INTERVAL}s)..."
 
-START_TIME=$(date +%s)
-END_TIME=$((START_TIME + TIMEOUT))
+# Optimized: Use Bash builtin $SECONDS to avoid repetitive 'date' process forks
+SECONDS=0
 
-while [ $(date +%s) -lt $END_TIME ]; do
+while [ "$SECONDS" -lt "$TIMEOUT" ]; do
     HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || true)
 
     if [ "$HTTP_CODE" == "200" ]; then

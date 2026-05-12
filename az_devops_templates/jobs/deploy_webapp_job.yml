@@ -1,0 +1,30 @@
+parameters:
+  - name: environment
+    type: string
+  - name: azureServiceConnection
+    type: string
+  - name: webappName
+    type: string
+  - name: packagePath
+    type: string
+    default: '$(System.DefaultWorkingDirectory)/**/*.zip'
+  - name: runtimeStack
+    type: string
+    default: ''
+
+jobs:
+  - deployment: DeployWebApp_${{ parameters.environment }}
+    environment: ${{ parameters.environment }}
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - task: AzureWebApp@1
+              displayName: 'Azure Web App Deploy'
+              inputs:
+                azureSubscription: ${{ parameters.azureServiceConnection }}
+                appName: ${{ parameters.webappName }}
+                package: ${{ parameters.packagePath }}
+                runtimeStack: ${{ parameters.runtimeStack }}

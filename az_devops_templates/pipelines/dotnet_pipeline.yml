@@ -1,0 +1,36 @@
+# .NET CI/CD Pipeline
+variables:
+  imageRepository: 'my-dotnet-app'
+  dockerRegistryServiceConnection: 'MyDockerHub'
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+stages:
+  - stage: Build
+    jobs:
+      - template: ../jobs/build_test_job.yml
+        parameters:
+          language: 'dotnet'
+          buildSteps:
+            - template: ../common/docker_build_push.yml
+              parameters:
+                imageRepository: 'my-dotnet-app'
+                dockerRegistryServiceConnection: 'MyDockerHub'
+
+  - stage: Notify
+    dependsOn: Build
+    condition: always()
+    jobs:
+      - job: NotifyJob
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - template: ../common/notifications.yml
+            parameters:
+              emailRecipients: 'dev-team@example.com'
+              subject: 'Pipeline Status: $(Build.DefinitionName)'
+              body: 'Pipeline $(Build.BuildNumber) finished with status $(Agent.JobStatus)'

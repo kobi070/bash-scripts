@@ -2,16 +2,17 @@
 
 # Script to configure Azure DevOps CLI with Organization URL and Personal Access Token (PAT).
 # Useful for initializing Azure DevOps CLI in CI/CD environments.
-# Usage: ./az_devops_config.sh <org_url> <pat>
+# Usage: ./az_devops_config.sh <org_url> [pat]
 # Example: ./az_devops_config.sh https://dev.azure.com/my-org/ my-long-pat-token
+# Note: Recommends using AZ_DEVOPS_PAT environment variable for the PAT to avoid exposure.
 
 set -euo pipefail
 
 # Help function
 usage() {
-    echo "Usage: $0 <org_url> <pat>"
+    echo "Usage: $0 <org_url> [pat]"
     echo "  org_url: The Azure DevOps Organization URL"
-    echo "  pat: Personal Access Token with appropriate scopes"
+    echo "  pat: (optional) Personal Access Token. Can also be set via AZ_DEVOPS_PAT env var."
     exit 1
 }
 
@@ -27,12 +28,18 @@ if ! command -v az &> /dev/null; then
 fi
 
 # Input validation
-if [ "$#" -ne 2 ]; then
+if [ "$#" -lt 1 ]; then
     usage
 fi
 
 ORG_URL=$1
-PAT=$2
+# Prefer argument, fallback to environment variable
+PAT=${2:-${AZ_DEVOPS_PAT:-}}
+
+if [ -z "$PAT" ]; then
+    echo "Error: Personal Access Token (PAT) must be provided as the second argument or via AZ_DEVOPS_PAT environment variable."
+    exit 1
+fi
 
 echo "Configuring Azure DevOps CLI..."
 

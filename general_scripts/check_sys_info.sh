@@ -28,7 +28,12 @@ echo "3. Check Hardware Info"
 echo "4. Memory Info"
 echo "5. Check System Info"
 echo "6. Exit"
-read -p "Please enter a number between [1-6]: " useraction
+
+if [ -n "$1" ]; then
+    useraction=$1
+else
+    read -p "Please enter a number between [1-6]: " useraction
+fi
 
 # If the user choice was 6 then we exit the script
 if [ "$useraction" == "6" ]; then

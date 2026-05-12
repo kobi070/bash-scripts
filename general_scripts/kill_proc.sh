@@ -17,7 +17,11 @@ echo "3. Manage geany"
 echo "4. Kill All Processes"
 
 # Read user choice
-read -p "Enter your choice (1-4): " user_choice
+if [ -n "$1" ]; then
+    user_choice=$1
+else
+    read -p "Enter your choice (1-4): " user_choice
+fi
 
 if [[ "$user_choice" -ge 1 && "$user_choice" -le 4 ]]; then
     if [ "$user_choice" -eq 4 ]; then

@@ -1,3 +1,5 @@
-## 2024-05-15 - [Portability vs. Micro-optimization]
-**Learning:** Replacing a pipeline like `grep | head | sed` with a single `sed` command using the `/I` flag (case-insensitive) introduces a dependency on GNU sed, which breaks portability on BSD-based systems like macOS. Furthermore, micro-optimizations that significantly reduce readability for negligible gains (saving <10ms in a script run once per build) may be rejected if they compromise maintainability.
-**Action:** Always verify if a `sed` or `awk` extension is POSIX-compliant before implementation. Prioritize optimizations that maintain or improve readability, such as consolidating multi-command pipelines into a single `awk` command using standard functions.
+# Bolt's Journal - Performance Learnings
+
+## 2025-05-15 - [Process reduction in shell scripts]
+**Learning:** Pipelines like `grep | head | sed` incur significant overhead due to multiple process forks. A single `sed` command with the `q` (quit) instruction can achieve the same result more efficiently by reducing forking and stopping file processing immediately after a match is found.
+**Action:** Use single-tool solutions (like `sed` or `awk`) instead of multi-process pipelines for simple text extraction tasks.

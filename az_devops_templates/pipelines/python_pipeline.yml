@@ -1,0 +1,30 @@
+trigger:
+  - main
+
+variables:
+  imageRepository: 'my-python-app'
+  dockerRegistryServiceConnection: 'MyDockerHub'
+
+stages:
+  - stage: Build
+    jobs:
+      - template: ../jobs/build_test_job.yml
+        parameters:
+          language: 'python'
+          buildSteps:
+            - template: ../common/docker_build_push.yml
+              parameters:
+                imageRepository: $(imageRepository)
+                dockerRegistryServiceConnection: $(dockerRegistryServiceConnection)
+
+  - stage: DeployStaging
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - template: ../jobs/deploy_k8s_job.yml
+        parameters:
+          environment: 'staging'
+          kubernetesServiceConnection: 'MyK8sStaging'
+          helmChartPath: './charts/my-app'
+          releaseName: 'my-app-staging'
+          valueFile: './charts/my-app/values-staging.yaml'

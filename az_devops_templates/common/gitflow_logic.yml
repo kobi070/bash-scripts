@@ -1,0 +1,26 @@
+# This template provides boolean outputs based on GitFlow branch naming conventions.
+# Usage:
+# - template: gitflow_logic.yml
+
+steps:
+  - script: |
+      FULL_BRANCH="$(Build.SourceBranch)"
+      echo "Determining GitFlow environment for branch: $FULL_BRANCH"
+
+      IS_PROD=false
+      IS_STAGING=false
+      IS_DEV=false
+
+      if [[ "$FULL_BRANCH" == "refs/heads/main" || "$FULL_BRANCH" == "refs/heads/master" ]]; then
+        IS_PROD=true
+      elif [[ "$FULL_BRANCH" == "refs/heads/develop" ]]; then
+        IS_DEV=true
+      elif [[ "$FULL_BRANCH" == refs/heads/release/* ]]; then
+        IS_STAGING=true
+      fi
+
+      echo "##vso[task.setvariable variable=isProd;isOutput=true]$IS_PROD"
+      echo "##vso[task.setvariable variable=isStaging;isOutput=true]$IS_STAGING"
+      echo "##vso[task.setvariable variable=isDev;isOutput=true]$IS_DEV"
+    name: GitFlowLogic
+    displayName: 'Evaluate GitFlow Logic'

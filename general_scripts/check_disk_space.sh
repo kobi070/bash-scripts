@@ -26,9 +26,10 @@ MOUNT_POINT=${2:-/}
 echo "Checking disk usage for $MOUNT_POINT (threshold: ${THRESHOLD}%)..."
 
 # Get usage percentage
-# df -h output example: /dev/sda1 50G 20G 30G 40% /
-# Optimization: Consolidated tail, awk, and sed into a single awk command to reduce process forking.
-USAGE=$(df -h "$MOUNT_POINT" | awk 'END { sub(/%/, "", $5); print $5 }')
+# df -Ph ensures POSIX-compliant output format (single line per filesystem)
+# awk NR==2 picks the second line (data), removes '%' from the 5th column, and prints it
+# This reduces 4 process forks (df|tail|awk|sed) to 2 (df|awk)
+USAGE=$(df -Ph "$MOUNT_POINT" | awk 'NR==2 {sub(/%/, "", $5); print $5}')
 
 echo "Current usage: ${USAGE}%"
 
