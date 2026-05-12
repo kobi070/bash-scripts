@@ -4,13 +4,14 @@
 # Useful for CI/CD notifications about pipeline status.
 # Usage: ./send_slack_notification.sh <webhook_url> <message> [channel] [username]
 # Example: ./send_slack_notification.sh "https://hooks.slack.com/services/..." "Build Successful" "#ci-builds" "CI Bot"
+# Note: Recommends using SLACK_WEBHOOK_URL environment variable to avoid secret exposure.
 
 set -euo pipefail
 
 # Help function
 usage() {
     echo "Usage: $0 <webhook_url> <message> [channel] [username]"
-    echo "  webhook_url: The Slack Incoming Webhook URL"
+    echo "  webhook_url: The Slack Incoming Webhook URL. (Prefer SLACK_WEBHOOK_URL env var)"
     echo "  message: The message to send"
     echo "  channel: (optional) The channel to post to"
     echo "  username: (optional) The bot username"
@@ -34,14 +35,30 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # Input validation
-if [ "$#" -lt 2 ]; then
+if [ "$#" -lt 1 ] && [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
     usage
 fi
 
-WEBHOOK_URL=$1
-MESSAGE=$2
-CHANNEL=${3:-""}
+# Credential selection: Environment variable prioritized over argument
+WEBHOOK_URL=${SLACK_WEBHOOK_URL:-${1:-}}
+MESSAGE=${2:-${SLACK_MESSAGE:-}}
+CHANNEL=${3:-}
 USERNAME=${4:-"DevOps Bot"}
+
+if [ -z "$WEBHOOK_URL" ]; then
+    echo "Error: Slack Webhook URL must be provided via SLACK_WEBHOOK_URL environment variable or as the 1st argument."
+    exit 1
+fi
+
+if [ -z "$MESSAGE" ]; then
+    echo "Error: Message must be provided via SLACK_MESSAGE environment variable or as the 2nd argument."
+    exit 1
+fi
+
+if [ -z "${SLACK_WEBHOOK_URL:-}" ] && [ -n "${1:-}" ]; then
+    echo "WARNING: Passing secrets as command-line arguments is insecure."
+    echo "Consider using SLACK_WEBHOOK_URL environment variable."
+fi
 
 echo "Sending Slack notification..."
 

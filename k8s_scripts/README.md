@@ -1,38 +1,51 @@
 # k8s_scripts
 
-This repository contains a collection of shell scripts for managing **Minikube**, a tool that runs a single-node Kubernetes cluster on your local machine. These scripts are designed to simplify the process of installing, starting, checking the status of, and stopping Minikube.
+This directory contains scripts for managing **Kubernetes** resources and **Minikube** environments.
 
 ## 📜 Scripts Overview
 
-1. **init_k8s.sh**  
-   Initializes the Kubernetes environment.
+### Minikube Lifecycle
+1. **minikube_install.sh**
+   Installs Minikube on the local system.
 
-2. **minikube_install.sh**  
-   Installs Minikube on your local machine.
+2. **minikube_start.sh / minikube_stop.sh / minikube_status.sh**
+   Commands for managing the Minikube cluster lifecycle.
 
-3. **minikube_start.sh**  
-   Starts the Minikube cluster.
+### Cluster Management
+3. **init_k8s.sh**
+   Initializes the Kubernetes environment and checks core components.
 
-4. **minikube_status.sh**  
-   Checks and displays the current status of the Minikube cluster.
+4. **k8s_create_ns.sh / k8s_del_ns.sh**
+   Quickly create or delete Kubernetes namespaces.
 
-5. **minikube_stop.sh**  
-   Stops the running Minikube cluster.
+5. **k8s_wait_ready.sh**
+   Waits for deployments, statefulsets, or daemonsets to become ready.
 
-6. **k8s_create_ns.sh**
-   Create a new Namespace in your k8s
+6. **k8s_node_resource_usage.sh**
+   Summarizes CPU and Memory usage across all nodes.
+
+### Monitoring & Debugging
+7. **k8s_pod_restart_detector.sh**
+   Identifies pods that are restarting frequently.
+
+8. **k8s_pod_logs_by_label.sh**
+   Aggregates logs from all pods matching a specific label.
+
+9. **k8s_decode_secret.sh**
+   Decodes all Base64 values in a Kubernetes secret for easy inspection.
+
+10. **k8s_check_resource_limits.sh**
+    Verifies that all pods in a namespace have resource limits defined.
 
 ## 🚀 Usage
 
-To use any of these scripts, run them from your terminal:
-
 ```bash
-./script_name.sh
+chmod +x <script_name>.sh
+./<script_name>.sh
 ```
-
-Replace script_name with the name of the script you wish to execute (e.g., init_k8s, minikube_install, etc.).
 
 ✅ Prerequisites
 
-- Bash must be installed on your system.
-- For minikube_install.sh, ensure you have internet access to download the necessary packages.
+- `kubectl` installed and configured.
+- `minikube` installed (for minikube scripts).
+- `jq` installed for JSON parsing.

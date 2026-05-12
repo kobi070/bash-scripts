@@ -6,10 +6,18 @@ read -p "Enter the name for the repository: " repo_name
 read -p "Enter the name for the pipeline: " pipeline_name
 read -p "Enter the name of the resource group: " resource_group
 
-org_url=""
-project_name=""
-location=""
-pat=""
+org_url="${AZ_DEVOPS_ORG_URL:-}"
+project_name="${AZ_DEVOPS_PROJECT:-}"
+location="${AZ_LOCATION:-eastus}"
+pat="${AZ_DEVOPS_PAT:-}"
+
+# Input validation for essential variables
+if [[ -z "$org_url" ]]; then
+    read -p "Enter Azure DevOps Organization URL: " org_url
+fi
+if [[ -z "$project_name" ]]; then
+    read -p "Enter Azure DevOps Project Name: " project_name
+fi
 
 # Check if an Azure subscription is already set
 current_subscription=$(az account show --query "id" --output tsv 2>/dev/null)
@@ -22,7 +30,17 @@ else
 fi
 
 # Extract organization name from URL
-org_name=$(echo "$org_url" | sed 's|https://dev.azure.com/||')
+org_name=$(echo "$org_url" | sed 's|https://dev.azure.com/||' | sed 's|/.*||')
+
+# Ensure PAT is available
+if [[ -z "$pat" ]]; then
+    read -s -p "Enter Azure DevOps PAT: " pat
+    echo ""
+fi
+
+# Prepare Base64 encoded PAT for Git authentication
+# Azure DevOps uses an empty username with the PAT as the password
+B64_PAT=$(echo -n ":$pat" | base64)
 
 # Configure Azure and Azure DevOps CLI
 echo "Configuring Azure CLI and DevOps extension..."
@@ -61,10 +79,10 @@ echo "pytest" > requirements.txt
 git add .
 git commit -m "Initial commit with test code and requirements"
 
-git remote add origin "https://${pat}@dev.azure.com/${org_name}/${project_name}/_git/${repo_name}"
+git remote add origin "https://dev.azure.com/${org_name}/${project_name}/_git/${repo_name}"
 
 echo "Pushing code to repository..."
-git push -u origin master
+git -c http.extraheader="Authorization: Basic $B64_PAT" push -u origin master
 
 # Create azure-pipelines.yml file dynamically
 echo "Creating azure-pipelines.yml file..."
@@ -97,8 +115,8 @@ EOL
 git add azure-pipelines.yml
 git commit -m "Add azure-pipelines.yml for CI pipeline"
 
-# Push the changes (including the YAML file) to the repository
-git push
+# Push the changes (including the YAML file) to the repository securely
+git -c http.extraheader="Authorization: Basic $B64_PAT" push
 
 # Step 6: Ensure the pipeline exists
 echo "Checking if pipeline '$pipeline_name' exists..."

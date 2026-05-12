@@ -39,16 +39,13 @@ INTERVAL=${4:-30}
 
 echo "Waiting for pipeline run $RUN_ID in project $PROJECT_NAME to complete..."
 
-START_TIME=$(date +%s)
-END_TIME=$((START_TIME + TIMEOUT))
+# Optimized: Use Bash builtin $SECONDS to avoid repetitive 'date' process forks
+SECONDS=0
 
-while [ $(date +%s) -lt $END_TIME ]; do
-    RUN_STATUS_JSON=$(az pipelines build show --id "$RUN_ID" --project "$PROJECT_NAME" --output json)
-
-    # Extract status and result
+while [ "$SECONDS" -lt "$TIMEOUT" ]; do
+    # Optimized: Use a single 'az' call with TSV output to extract status and result, reducing process forks
     # Status can be: 'inProgress', 'completed', 'cancelling', 'postponed', 'notStarted'
-    STATUS=$(echo "$RUN_STATUS_JSON" | grep -oP '"status": "\K[^"]+' | head -n 1)
-    RESULT=$(echo "$RUN_STATUS_JSON" | grep -oP '"result": "\K[^"]+' | head -n 1 || echo "pending")
+    IFS=$'\t' read -r STATUS RESULT < <(az pipelines build show --id "$RUN_ID" --project "$PROJECT_NAME" --query "[status, result]" --output tsv)
 
     if [ "$STATUS" == "completed" ]; then
         echo "Pipeline run $RUN_ID completed with result: $RESULT"
