@@ -24,18 +24,21 @@ This directory contains scripts for managing **Docker** environments, image work
 6. **docker_image_size.sh**
    Validates that a local image does not exceed a specified size limit.
 
+7. **docker_show_image_layers.sh**
+   Displays the layers of a Docker image and their sizes.
+
 ### Cleanup & Maintenance
-7. **docker_clean_unused.sh**
+8. **docker_clean_unused.sh**
    Prunes unused containers, images, and networks with dry-run support.
 
-8. **docker-vol-prune.sh / docker-net-prune.sh**
+9. **docker-vol-prune.sh / docker-net-prune.sh**
    Specific scripts for pruning volumes and networks.
 
-9. **clean_docker_images.sh / clean_docker_ps.sh**
-   Quick cleanup scripts for images and containers.
+10. **clean_docker_images.sh / clean_docker_ps.sh**
+    Quick cleanup scripts for images and containers.
 
 ### Security
-10. **trivyScans.sh**
+11. **trivyScans.sh**
     Uses Trivy to scan images for vulnerabilities and generates reports.
 
 ## 🚀 Usage

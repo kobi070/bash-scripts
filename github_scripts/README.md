@@ -28,6 +28,9 @@ This directory contains scripts for automating **GitHub** workflows and interact
 8. **logs_script.sh**
    Displays formatted Git logs for better readability.
 
+9. **gh_delete_old_workflow_runs.sh**
+   Deletes GitHub Actions workflow runs older than a specified number of days.
+
 ## 🚀 Usage
 
 ```bash

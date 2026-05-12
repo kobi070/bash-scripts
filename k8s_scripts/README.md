@@ -37,6 +37,9 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 10. **k8s_check_resource_limits.sh**
     Verifies that all pods in a namespace have resource limits defined.
 
+11. **k8s_find_unused_pvcs.sh**
+    Identifies PersistentVolumeClaims (PVCs) that are not currently mounted by any Pod.
+
 ## 🚀 Usage
 
 ```bash

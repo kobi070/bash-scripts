@@ -37,6 +37,9 @@ This directory contains general-purpose utility scripts for system monitoring, d
 10. **extract_cmake_project_name.sh**
     Utility to extract the project name from a `CMakeLists.txt` file.
 
+11. **backup_dir.sh**
+    Creates a timestamped compressed backup of a directory with basic rotation logic.
+
 ## 🚀 Usage
 
 ```bash
