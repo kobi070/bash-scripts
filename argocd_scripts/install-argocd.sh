@@ -1,7 +1,5 @@
 #!/bin/bash
 
-ROOTFOLDER="/home/ubuntu/workarea/devopshift/welcome/argocd/"
-
 # Function to prompt user for installation choice
 function prompt_installation_choice() {
     if [ -n "$1" ]; then
@@ -16,14 +14,14 @@ function prompt_installation_choice() {
 
 # Function to run a command with retries
 function run_command() {
-    command=$1
-    description=$2
-    retries=3
-    sleep_duration=10
+    local description=$1
+    shift
+    local retries=3
+    local sleep_duration=10
 
     for ((i=1; i<=retries; i++)); do
         echo "Running: $description (Attempt $i of $retries)"
-        if eval $command; then
+        if "$@"; then
             return 0
         fi
         echo "Retry $i of $retries failed. Retrying in $sleep_duration seconds..."
@@ -66,30 +64,27 @@ check_pods() {
 }
 
 function create_namespace () {
-    namespace=$1
-    description=$2
-    echo $description
-    # Create the namespace and capture the result
-    CreateNamespace=$(kubectl create namespace $namespace 2>&1)
-    echo $?
-
-    # Check if the namespace creation resulted in an "AlreadyExists" error
-    if [[ $CreateNamespace == *"Error from server (AlreadyExists): namespaces \"$namespace\" already exists"* ]]; then
-        echo "Namespace already exists - skipping"
-    else
-        echo $CreateNamespace
-    fi
+    local namespace=$1
+    local description=$2
+    run_command "$description" kubectl create namespace "$namespace" || {
+        # If it failed, check if it was because it already exists
+        if kubectl get namespace "$namespace" &> /dev/null; then
+            echo "Namespace '$namespace' already exists - skipping"
+            return 0
+        fi
+        return 1
+    }
 }
 
 # Function to install ArgoCD
 function install_argoCD() {
     echo "Installing ArgoCD..."
-    run_command "curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64" "Downloading ArgoCD binary"
-    run_command "sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd" "Add ArgoCD to bin folder"
-    run_command "rm argocd-linux-amd64" "Removing tar file"
+    run_command "Downloading ArgoCD binary" curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+    run_command "Add ArgoCD to bin folder" sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+    run_command "Removing tar file" rm argocd-linux-amd64
     create_namespace "argocd" "Creating ArgoCD namespace"
-    run_command "kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml" "Applying ArgoCD manifest"
-    run_command "kubectl patch svc argocd-server -n argocd -p '{\"spec\": {\"type\": \"LoadBalancer\"}}'" "Patch svc/argocd-server to type LB"
+    run_command "Applying ArgoCD manifest" kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+    run_command "Patch svc/argocd-server to type LB" kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
 }
 
 # Function to validate installation and output endpoints
@@ -102,7 +97,6 @@ function validate_installation() {
         for i in {1..3}; do
             echo "Waiting for ArgoCD Ingress Gateway IP... retry $i/3"
             sleep 5
-            clear
             ingress_ip=$(kubectl get svc/argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
             if [ ! -z "$ingress_ip" ]; then
                 break
@@ -118,7 +112,6 @@ function validate_installation() {
     fi
 
     # Get ArgoCD Password
-    clear
     echo "Access the following URL for ArgoCD:"
     echo "ArgoCD: https://$ingress_ip/"
     echo "Getting ArgoCD initial admin Password"
@@ -128,7 +121,6 @@ function validate_installation() {
         for i in {1..3}; do
             echo "Waiting for ArgoCD Password... retry $i/3"
             sleep 5
-            clear
             PASSWORD=$(kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d; echo)
             if [ ! -z "$PASSWORD" ]; then
                 echo "Password retrived successfully"
@@ -141,7 +133,12 @@ function validate_installation() {
         fi
     fi
     echo "USER: admin"
-    echo "PASSWORD: $PASSWORD"
+    if [ -t 1 ]; then
+        echo "PASSWORD: $PASSWORD"
+    else
+        echo "WARNING: Non-interactive terminal detected. Password hidden for security."
+        echo "To retrieve the password, run: kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d; echo"
+    fi
 }
 
 # Main script execution
