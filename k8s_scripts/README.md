@@ -1,6 +1,7 @@
 # k8s_scripts
 
-This directory contains scripts for managing **Kubernetes** resources and **Minikube** environments.
+## 📖 Overview
+This directory contains scripts for managing **Kubernetes** resources and **Minikube** environments. It covers cluster initialization, resource monitoring, and debugging utilities.
 
 ## 📜 Scripts Overview
 
@@ -42,12 +43,17 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 
 ## 🚀 Usage
 
+### Check Cluster Usage
 ```bash
-chmod +x <script_name>.sh
-./<script_name>.sh
+./k8s_node_resource_usage.sh
 ```
 
-✅ Prerequisites
+### Decode Secrets
+```bash
+./k8s_decode_secret.sh <secret_name> -n <namespace>
+```
+
+## ✅ Prerequisites
 
 - `kubectl` installed and configured.
 - `minikube` installed (for minikube scripts).

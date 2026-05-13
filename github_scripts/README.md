@@ -1,6 +1,7 @@
 # github_scripts
 
-This directory contains scripts for automating **GitHub** workflows and interacting with the GitHub API.
+## 📖 Overview
+This directory contains scripts for automating **GitHub** workflows and interacting with the GitHub API. It includes tools for release management, repository initialization, and PR monitoring.
 
 ## 📜 Scripts Overview
 
@@ -36,16 +37,22 @@ This directory contains scripts for automating **GitHub** workflows and interact
 
 ## 🚀 Usage
 
+### Create a Release
 ```bash
-chmod +x <script_name>.sh
-./<script_name>.sh
+export GITHUB_TOKEN="your_token"
+./gh_create_release.sh --tag "v1.2.3" --name "Release v1.2.3"
 ```
 
-✅ Prerequisites
+### Simplify Commits
+```bash
+./commit_script.sh "docs: improve readme"
+```
+
+## ✅ Prerequisites
 
 - Git installed and configured.
 - `curl` and `jq` installed.
 - `GITHUB_TOKEN` environment variable for API-based scripts.
 
-📘 Notes
+## 📘 Notes
 - API scripts prefer `curl` and `jq` over the `gh` CLI for better portability in CI environments.

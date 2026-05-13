@@ -1,6 +1,7 @@
 # az_scripts
 
-This directory contains shell scripts for managing **Azure** resources and **Azure DevOps** automation using the Azure CLI.
+## 📖 Overview
+This directory contains shell scripts for managing **Azure** resources and **Azure DevOps** automation using the Azure CLI. It covers pipeline management, variable group manipulation, and repository synchronization.
 
 ## 📜 Scripts Overview
 
@@ -38,17 +39,24 @@ This directory contains shell scripts for managing **Azure** resources and **Azu
 
 ## 🚀 Usage
 
+### Basic Execution
 ```bash
 chmod +x <script_name>.sh
 ./<script_name>.sh
 ```
 
-✅ Prerequisites
+### Non-interactive Pipeline Run
+```bash
+export AZURE_DEVOPS_EXT_PAT="your_pat_here"
+./az_devops_run_pipeline.sh --name "MyPipeline"
+```
+
+## ✅ Prerequisites
 
 - Azure CLI (`az`) installed.
 - Azure DevOps extension for Azure CLI (`az extension add --name azure-devops`).
 - Valid PAT with sufficient permissions.
 
-📘 Notes
+## 📘 Notes
 - Use `az login` to authenticate before running resource management scripts.
 - For non-interactive use, set `AZURE_DEVOPS_EXT_PAT` as an environment variable.

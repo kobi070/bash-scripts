@@ -1,6 +1,7 @@
 # general_scripts
 
-This directory contains general-purpose utility scripts for system monitoring, development workflows, and automation.
+## 📖 Overview
+This directory contains general-purpose utility scripts for system monitoring, development workflows, and automation. These tools are designed to be portable and easily integrated into various CI/CD pipelines.
 
 ## 📜 Scripts Overview
 
@@ -55,15 +56,21 @@ This directory contains general-purpose utility scripts for system monitoring, d
 
 ## 🚀 Usage
 
+### Check System Info
 ```bash
-chmod +x <script_name>.sh
-./<script_name>.sh
+./check_sys_info.sh
 ```
 
-✅ Prerequisites
+### Send Slack Notification
+```bash
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
+./send_slack_notification.sh "Build successful!"
+```
+
+## ✅ Prerequisites
 
 - Bash shell.
 - Specific tools as required by individual scripts (e.g., `curl`, `jq`, `docker`).
 
-📘 Notes
+## 📘 Notes
 - These scripts are designed to be portable and can be easily integrated into CI/CD pipelines.
