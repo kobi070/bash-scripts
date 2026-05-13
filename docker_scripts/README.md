@@ -38,6 +38,9 @@ This directory contains scripts for managing **Docker** environments, image work
 10. **trivyScans.sh**
     Uses Trivy to scan images for vulnerabilities and generates reports.
 
+11. **docker_get_container_ip.sh**
+    Retrieves the IP address of a running Docker container.
+
 ## 🚀 Usage
 
 ```bash

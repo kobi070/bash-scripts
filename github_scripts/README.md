@@ -17,18 +17,21 @@ This directory contains scripts for automating **GitHub** workflows and interact
 4. **gh_list_pull_requests.sh**
    Lists open pull requests for a given repository with their status.
 
+5. **gh_list_collaborators.sh**
+   Lists all collaborators of a GitHub repository using the GitHub API.
+
 ### Repository Management
-5. **init_repo.sh**
+6. **init_repo.sh**
    Initializes a new Git repository with a default `main` branch.
 
-6. **commit_script.sh / commit_script_no_push.sh**
+7. **commit_script.sh / commit_script_no_push.sh**
    Simplifies the workflow of adding, committing, and optionally pushing changes.
 
-7. **logs_script.sh**
+8. **logs_script.sh**
    Displays formatted Git logs for better readability.
 
 ### Git Configuration & Utilities
-8. **create_command_alias.sh / check_alias.sh**
+9. **create_command_alias.sh / check_alias.sh**
    Utilities for managing and verifying Git aliases.
 
 ## 🚀 Usage
