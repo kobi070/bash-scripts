@@ -17,37 +17,40 @@ This directory contains general-purpose utility scripts for system monitoring, d
 4. **check_ssl_expiry.sh**
    Checks the expiration date of an SSL certificate for a given domain.
 
+5. **check_zombie_processes.sh**
+   Detects zombie processes (status 'Z') on the system.
+
 ### Process Management
-5. **kill_proc.sh**
+6. **kill_proc.sh**
    Finds and kills a process by name or port.
 
-6. **proc_exist_script.sh**
+7. **proc_exist_script.sh**
    Checks if a specific process is running.
 
 ### Development & Automation
-7. **bump_version.sh / bump_version_nb.sh**
+8. **bump_version.sh / bump_version_nb.sh**
    Automates version bumping in files (with or without backups).
 
-8. **validate_env_vars.sh**
+9. **validate_env_vars.sh**
    Ensures required environment variables are set before proceeding with a task.
 
-9. **wait_for_url.sh**
-   Polls a URL until it returns a 200 OK status.
+10. **wait_for_url.sh**
+    Polls a URL until it returns a 200 OK status.
 
-10. **send_slack_notification.sh**
+11. **send_slack_notification.sh**
     Sends custom messages to Slack via Webhooks.
 
-11. **auto_completion.sh**
+12. **auto_completion.sh**
     Configures bash auto-completion for common CLI tools.
 
 ### Tools & Installation
-12. **hadolint_scan.sh**
+13. **hadolint_scan.sh**
     Lints Dockerfiles using Hadolint via a temporary Docker container.
 
-13. **get_helm.sh / install_boost.sh**
+14. **get_helm.sh / install_boost.sh**
     Installation scripts for Helm and Boost libraries.
 
-14. **extract_cmake_project_name.sh**
+15. **extract_cmake_project_name.sh**
     Utility to extract the project name from a `CMakeLists.txt` file.
 
 ## 🚀 Usage
