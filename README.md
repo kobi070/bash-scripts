@@ -8,6 +8,23 @@
 
 A comprehensive collection of specialized DevOps scripts and Azure DevOps YAML templates designed to automate installations, configurations, and CI/CD workflows across various environments.
 
+---
+
+## 📑 Table of Contents
+
+- [🚀 Key Features](#-key-features)
+- [📂 Repository Structure](#-repository-structure)
+- [🛠️ Prerequisites](#️-prerequisites)
+- [🔐 Environment Variables](#-environment-variables)
+- [⚡ Quick Start](#-quick-start)
+- [📜 Available Scripts](#-available-scripts)
+- [🏗️ Azure DevOps Templates](#️-azure-devops-templates)
+- [🛡️ Security (Sentinel)](#️-security-sentinel)
+- [🤝 Contributing](#-contributing)
+- [📜 License](#-license)
+
+---
+
 ## 🚀 Key Features
 
 - **Modularity**: Small, single-purpose scripts and templates that can be easily composed.
@@ -46,6 +63,18 @@ Most scripts require specific CLI tools. Ensure you have the relevant ones insta
 | **JFrog CLI** | For `jfrog_scripts`. |
 | **Terraform** | For `terraform_scripts`. |
 
+## 🔐 Environment Variables
+
+Many scripts prioritize environment variables for security and automation. Common variables include:
+
+| Variable | Purpose |
+|----------|---------|
+| `AZ_DEVOPS_PAT` | Personal Access Token for Azure DevOps. |
+| `GITHUB_TOKEN` | Token for GitHub API operations. |
+| `JF_AUTH_TOKEN` | Authentication token for JFrog CLI. |
+| `SLACK_WEBHOOK_URL` | Webhook URL for Slack notifications. |
+| `AZURE_DEVOPS_EXT_PAT` | Used by Azure CLI `azure-devops` extension. |
+
 ## ⚡ Quick Start
 
 1. **Clone the repo**:
@@ -71,46 +100,53 @@ Most scripts require specific CLI tools. Ensure you have the relevant ones insta
 
 ## 📜 Available Scripts
 
-### Kubernetes Scripts
+### ☸️ Kubernetes Scripts
 - `init_k8s.sh`: Kubernetes initialization and health check.
 - `minikube_install.sh`: Automated Minikube installation.
 - `k8s_wait_ready.sh`: Waits for resources to reach a ready state.
 - `k8s_node_resource_usage.sh`: Summarizes cluster resource usage.
-- `k8s_check_resource_limits.sh`: Verifies CPU/Memory limits on all pods.
 - `k8s_decode_secret.sh`: Decodes all keys in a Kubernetes secret.
 
-### Docker Scripts
+### 🐳 Docker Scripts
 - `install_docker.sh`: Clean installation of the latest Docker.
 - `docker_build_push.sh`: Advanced build and push with multi-tag support.
 - `trivyScans.sh`: Vulnerability scanning using Trivy.
 - `docker_tag_exists.sh`: Remote registry tag verification.
-- `docker_image_size.sh`: Validates image size constraints.
 - `docker_clean_unused.sh`: Safe pruning of unused resources.
 
-### Azure & Azure DevOps Scripts
+### ☁️ Azure & Azure DevOps Scripts
 - `az_devops_config.sh`: Configures CLI with Org URL and PAT.
 - `az_devops_run_pipeline.sh`: Triggers and monitors a pipeline run.
 - `az_repo_tag_watcher.sh`: Automated pipeline triggering based on Git tags.
 - `az_devops_vars_util.sh`: Manages Azure DevOps variable groups.
 - `az_script_advance.sh`: E2E project and pipeline setup.
 
-### JFrog Scripts
+### 📦 JFrog Scripts
 - `jfrog_config.sh`: Server configuration for JFrog CLI.
 - `jf_xray_scan.sh`: Security scans for artifacts and builds.
 - `jf_node_config.sh` / `jf_python_config.sh`: Configures package managers for Artifactory.
 - `jfrog_upload.sh` / `jfrog_download.sh`: High-level artifact management.
 
-### GitHub Scripts
+### 🐙 GitHub Scripts
 - `gh_create_release.sh`: Automated release creation via API.
 - `gh_get_latest_release.sh`: Fetches the latest release tag.
+- `gh_list_pull_requests.sh`: Lists open PRs and their status.
 - `commit_script.sh`: Streamlined add-commit-push workflow.
 
-### Terraform Scripts
+### 🏗️ Terraform Scripts
 - `envsetup.sh`: Installs Terraform and dependencies.
 - `tf_validate_all.sh`: Recursive module validation.
 - `tf_check_fmt.sh`: Canonical formatting enforcement.
 
-### General Utilities
+### 🐙 ArgoCD Scripts
+- `install-argocd.sh`: Automated ArgoCD installation.
+- `argocd_app_sync.sh`: Syncs ArgoCD applications and waits for health.
+- `argocd_list_apps.sh`: Lists all apps and their status.
+
+### ☁️ AWS Scripts
+- `aws_s3_sync.sh`: Robust S3 synchronization with dry-run support.
+
+### 🛠️ General Utilities
 - `check_sys_info.sh`: Linux system health summary.
 - `check_disk_space.sh`: Monitoring with alerting thresholds.
 - `check_ssl_expiry.sh`: Monitors SSL certificate expiration.
@@ -119,17 +155,22 @@ Most scripts require specific CLI tools. Ensure you have the relevant ones insta
 - `hadolint_scan.sh`: Dockerfile linting via Docker.
 
 ## 🏗️ Azure DevOps Templates
-Located in `az_devops_templates/`, these follow a modular design:
-- **`common/`**: Step-level templates for security, docker, and gitflow.
-- **`jobs/`**: Parameterized job templates for multi-language builds and deployments.
-- **`pipelines/`**: End-to-end example pipelines.
 
-## 🛡️ Security
+Located in `az_devops_templates/`, these follow a modular design:
+
+- **`common/`**: Step-level templates for security (Gitleaks, Trivy, Xray), docker, and gitflow.
+- **`jobs/`**: Parameterized job templates for multi-language builds (Node.js, Python, .NET, C++) and deployments (K8s, VM, Web App).
+- **`pipelines/`**: End-to-end example pipelines and utility maintenance scripts.
+
+## 🛡️ Security (Sentinel)
 
 This repository follows **Sentinel** security principles:
-- **Secret Management**: Mandatory use of environment variables for secrets.
-- **Left-Shift**: Early integration of Gitleaks, Trivy, and Xray in all workflows.
-- **Safe Logging**: Prevention of credential leakage in CI/CD logs.
+
+- **Left-Shift Security**: Mandatory integration of security checks at the earliest stages.
+- **Secret Scanning**: Gitleaks is integrated to prevent accidental credential leaks.
+- **Vulnerability Scanning**: Trivy and JFrog Xray are used for container and artifact scanning.
+- **Safe Logging**: Scripts are designed to avoid leaking sensitive information in CI/CD logs.
+- **Credential Handling**: Prioritizes environment variables over positional arguments to prevent exposure in process lists and shell history.
 
 ## 🤝 Contributing
 

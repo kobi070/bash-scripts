@@ -1,6 +1,7 @@
 # argocd_scripts
 
-This repository contains shell scripts for setting up and managing **Argo CD**, a declarative, GitOps continuous delivery tool for Kubernetes.
+## 📖 Overview
+This directory contains shell scripts for setting up and managing **Argo CD**, a declarative, GitOps continuous delivery tool for Kubernetes.
 
 ## 📜 Scripts Overview
 
@@ -15,21 +16,21 @@ This repository contains shell scripts for setting up and managing **Argo CD**, 
 
 ## 🚀 Usage
 
-To install Argo CD:
+### Install Argo CD
 ```bash
 ./install-argocd.sh
 ```
 
-To sync an app:
+### Sync an Application
 ```bash
 ./argocd_app_sync.sh <app_name>
 ```
 
-✅ Prerequisites
+## ✅ Prerequisites
 
 - A running Kubernetes cluster.
 - `kubectl` installed and configured.
 - `argocd` CLI installed for app management scripts.
 
-📘 Notes
+## 📘 Notes
 - After installation, use `kubectl port-forward` to access the Argo CD UI.
