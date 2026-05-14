@@ -48,6 +48,9 @@ This directory contains scripts for managing **Docker** environments, image work
 11. **docker_get_container_ip.sh**
     Retrieves the IP address of a running Docker container.
 
+12. **docker_layer_size_analyzer.sh**
+    Analyzes Docker image layers to identify where the size is coming from.
+
 ## 🚀 Usage
 
 ### Build and Push Image

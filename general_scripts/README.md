@@ -41,7 +41,10 @@ This directory contains general-purpose utility scripts for system monitoring, d
 11. **send_slack_notification.sh**
     Sends custom messages to Slack via Webhooks.
 
-12. **auto_completion.sh**
+12. **url_health_summary.sh**
+    Reports status codes and latency for a list of URLs.
+
+13. **auto_completion.sh**
     Configures bash auto-completion for common CLI tools.
 
 ### Tools & Installation

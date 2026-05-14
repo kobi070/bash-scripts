@@ -106,6 +106,7 @@ Many scripts prioritize environment variables for security and automation. Commo
 - `k8s_wait_ready.sh`: Waits for resources to reach a ready state.
 - `k8s_node_resource_usage.sh`: Summarizes cluster resource usage.
 - `k8s_decode_secret.sh`: Decodes all keys in a Kubernetes secret.
+- `k8s_secret_expiry_check.sh`: Identifies expiring TLS secrets.
 
 ### 🐳 Docker Scripts
 - `install_docker.sh`: Clean installation of the latest Docker.
@@ -113,6 +114,7 @@ Many scripts prioritize environment variables for security and automation. Commo
 - `trivyScans.sh`: Vulnerability scanning using Trivy.
 - `docker_tag_exists.sh`: Remote registry tag verification.
 - `docker_clean_unused.sh`: Safe pruning of unused resources.
+- `docker_layer_size_analyzer.sh`: Analyzes Docker image layers.
 
 ### ☁️ Azure & Azure DevOps Scripts
 - `az_devops_config.sh`: Configures CLI with Org URL and PAT.
@@ -131,6 +133,7 @@ Many scripts prioritize environment variables for security and automation. Commo
 - `gh_create_release.sh`: Automated release creation via API.
 - `gh_get_latest_release.sh`: Fetches the latest release tag.
 - `gh_list_pull_requests.sh`: Lists open PRs and their status.
+- `gh_workflow_stats.sh`: Summarizes workflow run statuses.
 - `commit_script.sh`: Streamlined add-commit-push workflow.
 
 ### 🏗️ Terraform Scripts
@@ -145,6 +148,7 @@ Many scripts prioritize environment variables for security and automation. Commo
 
 ### ☁️ AWS Scripts
 - `aws_s3_sync.sh`: Robust S3 synchronization with dry-run support.
+- `aws_sg_audit.sh`: Audits Security Groups for open rules.
 
 ### 🛠️ General Utilities
 - `check_sys_info.sh`: Linux system health summary.
@@ -152,6 +156,7 @@ Many scripts prioritize environment variables for security and automation. Commo
 - `check_ssl_expiry.sh`: Monitors SSL certificate expiration.
 - `find_large_files.sh`: Identifies storage consumers.
 - `send_slack_notification.sh`: Pipeline-integrated Slack alerts.
+- `url_health_summary.sh`: Reports status and latency for URLs.
 - `hadolint_scan.sh`: Dockerfile linting via Docker.
 
 ## 🏗️ Azure DevOps Templates

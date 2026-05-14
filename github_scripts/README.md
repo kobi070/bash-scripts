@@ -21,6 +21,9 @@ This directory contains scripts for automating **GitHub** workflows and interact
 5. **gh_list_collaborators.sh**
    Lists all collaborators of a GitHub repository using the GitHub API.
 
+6. **gh_workflow_stats.sh**
+   Summarizes GitHub Action workflow run statuses for a repository.
+
 ### Repository Management
 6. **init_repo.sh**
    Initializes a new Git repository with a default `main` branch.

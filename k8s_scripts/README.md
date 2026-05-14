@@ -41,6 +41,9 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 11. **k8s_find_unused_pvcs.sh**
     Identifies PersistentVolumeClaims (PVCs) that are not currently used by any Pods.
 
+12. **k8s_secret_expiry_check.sh**
+    Identifies TLS secrets in the cluster that are nearing expiration.
+
 ## 🚀 Usage
 
 ### Check Cluster Usage

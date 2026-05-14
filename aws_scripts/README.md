@@ -11,6 +11,9 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 2. **aws_find_unused_ebs.sh**
    Lists AWS EBS volumes that are in 'available' state (not attached to any instance).
 
+3. **aws_sg_audit.sh**
+   Audits AWS Security Groups for overly permissive rules (0.0.0.0/0).
+
 ## 🚀 Usage
 
 ### Sync local directory to S3
