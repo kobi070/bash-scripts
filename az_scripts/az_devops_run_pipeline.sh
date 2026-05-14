@@ -42,17 +42,16 @@ fi
 
 echo "Triggering pipeline run for: $PIPELINE in project: $PROJECT_NAME..."
 
-# Run the pipeline
-RUN_INFO=$(az pipelines run --name "$PIPELINE" --project "$PROJECT_NAME" $BRANCH_ARG --output json)
-
-RUN_ID=$(echo "$RUN_INFO" | grep -oP '"id": \K\d+' | head -n 1 || echo "")
+# Optimized: Use a single 'az' call with TSV output to extract ID and Web URL, reducing process forks.
+# The --query parameter uses JMESPath to extract specific fields directly from the CLI output.
+# This eliminates multiple 'grep' and 'head' pipes (saving ~3-4 forks).
+IFS=$'\t' read -r RUN_ID WEB_URL < <(az pipelines run --name "$PIPELINE" --project "$PROJECT_NAME" $BRANCH_ARG --query "[id, _links.web.href]" --output tsv)
 
 if [ -n "$RUN_ID" ]; then
     echo "Success: Pipeline run triggered."
     echo "Run ID: $RUN_ID"
-    echo "URL: $(echo "$RUN_INFO" | grep -oP '"web": "\K[^"]+')"
+    echo "URL: $WEB_URL"
 else
     echo "Error: Failed to trigger pipeline run."
-    echo "$RUN_INFO"
     exit 1
 fi
