@@ -106,11 +106,13 @@ Many scripts prioritize environment variables for security and automation. Commo
 - `k8s_wait_ready.sh`: Waits for resources to reach a ready state.
 - `k8s_node_resource_usage.sh`: Summarizes cluster resource usage.
 - `k8s_decode_secret.sh`: Decodes all keys in a Kubernetes secret.
+- `k8s_copy_secret.sh`: Copies a secret between namespaces.
 
 ### 🐳 Docker Scripts
 - `install_docker.sh`: Clean installation of the latest Docker.
 - `docker_build_push.sh`: Advanced build and push with multi-tag support.
 - `trivyScans.sh`: Vulnerability scanning using Trivy.
+- `docker_layer_analysis.sh`: Analyzes image layer sizes and commands.
 - `docker_tag_exists.sh`: Remote registry tag verification.
 - `docker_clean_unused.sh`: Safe pruning of unused resources.
 
@@ -130,6 +132,7 @@ Many scripts prioritize environment variables for security and automation. Commo
 ### 🐙 GitHub Scripts
 - `gh_create_release.sh`: Automated release creation via API.
 - `gh_get_latest_release.sh`: Fetches the latest release tag.
+- `gh_workflow_failure_logs.sh`: Fetches logs for failed workflow runs.
 - `gh_list_pull_requests.sh`: Lists open PRs and their status.
 - `commit_script.sh`: Streamlined add-commit-push workflow.
 
@@ -145,11 +148,13 @@ Many scripts prioritize environment variables for security and automation. Commo
 
 ### ☁️ AWS Scripts
 - `aws_s3_sync.sh`: Robust S3 synchronization with dry-run support.
+- `aws_iam_admin_audit.sh`: Audits users/groups for AdministratorAccess.
 
 ### 🛠️ General Utilities
 - `check_sys_info.sh`: Linux system health summary.
 - `check_disk_space.sh`: Monitoring with alerting thresholds.
 - `check_ssl_expiry.sh`: Monitors SSL certificate expiration.
+- `multi_url_monitor.sh`: Health-checks multiple URLs with alerting.
 - `find_large_files.sh`: Identifies storage consumers.
 - `send_slack_notification.sh`: Pipeline-integrated Slack alerts.
 - `hadolint_scan.sh`: Dockerfile linting via Docker.

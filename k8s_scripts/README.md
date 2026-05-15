@@ -41,6 +41,9 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 11. **k8s_find_unused_pvcs.sh**
     Identifies PersistentVolumeClaims (PVCs) that are not currently used by any Pods.
 
+12. **k8s_copy_secret.sh**
+    Copies a Kubernetes secret from one namespace to another, cleaning up metadata to ensure a clean import.
+
 ## 🚀 Usage
 
 ### Check Cluster Usage
@@ -51,6 +54,11 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 ### Decode Secrets
 ```bash
 ./k8s_decode_secret.sh <secret_name> -n <namespace>
+```
+
+### Copy Secret to another Namespace
+```bash
+./k8s_copy_secret.sh <secret_name> <source_namespace> <target_namespace>
 ```
 
 ## ✅ Prerequisites

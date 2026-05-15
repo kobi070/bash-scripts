@@ -11,12 +11,20 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 2. **aws_find_unused_ebs.sh**
    Lists AWS EBS volumes that are in 'available' state (not attached to any instance).
 
+3. **aws_iam_admin_audit.sh**
+   Identifies all IAM users and groups that have the `AdministratorAccess` policy directly attached.
+
 ## 🚀 Usage
 
 ### Sync local directory to S3
 ```bash
 chmod +x aws_s3_sync.sh
 ./aws_s3_sync.sh <local_path> <s3_bucket_path>
+```
+
+### Audit IAM Administrators
+```bash
+./aws_iam_admin_audit.sh
 ```
 
 ## ✅ Prerequisites

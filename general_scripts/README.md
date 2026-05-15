@@ -21,11 +21,14 @@ This directory contains general-purpose utility scripts for system monitoring, d
 5. **check_zombie_processes.sh**
    Detects zombie processes (status 'Z') on the system.
 
+6. **multi_url_monitor.sh**
+   Health-checks multiple URLs and provides a status summary, with optional Slack alerting.
+
 ### Process Management
-6. **kill_proc.sh**
+7. **kill_proc.sh**
    Finds and kills a process by name or port.
 
-7. **proc_exist_script.sh**
+8. **proc_exist_script.sh**
    Checks if a specific process is running.
 
 ### Development & Automation
@@ -59,6 +62,11 @@ This directory contains general-purpose utility scripts for system monitoring, d
 ### Check System Info
 ```bash
 ./check_sys_info.sh
+```
+
+### Monitor Multiple URLs
+```bash
+./multi_url_monitor.sh https://google.com https://github.com
 ```
 
 ### Send Slack Notification

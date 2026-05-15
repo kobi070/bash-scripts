@@ -25,27 +25,30 @@ This directory contains scripts for managing **Docker** environments, image work
 6. **docker_image_size.sh**
    Validates that a local image does not exceed a specified size limit.
 
-7. **docker_push_to_repo.sh**
+7. **docker_layer_analysis.sh**
+   Analyzes local Docker image layers and identifies the largest contributors.
+
+8. **docker_push_to_repo.sh**
    Standardized script for pushing images to a target repository.
 
-8. **docker-tag-push.sh / docker-tag-push-from-file.sh**
+9. **docker-tag-push.sh / docker-tag-push-from-file.sh**
    Utilities for tagging and pushing images individually or from a list.
 
 ### Cleanup & Maintenance
-9. **docker_clean_unused.sh**
-   Prunes unused containers, images, and networks with dry-run support.
+10. **docker_clean_unused.sh**
+    Prunes unused containers, images, and networks with dry-run support.
 
-10. **docker-vol-prune.sh / docker-net-prune.sh**
+11. **docker-vol-prune.sh / docker-net-prune.sh**
     Specific scripts for pruning volumes and networks.
 
-11. **clean_docker_images.sh / clean_docker_ps.sh**
+12. **clean_docker_images.sh / clean_docker_ps.sh**
     Quick cleanup scripts for images and containers.
 
 ### Security
-12. **trivyScans.sh**
+13. **trivyScans.sh**
     Uses Trivy to scan images for vulnerabilities and generates reports.
 
-11. **docker_get_container_ip.sh**
+14. **docker_get_container_ip.sh**
     Retrieves the IP address of a running Docker container.
 
 ## 🚀 Usage
@@ -58,6 +61,11 @@ This directory contains scripts for managing **Docker** environments, image work
 ### Scan Image for Vulnerabilities
 ```bash
 ./trivyScans.sh my-app:v1.0.0
+```
+
+### Analyze Image Layers
+```bash
+./docker_layer_analysis.sh my-app:v1.0.0
 ```
 
 ## ✅ Prerequisites
