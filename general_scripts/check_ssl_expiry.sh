@@ -39,7 +39,8 @@ THRESHOLD_DAYS=${3:-30}
 echo "Checking SSL certificate for $DOMAIN:$PORT..."
 
 # Get expiry date using openssl
-EXPIRY_DATE_STR=$(echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:$PORT" 2>/dev/null | openssl x509 -noout -dates | grep notAfter | cut -d= -f2)
+# Optimized: use a single awk command to extract the date, reducing process forks (grep|cut -> awk)
+EXPIRY_DATE_STR=$(echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:$PORT" 2>/dev/null | openssl x509 -noout -dates | awk -F= '/notAfter/ {print $2}')
 
 if [ -z "$EXPIRY_DATE_STR" ]; then
     echo "Error: Could not retrieve SSL certificate for $DOMAIN:$PORT."
