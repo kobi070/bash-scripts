@@ -19,6 +19,7 @@ A comprehensive collection of specialized DevOps scripts and Azure DevOps YAML t
 - [⚡ Quick Start](#-quick-start)
 - [📜 Available Scripts](#-available-scripts)
 - [🏗️ Azure DevOps Templates](#️-azure-devops-templates)
+- [⚡ Performance (Bolt)](#-performance-bolt)
 - [🛡️ Security (Sentinel)](#️-security-sentinel)
 - [🤝 Contributing](#-contributing)
 - [📜 License](#-license)
@@ -103,22 +104,35 @@ Many scripts prioritize environment variables for security and automation. Commo
 ### ☸️ Kubernetes Scripts
 - `init_k8s.sh`: Kubernetes initialization and health check.
 - `minikube_install.sh`: Automated Minikube installation.
+- `minikube_start.sh` / `minikube_stop.sh`: Minikube lifecycle management.
 - `k8s_wait_ready.sh`: Waits for resources to reach a ready state.
 - `k8s_node_resource_usage.sh`: Summarizes cluster resource usage.
 - `k8s_decode_secret.sh`: Decodes all keys in a Kubernetes secret.
+- `k8s_create_ns.sh` / `del_ns.sh`: Quick namespace management.
+- `k8s_pod_restart_detector.sh`: Identifies frequently restarting pods.
+- `k8s_pod_logs_by_label.sh`: Aggregates logs from pods by label.
+- `k8s_check_resource_limits.sh`: Verifies resource limits on pods.
+- `k8s_find_unused_pvcs.sh`: Identifies unused PersistentVolumeClaims.
 
 ### 🐳 Docker Scripts
 - `install_docker.sh`: Clean installation of the latest Docker.
+- `check_docker.sh`: Verifies Docker and Compose installation.
+- `docker_login.sh`: Registry authentication helper.
 - `docker_build_push.sh`: Advanced build and push with multi-tag support.
 - `trivyScans.sh`: Vulnerability scanning using Trivy.
 - `docker_tag_exists.sh`: Remote registry tag verification.
-- `docker_clean_unused.sh`: Safe pruning of unused resources.
+- `docker_image_size.sh`: Validates image size limits.
+- `docker_clean_unused.sh`: Safe pruning of unused resources (images, volumes, networks).
+- `docker_get_container_ip.sh`: Retrieves container IP address.
 
 ### ☁️ Azure & Azure DevOps Scripts
 - `az_devops_config.sh`: Configures CLI with Org URL and PAT.
 - `az_devops_run_pipeline.sh`: Triggers and monitors a pipeline run.
+- `az_devops_list_pipelines.sh`: Lists all pipelines in a project.
+- `az_pipeline_status.sh`: Checks status of a specific pipeline run.
 - `az_repo_tag_watcher.sh`: Automated pipeline triggering based on Git tags.
 - `az_devops_vars_util.sh`: Manages Azure DevOps variable groups.
+- `az_list_repos.sh`: Lists all repositories in a project.
 - `az_script_advance.sh`: E2E project and pipeline setup.
 
 ### 📦 JFrog Scripts
@@ -126,15 +140,23 @@ Many scripts prioritize environment variables for security and automation. Commo
 - `jf_xray_scan.sh`: Security scans for artifacts and builds.
 - `jf_node_config.sh` / `jf_python_config.sh`: Configures package managers for Artifactory.
 - `jfrog_upload.sh` / `jfrog_download.sh`: High-level artifact management.
+- `jfrog_search.sh` / `delete.sh`: Artifact discovery and safe removal.
+- `jf_docker_push.sh`: Pushes Docker images to Artifactory.
+- `upload_generic.sh` / `pull_generic.sh`: API-based artifact management via curl.
 
 ### 🐙 GitHub Scripts
 - `gh_create_release.sh`: Automated release creation via API.
 - `gh_get_latest_release.sh`: Fetches the latest release tag.
+- `gh_download_release_asset.sh`: Downloads assets from releases.
 - `gh_list_pull_requests.sh`: Lists open PRs and their status.
+- `gh_list_collaborators.sh`: Lists repository collaborators.
+- `init_repo.sh`: Initializes a new Git repository.
 - `commit_script.sh`: Streamlined add-commit-push workflow.
+- `logs_script.sh`: Formatted Git log display.
 
 ### 🏗️ Terraform Scripts
 - `envsetup.sh`: Installs Terraform and dependencies.
+- `tr_init.sh`: Environment readiness check for Terraform.
 - `tf_validate_all.sh`: Recursive module validation.
 - `tf_check_fmt.sh`: Canonical formatting enforcement.
 
@@ -145,14 +167,21 @@ Many scripts prioritize environment variables for security and automation. Commo
 
 ### ☁️ AWS Scripts
 - `aws_s3_sync.sh`: Robust S3 synchronization with dry-run support.
+- `aws_find_unused_ebs.sh`: Lists unattached EBS volumes.
 
 ### 🛠️ General Utilities
 - `check_sys_info.sh`: Linux system health summary.
 - `check_disk_space.sh`: Monitoring with alerting thresholds.
 - `check_ssl_expiry.sh`: Monitors SSL certificate expiration.
+- `check_zombie_processes.sh`: Detects zombie processes.
 - `find_large_files.sh`: Identifies storage consumers.
+- `kill_proc.sh`: Kills process by name or port.
+- `bump_version.sh`: Automates version bumping in files.
+- `validate_env_vars.sh`: Ensures required environment variables are set.
+- `wait_for_url.sh`: Polls a URL until it returns 200 OK.
 - `send_slack_notification.sh`: Pipeline-integrated Slack alerts.
 - `hadolint_scan.sh`: Dockerfile linting via Docker.
+- `get_helm.sh`: Automated Helm CLI installation.
 
 ## 🏗️ Azure DevOps Templates
 
@@ -162,15 +191,24 @@ Located in `az_devops_templates/`, these follow a modular design:
 - **`jobs/`**: Parameterized job templates for multi-language builds (Node.js, Python, .NET, C++) and deployments (K8s, VM, Web App).
 - **`pipelines/`**: End-to-end example pipelines and utility maintenance scripts.
 
+## ⚡ Performance (Bolt)
+
+This repository follows **Bolt** performance principles:
+
+- **Process Reduction**: Minimizing shell process forks by consolidating pipelines (e.g., using a single `awk` or `sed` command instead of multiple pipes).
+- **Git Plumbing**: Utilizing Git plumbing commands (like `git rev-parse`) instead of parsing porcelain output for faster and more robust automation.
+- **Native CLI Querying**: Prioritizing native tool features (like `az --query`) for data extraction to reduce intermediate processing steps.
+- **Efficient Looping**: Using built-in shell variables like `$SECONDS` for timing and `mapfile` for robust line processing.
+
 ## 🛡️ Security (Sentinel)
 
 This repository follows **Sentinel** security principles:
 
-- **Left-Shift Security**: Mandatory integration of security checks at the earliest stages.
+- **Left-Shift Security**: Mandatory integration of security checks (Gitleaks, Trivy, Xray) at the earliest stages of the lifecycle.
 - **Secret Scanning**: Gitleaks is integrated to prevent accidental credential leaks.
-- **Vulnerability Scanning**: Trivy and JFrog Xray are used for container and artifact scanning.
-- **Safe Logging**: Scripts are designed to avoid leaking sensitive information in CI/CD logs.
-- **Credential Handling**: Prioritizes environment variables over positional arguments to prevent exposure in process lists and shell history.
+- **Vulnerability Scanning**: Automated container and artifact scanning using Trivy and JFrog Xray.
+- **Safe Logging**: Explicit avoidance of verbose modes (like `curl -v`) and sensitive data redaction in CI/CD logs.
+- **Credential Handling**: Strict prioritization of environment variables over positional arguments and avoidance of tokens in persistent Git configurations.
 
 ## 🤝 Contributing
 
