@@ -113,6 +113,7 @@ Many scripts prioritize environment variables for security and automation. Commo
 - `k8s_pod_logs_by_label.sh`: Aggregates logs from pods by label.
 - `k8s_check_resource_limits.sh`: Verifies resource limits on pods.
 - `k8s_find_unused_pvcs.sh`: Identifies unused PersistentVolumeClaims.
+- `k8s_node_drain_helper.sh`: Assess node drain impact (PDBs, local storage).
 
 ### 🐳 Docker Scripts
 - `install_docker.sh`: Clean installation of the latest Docker.
@@ -124,6 +125,7 @@ Many scripts prioritize environment variables for security and automation. Commo
 - `docker_image_size.sh`: Validates image size limits.
 - `docker_clean_unused.sh`: Safe pruning of unused resources (images, volumes, networks).
 - `docker_get_container_ip.sh`: Retrieves container IP address.
+- `docker_inspect_security.sh`: Container security audit (root, privileged, mounts).
 
 ### ☁️ Azure & Azure DevOps Scripts
 - `az_devops_config.sh`: Configures CLI with Org URL and PAT.
@@ -143,6 +145,7 @@ Many scripts prioritize environment variables for security and automation. Commo
 - `jfrog_search.sh` / `delete.sh`: Artifact discovery and safe removal.
 - `jf_docker_push.sh`: Pushes Docker images to Artifactory.
 - `upload_generic.sh` / `pull_generic.sh`: API-based artifact management via curl.
+- `jf_cleanup_old_artifacts.sh`: Automated artifact cleanup by age.
 
 ### 🐙 GitHub Scripts
 - `gh_create_release.sh`: Automated release creation via API.
@@ -150,6 +153,7 @@ Many scripts prioritize environment variables for security and automation. Commo
 - `gh_download_release_asset.sh`: Downloads assets from releases.
 - `gh_list_pull_requests.sh`: Lists open PRs and their status.
 - `gh_list_collaborators.sh`: Lists repository collaborators.
+- `gh_pr_size_checker.sh`: Categorizes PRs by size (XS-XL).
 - `init_repo.sh`: Initializes a new Git repository.
 - `commit_script.sh`: Streamlined add-commit-push workflow.
 - `logs_script.sh`: Formatted Git log display.
@@ -168,6 +172,7 @@ Many scripts prioritize environment variables for security and automation. Commo
 ### ☁️ AWS Scripts
 - `aws_s3_sync.sh`: Robust S3 synchronization with dry-run support.
 - `aws_find_unused_ebs.sh`: Lists unattached EBS volumes.
+- `aws_list_iam_users_last_login.sh`: Lists IAM user activity for cleanup.
 
 ### 🛠️ General Utilities
 - `check_sys_info.sh`: Linux system health summary.

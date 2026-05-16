@@ -41,11 +41,19 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 11. **k8s_find_unused_pvcs.sh**
     Identifies PersistentVolumeClaims (PVCs) that are not currently used by any Pods.
 
+12. **k8s_node_drain_helper.sh**
+    Assess the impact of draining a node by identifying pods without PDBs, pods with local storage, and standalone pods.
+
 ## 🚀 Usage
 
 ### Check Cluster Usage
 ```bash
 ./k8s_node_resource_usage.sh
+```
+
+### Assess Node Drain Impact
+```bash
+./k8s_node_drain_helper.sh <node_name>
 ```
 
 ### Decode Secrets

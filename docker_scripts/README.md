@@ -48,6 +48,9 @@ This directory contains scripts for managing **Docker** environments, image work
 13. **docker_get_container_ip.sh**
     Retrieves the IP address of a running Docker container.
 
+14. **docker_inspect_security.sh**
+    Inspects a running container for security misconfigurations like root user, privileged mode, and sensitive host mounts.
+
 ## 🚀 Usage
 
 ### Build and Push Image
@@ -58,6 +61,11 @@ This directory contains scripts for managing **Docker** environments, image work
 ### Scan Image for Vulnerabilities
 ```bash
 ./trivyScans.sh my-app:v1.0.0
+```
+
+### Inspect Container Security
+```bash
+./docker_inspect_security.sh <container_name_or_id>
 ```
 
 ## ✅ Prerequisites

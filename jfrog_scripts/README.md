@@ -35,6 +35,9 @@ This directory contains scripts for automating interactions with **JFrog Artifac
 10. **upload_generic.sh / pull_generic.sh**
     Generic scripts to upload/download files using `curl` and Artifactory APIs directly.
 
+11. **jf_cleanup_old_artifacts.sh**
+    Finds and optionally deletes artifacts in an Artifactory repository older than N days.
+
 ## 🚀 Usage
 
 ### Configure CLI
@@ -45,6 +48,11 @@ This directory contains scripts for automating interactions with **JFrog Artifac
 ### Upload Artifact
 ```bash
 ./jfrog_upload.sh --repo "generic-local" --source "./build/app.zip"
+```
+
+### Cleanup Old Artifacts
+```bash
+./jf_cleanup_old_artifacts.sh generic-local 30 --delete
 ```
 
 ## ✅ Prerequisites
