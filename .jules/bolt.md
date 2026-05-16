@@ -11,3 +11,7 @@
 ## 2026-05-14 - [Native CLI querying for multi-field extraction]
 **Learning:** Parsing JSON output with multiple `grep` or `jq` calls in succession is inefficient as each call forks a new process. Tools like the Azure CLI (`az`) provide native querying capabilities (e.g., `--query` with JMESPath) that can extract multiple fields into a tab-separated format in a single pass. Combining this with the Bash `read` builtin can reduce process forks by 3-4 per script execution.
 **Action:** Prefer native CLI querying parameters (like `az --query` or `docker inspect --format`) over multiple shell pipes for extracting multiple data points from the same command.
+
+## 2026-05-15 - [Bash built-ins for string manipulation]
+**Learning:** External processes like `sed`, `cut`, and `tr` are often used for simple string sanitization and transformation, but they incur process fork overhead. Bash parameter expansion (`${VAR//search/replace}`, `${VAR#prefix}`, `${VAR%suffix}`) is executed directly by the shell and is significantly faster for these tasks.
+**Action:** Use Bash parameter expansion instead of piping to `sed` or `cut` for basic string manipulation in performance-critical or frequently executed scripts.
