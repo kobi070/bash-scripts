@@ -50,7 +50,7 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 
 ### Decode Secrets
 ```bash
-./k8s_decode_secret.sh <secret_name> -n <namespace>
+./k8s_decode_secret.sh <secret_name> [namespace] [--raw]
 ```
 
 ## ✅ Prerequisites
