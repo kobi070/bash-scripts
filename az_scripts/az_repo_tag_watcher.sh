@@ -39,8 +39,8 @@ fi
 
 # Default variable name if not provided
 if [[ -z "${VAR_NAME:-}" ]]; then
-    # Sanitize repo name for variable name (replace non-alphanumeric with underscore)
-    CLEAN_REPO=$(echo "$REPO" | sed 's/[^a-zA-Z0-9]/_/g')
+    # Optimized: Use Bash parameter expansion to sanitize repo name, reducing process forks (echo|sed -> bash builtin)
+    CLEAN_REPO="${REPO//[^a-zA-Z0-9]/_}"
     VAR_NAME="LAST_TAG_${CLEAN_REPO}"
 fi
 
@@ -90,10 +90,9 @@ echo "Last seen tag: ${LAST_SEEN_TAG:-None}"
 if [[ "$LATEST_TAG" != "$LAST_SEEN_TAG" ]]; then
     echo "New tag detected! Triggering pipeline '$TARGET_PIPELINE'..."
 
-    # Trigger the pipeline
-    # We pass the tag as a variable to the triggered pipeline if needed
-    RUN_INFO=$(az pipelines run --name "$TARGET_PIPELINE" --project "$PROJECT" --organization "$ORG" --variables "SOURCE_TAG=$LATEST_TAG" --output json)
-    RUN_ID=$(echo "$RUN_INFO" | jq -r '.id')
+    # Optimized: Trigger the pipeline and extract the run ID in a single 'az' call with TSV output.
+    # This eliminates two process forks (echo and jq) and avoids storing the full JSON response.
+    RUN_ID=$(az pipelines run --name "$TARGET_PIPELINE" --project "$PROJECT" --organization "$ORG" --variables "SOURCE_TAG=$LATEST_TAG" --query "id" --output tsv)
 
     if [[ -n "$RUN_ID" && "$RUN_ID" != "null" ]]; then
         echo "Successfully triggered pipeline. Run ID: $RUN_ID"
