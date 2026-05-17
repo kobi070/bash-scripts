@@ -17,3 +17,8 @@
 **Vulnerability:** Decoded Kubernetes secrets are printed directly to stdout, which can be captured in CI/CD logs or persistent shell history if redirected.
 **Learning:** DevOps utility scripts are often used in both interactive debugging and non-interactive CI/CD contexts. Without checking the terminal type, sensitive data is indiscriminately logged in persistent storage.
 **Prevention:** Implement a check for an interactive terminal (`[ -t 1 ]`) before printing sensitive data. Redact secrets by default in non-interactive modes, providing an explicit override flag (e.g., `--raw`) for authorized automated extraction.
+
+## 2025-05-17 - Shell Arithmetic Injection via Unvalidated Numeric Input
+**Vulnerability:** User-supplied inputs used in Bash arithmetic contexts (`$((...))`, `((...))`, or `[[ $val -gt 0 ]]`) allow arbitrary command execution if the input contains malicious payloads like `1+RANDOM[$(command)]0`.
+**Learning:** Bash evaluates variables within arithmetic expressions. If a variable contains a specially crafted string, it can trigger command substitution during evaluation, even if the variable is not explicitly preceded by `$`.
+**Prevention:** Always validate that inputs intended for numeric use contain only digits using a regex check `[[ "$VAR" =~ ^[0-9]+$ ]]` before they are used in any arithmetic comparison or expansion.
