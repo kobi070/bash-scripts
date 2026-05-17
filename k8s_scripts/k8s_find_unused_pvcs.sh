@@ -51,16 +51,20 @@ USED_PVCS_WITH_NS=$(kubectl get pods $NAMESPACE_ARG -o json | jq -r '
   "\($pod.metadata.namespace)/\(.persistentVolumeClaim.claimName)"
 ' | sort -u)
 
-UNUSED_FOUND=false
-echo "NAMESPACE/NAME"
+# Identify unused PVCs by comparing the lists
+if [ -z "$USED_PVCS_WITH_NS" ]; then
+    # If no PVCs are used, all found PVCs are unused
+    UNUSED_PVCS="$ALL_PVCS"
+else
+    # Optimized: use grep -xvFf to find lines in ALL_PVCS that are not in USED_PVCS_WITH_NS.
+    # -x ensures exact line matching to avoid substring issues.
+    # This replaces an O(N*M) loop with nested process forks with a single, efficient O(N+M) process.
+    UNUSED_PVCS=$(grep -xvFf <(echo "$USED_PVCS_WITH_NS") <(echo "$ALL_PVCS") || true)
+fi
 
-for pvc in $ALL_PVCS; do
-    if ! echo "$USED_PVCS_WITH_NS" | grep -q "^$pvc$"; then
-        echo "$pvc"
-        UNUSED_FOUND=true
-    fi
-done
-
-if [ "$UNUSED_FOUND" = false ]; then
+if [ -z "$UNUSED_PVCS" ]; then
     echo "No unused PVCs found."
+else
+    echo "NAMESPACE/NAME"
+    echo "$UNUSED_PVCS"
 fi
