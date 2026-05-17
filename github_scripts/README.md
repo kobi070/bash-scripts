@@ -21,6 +21,9 @@ This directory contains scripts for automating **GitHub** workflows and interact
 5. **gh_list_collaborators.sh**
    Lists all collaborators of a GitHub repository using the GitHub API.
 
+6. **gh_pr_stats.sh**
+   Calculates average time-to-merge and detailed stats for the last N pull requests.
+
 ### Repository Management
 6. **init_repo.sh**
    Initializes a new Git repository with a default `main` branch.
@@ -46,6 +49,11 @@ export GITHUB_TOKEN="your_token"
 ### Simplify Commits
 ```bash
 ./commit_script.sh "docs: improve readme"
+```
+
+### Pull Request Statistics
+```bash
+./gh_pr_stats.sh [repo] [limit]
 ```
 
 ## ✅ Prerequisites

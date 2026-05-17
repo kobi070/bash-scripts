@@ -125,6 +125,7 @@ Many scripts prioritize environment variables for secure automation:
 - `k8s_pod_logs_by_label.sh`: Aggregates logs from pods matching a label.
 - `k8s_check_resource_limits.sh`: Verifies resource limits in a namespace.
 - `k8s_find_unused_pvcs.sh`: Identifies unused PersistentVolumeClaims.
+- `k8s_orphaned_resources.sh`: Heuristic discovery of unused ConfigMaps and Secrets.
 
 ### 🐳 Docker Scripts
 - `install_docker.sh`: Clean installation of the latest Docker Engine.
@@ -137,6 +138,7 @@ Many scripts prioritize environment variables for secure automation:
 - `docker_clean_unused.sh`: Prunes unused images, volumes, and networks.
 - `docker-vol-prune.sh` / `docker-net-prune.sh`: Targeted resource pruning.
 - `clean_docker_images.sh` / `clean_docker_ps.sh`: Quick cleanup scripts.
+- `docker_audit_security.sh`: Lightweight security audit for running containers.
 - `docker_get_container_ip.sh`: Retrieves the IP of a running container.
 - `docker_push_to_repo.sh`: Pushes images to a target repository.
 - `docker-tag-push.sh` / `docker-tag-push-from-file.sh`: Tag and push utilities.
@@ -168,6 +170,7 @@ Many scripts prioritize environment variables for secure automation:
 - `gh_get_latest_release.sh`: Fetch the latest release tag.
 - `gh_download_release_asset.sh`: Downloads specific release assets.
 - `gh_list_pull_requests.sh`: Lists open PRs and their status.
+- `gh_pr_stats.sh`: Calculates average time-to-merge for PRs.
 - `gh_list_collaborators.sh`: Lists repository collaborators.
 - `init_repo.sh`: Initializes a new Git repository with best practices.
 - `commit_script.sh` / `commit_script_no_push.sh`: Streamlined commit workflows.
@@ -188,6 +191,7 @@ Many scripts prioritize environment variables for secure automation:
 ### ☁️ AWS Scripts
 - `aws_s3_sync.sh`: Robust S3 synchronization with dry-run support.
 - `aws_find_unused_ebs.sh`: Identifies unattached EBS volumes.
+- `aws_secret_rotation_check.sh`: Identifies stale or unrotated Secrets Manager secrets.
 
 ### 🛠️ General Utilities
 - `check_sys_info.sh`: Linux system health and resource summary.
@@ -196,6 +200,7 @@ Many scripts prioritize environment variables for secure automation:
 - `check_zombie_processes.sh`: Detects and reports zombie processes.
 - `find_large_files.sh`: Identifies top storage consumers.
 - `kill_proc.sh` / `proc_exist_script.sh`: Process management utilities.
+- `monitor_process_resources.sh`: Tracks CPU/MEM usage of a specific PID over time.
 - `bump_version.sh` / `bump_version_nb.sh`: Automated versioning logic.
 - `validate_env_vars.sh`: Ensures required secrets are present.
 - `wait_for_url.sh`: Polls endpoints until they return 200 OK.
