@@ -16,6 +16,9 @@
 **Learning:** External processes like `sed`, `cut`, and `tr` are often used for simple string sanitization and transformation, but they incur process fork overhead. Bash parameter expansion (`${VAR//search/replace}`, `${VAR#prefix}`, `${VAR%suffix}`) is executed directly by the shell and is significantly faster for these tasks.
 **Action:** Use Bash parameter expansion instead of piping to `sed` or `cut` for basic string manipulation in performance-critical or frequently executed scripts.
 
+## 2026-05-16 - [Set difference with grep -xvFf]
+**Learning:** Using `grep -vFf` to find the difference between two sets of data (e.g., finding unused resources) is significantly faster than a nested loop but can introduce bugs. Without `-x`, it performs substring matching, which can cause false positives (e.g., 'pvc1' matching 'pvc11'). Additionally, if the pattern file/input is empty, `grep` may match all lines or none depending on the implementation and input, often requiring an explicit check for empty sets.
+**Action:** Always use the `-x` flag for exact line matching and implement a check to ensure the pattern set is not empty before executing `grep` in set difference operations.
 ## 2026-05-16 - [Consolidated Docker inspection]
 **Learning:** Checking container status with `docker ps | grep` before retrieving metadata with `docker inspect` adds multiple unnecessary process forks. `docker inspect` itself can report both the container's state (running/stopped) and its network properties in a single execution using Go templates.
 **Action:** Consolidate existence/status checks and data extraction into a single `docker inspect` or `docker container inspect` call when possible.
