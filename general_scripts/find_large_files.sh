@@ -28,6 +28,12 @@ fi
 SEARCH_DIR=$1
 MIN_SIZE=$2
 
+# Security check: Ensure input is a numeric integer to prevent shell arithmetic injection
+if [[ ! "$MIN_SIZE" =~ ^[0-9]+$ ]]; then
+    echo "Error: MIN_SIZE must be a positive numeric integer."
+    exit 1
+fi
+
 if [ ! -d "$SEARCH_DIR" ]; then
     echo "Error: Directory $SEARCH_DIR does not exist."
     exit 1

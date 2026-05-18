@@ -19,3 +19,9 @@
 ## 2026-05-16 - [Set difference with grep -xvFf]
 **Learning:** Using `grep -vFf` to find the difference between two sets of data (e.g., finding unused resources) is significantly faster than a nested loop but can introduce bugs. Without `-x`, it performs substring matching, which can cause false positives (e.g., 'pvc1' matching 'pvc11'). Additionally, if the pattern file/input is empty, `grep` may match all lines or none depending on the implementation and input, often requiring an explicit check for empty sets.
 **Action:** Always use the `-x` flag for exact line matching and implement a check to ensure the pattern set is not empty before executing `grep` in set difference operations.
+## 2026-05-16 - [Consolidated Docker inspection]
+**Learning:** Checking container status with `docker ps | grep` before retrieving metadata with `docker inspect` adds multiple unnecessary process forks. `docker inspect` itself can report both the container's state (running/stopped) and its network properties in a single execution using Go templates.
+**Action:** Consolidate existence/status checks and data extraction into a single `docker inspect` or `docker container inspect` call when possible.
+## 2026-05-18 - High-Performance Workflow Analytics and IAM Audits
+**Learning:** In `jq`, performing numeric calculations (like date differences) can lose the object context. Assigning fields to variables (e.g., `.AccessKeyId as $id`) before the calculation ensures they remain accessible for the final output string, avoiding "Cannot index number with string" errors.
+**Action:** Consistently use `jq` variables for field extraction in scripts involving multi-stage JSON transformations.

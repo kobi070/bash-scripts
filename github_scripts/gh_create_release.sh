@@ -59,8 +59,8 @@ PAYLOAD=$(jq -n \
     '{tag_name: $tag, name: $name, body: $body, draft: false, prerelease: false}')
 
 # Send the request
-RESPONSE=$(curl -s -X POST \
-    -H "Authorization: token $GITHUB_TOKEN" \
+# Use curl config file via stdin to prevent leaking GITHUB_TOKEN in process lists (ps)
+RESPONSE=$(printf "header = \"Authorization: token %s\"\n" "$GITHUB_TOKEN" | curl -s -X POST -K- \
     -H "Accept: application/vnd.github.v3+json" \
     -d "$PAYLOAD" \
     "https://api.github.com/repos/$REPO/releases")
