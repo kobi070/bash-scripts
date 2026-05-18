@@ -1,5 +1,6 @@
 # k8s_scripts
 
+This directory contains scripts for managing **Kubernetes** resources and **Minikube** environments.
 ## 📖 Overview
 This directory contains scripts for managing **Kubernetes** resources and **Minikube** environments. It covers cluster initialization, resource monitoring, and debugging utilities.
 
@@ -38,19 +39,53 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 10. **k8s_check_resource_limits.sh**
     Verifies that all pods in a namespace have resource limits defined.
 
+## 🚀 Usage
+
+10. **k8s_check_resource_limits.sh**
+    Verifies that all pods in a namespace have resource limits defined.
+
 11. **k8s_find_unused_pvcs.sh**
     Identifies PersistentVolumeClaims (PVCs) that are not currently used by any Pods.
+
+12. **k8s_copy_secret.sh**
+    Copies a Kubernetes secret from one namespace to another, cleaning up metadata to ensure a clean import.
+12. **k8s_node_drain_helper.sh**
+    Assess the impact of draining a node by identifying pods without PDBs, pods with local storage, and standalone pods.
+12. **k8s_orphaned_resources.sh**
+    Heuristically identifies ConfigMaps and Secrets that are not referenced by any Pods, Deployments, or StatefulSets.
+12. **k8s_audit_pdb.sh**
+    Identifies Deployments and StatefulSets missing PodDisruptionBudgets (PDB).
 
 ## 🚀 Usage
 
 ### Check Cluster Usage
 ```bash
+chmod +x <script_name>.sh
+./<script_name>.sh
+```
+
+✅ Prerequisites
 ./k8s_node_resource_usage.sh
+```
+
+### Assess Node Drain Impact
+```bash
+./k8s_node_drain_helper.sh <node_name>
 ```
 
 ### Decode Secrets
 ```bash
-./k8s_decode_secret.sh <secret_name> -n <namespace>
+./k8s_decode_secret.sh <secret_name> [namespace] [--raw]
+```
+
+### Find Orphaned Resources
+```bash
+./k8s_orphaned_resources.sh [namespace]
+```
+
+### Copy Secret to another Namespace
+```bash
+./k8s_copy_secret.sh <secret_name> <source_namespace> <target_namespace>
 ```
 
 ## ✅ Prerequisites

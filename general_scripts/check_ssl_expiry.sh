@@ -36,10 +36,22 @@ DOMAIN=$1
 PORT=${2:-443}
 THRESHOLD_DAYS=${3:-30}
 
+# Security check: Ensure PORT and THRESHOLD_DAYS are numeric integers to prevent shell arithmetic injection
+if [[ ! "$PORT" =~ ^[0-9]+$ ]]; then
+    echo "Error: PORT must be a positive numeric integer."
+    exit 1
+fi
+
+if [[ ! "$THRESHOLD_DAYS" =~ ^[0-9]+$ ]]; then
+    echo "Error: THRESHOLD_DAYS must be a positive numeric integer."
+    exit 1
+fi
+
 echo "Checking SSL certificate for $DOMAIN:$PORT..."
 
 # Get expiry date using openssl
-EXPIRY_DATE_STR=$(echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:$PORT" 2>/dev/null | openssl x509 -noout -dates | grep notAfter | cut -d= -f2)
+# Optimized: use a single awk command to extract the date, reducing process forks (grep|cut -> awk)
+EXPIRY_DATE_STR=$(echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:$PORT" 2>/dev/null | openssl x509 -noout -dates | awk -F= '/notAfter/ {print $2}')
 
 if [ -z "$EXPIRY_DATE_STR" ]; then
     echo "Error: Could not retrieve SSL certificate for $DOMAIN:$PORT."

@@ -7,3 +7,21 @@
 ## 2026-05-13 - [Git plumbing for branch and status]
 **Learning:** Parsing Git porcelain output (e.g., `git branch`, `git status`) with shell pipelines (`grep`, `awk`, `cut`) is slow due to process forking and fragile with complex filenames. Git plumbing commands like `git rev-parse --abbrev-ref HEAD` and `git diff --name-only --cached` are faster and designed for scripting.
 **Action:** Use Git plumbing commands instead of parsing command output for branch detection and file listing in automation scripts.
+
+## 2026-05-14 - [Native CLI querying for multi-field extraction]
+**Learning:** Parsing JSON output with multiple `grep` or `jq` calls in succession is inefficient as each call forks a new process. Tools like the Azure CLI (`az`) provide native querying capabilities (e.g., `--query` with JMESPath) that can extract multiple fields into a tab-separated format in a single pass. Combining this with the Bash `read` builtin can reduce process forks by 3-4 per script execution.
+**Action:** Prefer native CLI querying parameters (like `az --query` or `docker inspect --format`) over multiple shell pipes for extracting multiple data points from the same command.
+
+## 2026-05-15 - [Bash built-ins for string manipulation]
+**Learning:** External processes like `sed`, `cut`, and `tr` are often used for simple string sanitization and transformation, but they incur process fork overhead. Bash parameter expansion (`${VAR//search/replace}`, `${VAR#prefix}`, `${VAR%suffix}`) is executed directly by the shell and is significantly faster for these tasks.
+**Action:** Use Bash parameter expansion instead of piping to `sed` or `cut` for basic string manipulation in performance-critical or frequently executed scripts.
+
+## 2026-05-16 - [Set difference with grep -xvFf]
+**Learning:** Using `grep -vFf` to find the difference between two sets of data (e.g., finding unused resources) is significantly faster than a nested loop but can introduce bugs. Without `-x`, it performs substring matching, which can cause false positives (e.g., 'pvc1' matching 'pvc11'). Additionally, if the pattern file/input is empty, `grep` may match all lines or none depending on the implementation and input, often requiring an explicit check for empty sets.
+**Action:** Always use the `-x` flag for exact line matching and implement a check to ensure the pattern set is not empty before executing `grep` in set difference operations.
+## 2026-05-16 - [Consolidated Docker inspection]
+**Learning:** Checking container status with `docker ps | grep` before retrieving metadata with `docker inspect` adds multiple unnecessary process forks. `docker inspect` itself can report both the container's state (running/stopped) and its network properties in a single execution using Go templates.
+**Action:** Consolidate existence/status checks and data extraction into a single `docker inspect` or `docker container inspect` call when possible.
+## 2026-05-18 - High-Performance Workflow Analytics and IAM Audits
+**Learning:** In `jq`, performing numeric calculations (like date differences) can lose the object context. Assigning fields to variables (e.g., `.AccessKeyId as $id`) before the calculation ensures they remain accessible for the final output string, avoiding "Cannot index number with string" errors.
+**Action:** Consistently use `jq` variables for field extraction in scripts involving multi-stage JSON transformations.
