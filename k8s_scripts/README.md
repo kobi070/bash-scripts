@@ -47,6 +47,8 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 11. **k8s_find_unused_pvcs.sh**
     Identifies PersistentVolumeClaims (PVCs) that are not currently used by any Pods.
 
+12. **k8s_node_drain_helper.sh**
+    Assess the impact of draining a node by identifying pods without PDBs, pods with local storage, and standalone pods.
 12. **k8s_orphaned_resources.sh**
     Heuristically identifies ConfigMaps and Secrets that are not referenced by any Pods, Deployments, or StatefulSets.
 12. **k8s_audit_pdb.sh**
@@ -62,6 +64,11 @@ chmod +x <script_name>.sh
 
 ✅ Prerequisites
 ./k8s_node_resource_usage.sh
+```
+
+### Assess Node Drain Impact
+```bash
+./k8s_node_drain_helper.sh <node_name>
 ```
 
 ### Decode Secrets

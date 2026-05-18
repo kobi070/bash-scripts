@@ -233,6 +233,12 @@ Many scripts prioritize environment variables for secure automation:
 - `k8s_node_resource_usage.sh`: Summarizes cluster resource usage.
 - `k8s_check_resource_limits.sh`: Verifies CPU/Memory limits on all pods.
 - `k8s_decode_secret.sh`: Decodes all keys in a Kubernetes secret.
+- `k8s_create_ns.sh` / `del_ns.sh`: Quick namespace management.
+- `k8s_pod_restart_detector.sh`: Identifies frequently restarting pods.
+- `k8s_pod_logs_by_label.sh`: Aggregates logs from pods by label.
+- `k8s_check_resource_limits.sh`: Verifies resource limits on pods.
+- `k8s_find_unused_pvcs.sh`: Identifies unused PersistentVolumeClaims.
+- `k8s_node_drain_helper.sh`: Assess node drain impact (PDBs, local storage).
 - `k8s_unused_secrets_finder.sh`: Identifies secrets not currently used by any Pod or ServiceAccount.
 
 ### Docker Scripts
@@ -240,6 +246,10 @@ Many scripts prioritize environment variables for secure automation:
 - `docker_build_push.sh`: Advanced build and push with multi-tag support.
 - `trivyScans.sh`: Vulnerability scanning using Trivy.
 - `docker_tag_exists.sh`: Remote registry tag verification.
+- `docker_image_size.sh`: Validates image size limits.
+- `docker_clean_unused.sh`: Safe pruning of unused resources (images, volumes, networks).
+- `docker_get_container_ip.sh`: Retrieves container IP address.
+- `docker_inspect_security.sh`: Container security audit (root, privileged, mounts).
 - `docker_image_size.sh`: Validates image size constraints.
 - `docker_clean_unused.sh`: Safe pruning of unused resources.
 - `docker_list_latest_images.sh`: Lists local Docker images using the 'latest' tag.
@@ -256,10 +266,19 @@ Many scripts prioritize environment variables for secure automation:
 - `jf_xray_scan.sh`: Security scans for artifacts and builds.
 - `jf_node_config.sh` / `jf_python_config.sh`: Configures package managers for Artifactory.
 - `jfrog_upload.sh` / `jfrog_download.sh`: High-level artifact management.
+- `jfrog_search.sh` / `delete.sh`: Artifact discovery and safe removal.
+- `jf_docker_push.sh`: Pushes Docker images to Artifactory.
+- `upload_generic.sh` / `pull_generic.sh`: API-based artifact management via curl.
+- `jf_cleanup_old_artifacts.sh`: Automated artifact cleanup by age.
 
 ### GitHub Scripts
 - `gh_create_release.sh`: Automated release creation via API.
 - `gh_get_latest_release.sh`: Fetches the latest release tag.
+- `gh_download_release_asset.sh`: Downloads assets from releases.
+- `gh_list_pull_requests.sh`: Lists open PRs and their status.
+- `gh_list_collaborators.sh`: Lists repository collaborators.
+- `gh_pr_size_checker.sh`: Categorizes PRs by size (XS-XL).
+- `init_repo.sh`: Initializes a new Git repository.
 - `commit_script.sh`: Streamlined add-commit-push workflow.
 - `git_cleanup_merged_branches.sh`: Deletes local branches that have been merged into the default branch.
 
@@ -268,6 +287,15 @@ Many scripts prioritize environment variables for secure automation:
 - `tf_validate_all.sh`: Recursive module validation.
 - `tf_check_fmt.sh`: Canonical formatting enforcement.
 
+### 🐙 ArgoCD Scripts
+- `install-argocd.sh`: Automated ArgoCD installation.
+- `argocd_app_sync.sh`: Syncs ArgoCD applications and waits for health.
+- `argocd_list_apps.sh`: Lists all apps and their status.
+
+### ☁️ AWS Scripts
+- `aws_s3_sync.sh`: Robust S3 synchronization with dry-run support.
+- `aws_find_unused_ebs.sh`: Lists unattached EBS volumes.
+- `aws_list_iam_users_last_login.sh`: Lists IAM user activity for cleanup.
 ### AWS Scripts
 - `aws_s3_sync.sh`: Syncs a local directory with an S3 bucket.
 - `aws_list_old_ebs_snapshots.sh`: Lists EBS snapshots older than a specified number of days.

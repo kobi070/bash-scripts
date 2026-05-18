@@ -46,6 +46,9 @@ chmod +x <script_name>.sh
 ✅ Prerequisites
     Generic scripts to upload/download files using `curl` and Artifactory APIs directly.
 
+11. **jf_cleanup_old_artifacts.sh**
+    Finds and optionally deletes artifacts in an Artifactory repository older than N days.
+
 ## 🚀 Usage
 
 ### Configure CLI
@@ -56,6 +59,11 @@ chmod +x <script_name>.sh
 ### Upload Artifact
 ```bash
 ./jfrog_upload.sh --repo "generic-local" --source "./build/app.zip"
+```
+
+### Cleanup Old Artifacts
+```bash
+./jf_cleanup_old_artifacts.sh generic-local 30 --delete
 ```
 
 ## ✅ Prerequisites

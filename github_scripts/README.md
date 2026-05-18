@@ -28,6 +28,8 @@ This directory contains scripts for automating **GitHub** workflows and interact
 5. **gh_list_collaborators.sh**
    Lists all collaborators of a GitHub repository using the GitHub API.
 
+6. **gh_pr_size_checker.sh**
+   Categorizes open PRs by size (XS to XL) based on total lines of code changed.
 6. **gh_pr_stats.sh**
    Calculates average time-to-merge and detailed stats for the last N pull requests.
 
@@ -78,6 +80,9 @@ chmod +x <script_name>.sh
 ./commit_script.sh "docs: improve readme"
 ```
 
+### Check PR Sizes
+```bash
+./gh_pr_size_checker.sh kubernetes/kubernetes
 ### Pull Request Statistics
 ```bash
 ./gh_pr_stats.sh [repo] [limit]

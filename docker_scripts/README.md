@@ -76,6 +76,8 @@ chmod +x <script_name>.sh
 13. **docker_get_container_ip.sh**
     Retrieves the IP address of a running Docker container.
 
+14. **docker_inspect_security.sh**
+    Inspects a running container for security misconfigurations like root user, privileged mode, and sensitive host mounts.
 14. **docker_audit_security.sh**
     Performs a security audit on running containers to identify root users, privileged mode, and host namespace sharing.
 14. **docker_root_check.sh**
@@ -93,6 +95,9 @@ chmod +x <script_name>.sh
 ./trivyScans.sh my-app:v1.0.0
 ```
 
+### Inspect Container Security
+```bash
+./docker_inspect_security.sh <container_name_or_id>
 ### Security Audit
 ```bash
 ./docker_audit_security.sh [container_name]
