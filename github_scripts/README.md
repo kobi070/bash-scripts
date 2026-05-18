@@ -28,6 +28,8 @@ This directory contains scripts for automating **GitHub** workflows and interact
 5. **gh_list_collaborators.sh**
    Lists all collaborators of a GitHub repository using the GitHub API.
 
+6. **gh_workflow_stats.sh**
+   Summarizes GitHub Action workflow run statuses for a repository.
 6. **gh_workflow_failure_logs.sh**
    Fetches and displays logs of the most recent failed GitHub workflow run.
 6. **gh_pr_size_checker.sh**

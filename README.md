@@ -276,6 +276,7 @@ Many scripts prioritize environment variables for secure automation:
 - `k8s_node_resource_usage.sh`: Summarizes cluster resource usage.
 - `k8s_check_resource_limits.sh`: Verifies CPU/Memory limits on all pods.
 - `k8s_decode_secret.sh`: Decodes all keys in a Kubernetes secret.
+- `k8s_secret_expiry_check.sh`: Identifies expiring TLS secrets.
 - `k8s_find_unused_pvcs.sh`: Identifies unused PersistentVolumeClaims.
 - `k8s_check_resource_limits.sh`: Verifies resource limits in a namespace.
 - `k8s_pod_restart_detector.sh`: Identifies frequently restarting pods.
@@ -305,6 +306,7 @@ Many scripts prioritize environment variables for secure automation:
 - `docker_inspect_security.sh`: Container security audit (root, privileged, mounts).
 - `docker_image_size.sh`: Validates image size constraints.
 - `docker_clean_unused.sh`: Safe pruning of unused resources.
+- `docker_layer_size_analyzer.sh`: Analyzes Docker image layers.
 - `docker_image_size.sh`: Validates image size against limits.
 
 ### ☁️ Azure & Azure DevOps Scripts ([Details](./az_scripts/README.md))
@@ -346,6 +348,7 @@ Many scripts prioritize environment variables for secure automation:
 - `gh_workflow_failure_logs.sh`: Fetches logs for failed workflow runs.
 - `gh_download_release_asset.sh`: Downloads assets from releases.
 - `gh_list_pull_requests.sh`: Lists open PRs and their status.
+- `gh_workflow_stats.sh`: Summarizes workflow run statuses.
 - `gh_list_collaborators.sh`: Lists repository collaborators.
 - `gh_pr_size_checker.sh`: Categorizes PRs by size (XS-XL).
 - `init_repo.sh`: Initializes a new Git repository.
@@ -363,6 +366,7 @@ Many scripts prioritize environment variables for secure automation:
 
 ### ☁️ AWS Scripts ([Details](./aws_scripts/README.md))
 - `aws_s3_sync.sh`: Robust S3 synchronization with dry-run support.
+- `aws_sg_audit.sh`: Audits Security Groups for open rules.
 - `aws_find_unused_ebs.sh`: Identifies unattached EBS volumes.
 
 ### 🛠️ General Utilities ([Details](./general_scripts/README.md))
@@ -384,6 +388,7 @@ Many scripts prioritize environment variables for secure automation:
 - `multi_url_monitor.sh`: Health-checks multiple URLs with alerting.
 - `find_large_files.sh`: Identifies storage consumers.
 - `send_slack_notification.sh`: Pipeline-integrated Slack alerts.
+- `url_health_summary.sh`: Reports status and latency for URLs.
 - `hadolint_scan.sh`: Dockerfile linting via Docker.
 - `check_url_content.sh`: Waits for a URL to return 200 OK and verifies body content.
 

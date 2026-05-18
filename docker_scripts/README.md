@@ -81,6 +81,8 @@ chmod +x <script_name>.sh
 13. **docker_get_container_ip.sh**
     Retrieves the IP address of a running Docker container.
 
+12. **docker_layer_size_analyzer.sh**
+    Analyzes Docker image layers to identify where the size is coming from.
 14. **docker_inspect_security.sh**
     Inspects a running container for security misconfigurations like root user, privileged mode, and sensitive host mounts.
 14. **docker_audit_security.sh**
