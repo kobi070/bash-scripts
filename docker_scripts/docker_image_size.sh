@@ -36,6 +36,12 @@ IMAGE=$1
 TAG=$2
 MAX_SIZE=$3
 
+# Security check: Ensure MAX_SIZE is a numeric integer to prevent shell arithmetic injection
+if [[ ! "$MAX_SIZE" =~ ^[0-9]+$ ]]; then
+    echo "Error: MAX_SIZE must be a positive numeric integer."
+    exit 1
+fi
+
 echo "Checking size of $IMAGE:$TAG..."
 
 # Get image size in bytes

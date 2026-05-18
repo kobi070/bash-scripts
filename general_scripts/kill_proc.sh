@@ -23,6 +23,12 @@ else
     read -p "Enter your choice (1-4): " user_choice
 fi
 
+# Security check: Ensure input is a numeric integer to prevent shell arithmetic injection
+if [[ ! "$user_choice" =~ ^[0-9]+$ ]]; then
+    echo "Error: Invalid input. Please enter a numeric choice."
+    exit 1
+fi
+
 if [[ "$user_choice" -ge 1 && "$user_choice" -le 4 ]]; then
     if [ "$user_choice" -eq 4 ]; then
         # Option to kill all processes

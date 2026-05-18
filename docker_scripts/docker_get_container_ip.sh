@@ -31,17 +31,27 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-# Check if container is running
-if ! docker ps --format '{{.Names}}' | grep -Eq "^${CONTAINER}$" && ! docker ps --format '{{.ID}}' | grep -q "^${CONTAINER}"; then
-    echo "Error: Container '$CONTAINER' is not running or does not exist."
+# Optimized: Retrieve container status and IP addresses in a single 'docker inspect' call.
+# This reduces up to 5 process forks (docker ps x2, grep x2, sed) into zero additional forks
+# by consolidating the running-state check and IP extraction.
+# Format: <RunningState>|<IPAddresses>
+if ! RESULT=$(docker inspect -f '{{.State.Running}}|{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}' "$CONTAINER" 2>/dev/null); then
+    echo "Error: Container '$CONTAINER' does not exist."
     exit 1
 fi
 
-# Retrieve IP address
-# Using a space separator if multiple networks are found
-IP_ADDRESS=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}' "$CONTAINER" | sed 's/ $//')
+# Parse the consolidated result
+IFS='|' read -r IS_RUNNING RAW_IP_ADDRESS <<< "$RESULT"
 
-if [ -z "$IP_ADDRESS" ]; then
+if [[ "$IS_RUNNING" != "true" ]]; then
+    echo "Error: Container '$CONTAINER' is not running."
+    exit 1
+fi
+
+# Trim trailing whitespace using Bash parameter expansion (replaces 'sed' fork)
+IP_ADDRESS="${RAW_IP_ADDRESS% }"
+
+if [[ -z "$IP_ADDRESS" ]]; then
     echo "Error: Could not retrieve IP address for '$CONTAINER'. It might be using 'host' network mode or is not connected to a network."
     exit 1
 fi
