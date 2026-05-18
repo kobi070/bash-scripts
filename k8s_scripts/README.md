@@ -1,5 +1,6 @@
 # k8s_scripts
 
+This directory contains scripts for managing **Kubernetes** resources and **Minikube** environments.
 ## 📖 Overview
 This directory contains scripts for managing **Kubernetes** resources and **Minikube** environments. It covers cluster initialization, resource monitoring, and debugging utilities.
 
@@ -38,13 +39,26 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 10. **k8s_check_resource_limits.sh**
     Verifies that all pods in a namespace have resource limits defined.
 
+## 🚀 Usage
+
+10. **k8s_check_resource_limits.sh**
+    Verifies that all pods in a namespace have resource limits defined.
+
 11. **k8s_find_unused_pvcs.sh**
     Identifies PersistentVolumeClaims (PVCs) that are not currently used by any Pods.
+
+12. **k8s_audit_pdb.sh**
+    Identifies Deployments and StatefulSets missing PodDisruptionBudgets (PDB).
 
 ## 🚀 Usage
 
 ### Check Cluster Usage
 ```bash
+chmod +x <script_name>.sh
+./<script_name>.sh
+```
+
+✅ Prerequisites
 ./k8s_node_resource_usage.sh
 ```
 
