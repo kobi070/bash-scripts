@@ -40,18 +40,18 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
-AUTH_ARGS=()
-if [ -n "${GITHUB_TOKEN:-}" ]; then
-    AUTH_ARGS=(-H "Authorization: token $GITHUB_TOKEN")
-fi
-
 echo "Fetching collaborators for $OWNER/$REPO..."
 
 # Fetch collaborators using GitHub API
 # Handles pagination (basic - up to 100 collaborators)
 API_URL="https://api.github.com/repos/$OWNER/$REPO/collaborators?per_page=100"
 
-RESPONSE=$(curl -s "${AUTH_ARGS[@]}" -H "Accept: application/vnd.github+json" "$API_URL")
+# Use curl config file via stdin to prevent leaking GITHUB_TOKEN in process lists (ps)
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+    RESPONSE=$(printf "header = \"Authorization: token %s\"\n" "$GITHUB_TOKEN" | curl -s -K- -H "Accept: application/vnd.github+json" "$API_URL")
+else
+    RESPONSE=$(curl -s -H "Accept: application/vnd.github+json" "$API_URL")
+fi
 
 # Check for errors in response
 if echo "$RESPONSE" | jq -e '.message' > /dev/null; then
