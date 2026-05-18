@@ -1,7 +1,7 @@
 # DevOps Automation Scripts & Templates
 # ⚡ DevOps Automation Hub 🛡️
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 ![Bash](https://img.shields.io/badge/Shell-Bash-4EAA25?logo=gnu-bash&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker&logoColor=white)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5?logo=kubernetes&logoColor=white)
@@ -48,6 +48,26 @@ A high-performance, security-focused collection of specialized DevOps scripts an
 
 ## 📑 Table of Contents
 
+- [🚀 Key Features](#-key-features)
+- [📂 Repository Structure](#-repository-structure)
+- [🛠️ Prerequisites](#-prerequisites)
+- [🔐 Environment Variables](#-environment-variables)
+- [⚡ Quick Start](#-quick-start)
+- [📜 Available Scripts](#-available-scripts)
+  - [☸️ Kubernetes](#-kubernetes-scripts)
+  - [🐳 Docker](#-docker-scripts)
+  - [☁️ Azure & Azure DevOps](#-azure-azure-devops-scripts)
+  - [📦 JFrog Artifactory](#-jfrog-scripts)
+  - [🐙 GitHub & Git](#-github-git-scripts)
+  - [🏗️ Terraform](#-terraform-scripts)
+  - [🐙 ArgoCD](#-argocd-scripts)
+  - [☁️ AWS](#-aws-scripts)
+  - [🛠️ General Utilities](#-general-utilities)
+- [🏗️ Azure DevOps Templates](#-azure-devops-templates)
+- [⚡ Performance (Bolt)](#-performance-bolt)
+- [🛡️ Security (Sentinel)](#-security-sentinel)
+- [🤝 Contributing](#-contributing)
+- [📜 License](#-license)
 - [🛠️ Tech Stack](#tech-stack)
 - [🚀 Key Features](#key-features)
 - [📂 Repository Structure](#repository-structure)
@@ -95,6 +115,34 @@ A high-performance, security-focused collection of specialized DevOps scripts an
 - **☁️ Multi-Cloud & Tooling**: Native support for AWS, Azure, Docker, Kubernetes, JFrog, and Terraform.
 - **📜 Standardized**: Consistent help functions, error handling (`set -euo pipefail`), and usage patterns.
 
+## 📂 Repository Structure
+
+```text
+.
+├── argocd_scripts/          # ArgoCD installation and app management
+├── aws_scripts/             # AWS resource monitoring and S3 sync
+├── az_devops_templates/     # Reusable YAML templates for pipelines
+├── az_scripts/              # Azure CLI and DevOps automation
+├── docker_scripts/          # Docker lifecycle and security scans
+├── general_scripts/         # System health and general utilities
+├── github_scripts/          # GitHub API and Git workflow helpers
+├── jfrog_scripts/           # JFrog CLI and Artifactory operations
+├── k8s_scripts/             # K8s cluster management and debugging
+└── terraform_scripts/       # Terraform environment setup and validation
+```
+
+- [argocd_scripts/](./argocd_scripts/): ArgoCD installation and GitOps app management.
+- [aws_scripts/](./aws_scripts/): AWS CLI automation and resource monitoring.
+- [az_devops_templates/](./az_devops_templates/): Reusable YAML templates for pipelines.
+- [az_scripts/](./az_scripts/): Azure CLI and Azure DevOps E2E automation.
+- [docker_scripts/](./docker_scripts/): Environment setup, image optimization, and security.
+- [general_scripts/](./general_scripts/): System utilities, versioning, and monitoring tools.
+- [github_scripts/](./github_scripts/): GitHub API automation and Git workflow helpers.
+- [jfrog_scripts/](./jfrog_scripts/): JFrog CLI management and Artifactory operations.
+- [k8s_scripts/](./k8s_scripts/): Cluster initialization and resource management.
+- [terraform_scripts/](./terraform_scripts/): Environment setup and recursive validation.
+
+## 🛠️ Prerequisites
 <h2 id="repository-structure">📂 Repository Structure</h2>
 
 ```text
@@ -154,12 +202,18 @@ Many scripts prioritize environment variables for secure automation:
    cd devops-automation
    ```
 
+2. **Configure Azure DevOps environment** (Example):
 2. **Run a system check**:
 2. **Run a system health check**:
    ```bash
-   ./general_scripts/check_sys_info.sh
+   # Set your PAT securely
+   export AZ_DEVOPS_PAT="your_personal_access_token"
+
+   # Run the configuration script
+   ./az_scripts/az_devops_config.sh https://dev.azure.com/your-organization/
    ```
 
+3. **Run a system health check**:
 3. **Check Kubernetes resources**:
    ```bash
    ./k8s_scripts/k8s_node_resource_usage.sh
@@ -247,12 +301,12 @@ Feel free to submit pull requests with additional scripts or improvements. Pleas
 ## 📜 License
 3. **Initialize a Kubernetes environment**:
    ```bash
-   ./k8s_scripts/init_k8s.sh
+   ./general_scripts/check_sys_info.sh
    ```
 
-4. **Trigger an Azure DevOps Pipeline**:
+4. **Initialize a Kubernetes environment**:
    ```bash
-   ./az_scripts/az_devops_run_pipeline.sh --name "Production-Deploy"
+   ./k8s_scripts/init_k8s.sh
    ```
 
 ---
@@ -433,4 +487,4 @@ Contributions are welcome! Please ensure:
 
 <h2 id="license">📜 License</h2>
 
-MIT - See [LICENSE](LICENSE) for details. (All rights reserved, Made by Kobi Kuzi)
+MIT - See [LICENSE](./LICENSE) for details. (Made by Kobi Kuzi)
