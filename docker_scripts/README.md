@@ -1,6 +1,8 @@
 # docker_scripts
 
 This directory contains scripts for managing **Docker** environments, image workflows, and container security.
+## 📖 Overview
+This directory contains scripts for managing **Docker** environments, image workflows, and container security. It includes tools for installation, image optimization, and vulnerability scanning.
 
 ## 📜 Scripts Overview
 
@@ -51,4 +53,48 @@ chmod +x <script_name>.sh
 - `trivy` installed (for `trivyScans.sh`).
 
 📘 Notes
+7. **docker_push_to_repo.sh**
+   Standardized script for pushing images to a target repository.
+
+8. **docker-tag-push.sh / docker-tag-push-from-file.sh**
+   Utilities for tagging and pushing images individually or from a list.
+
+### Cleanup & Maintenance
+9. **docker_clean_unused.sh**
+   Prunes unused containers, images, and networks with dry-run support.
+
+10. **docker-vol-prune.sh / docker-net-prune.sh**
+    Specific scripts for pruning volumes and networks.
+
+11. **clean_docker_images.sh / clean_docker_ps.sh**
+    Quick cleanup scripts for images and containers.
+
+### Security
+12. **trivyScans.sh**
+    Uses Trivy to scan images for vulnerabilities and generates reports.
+
+13. **docker_get_container_ip.sh**
+    Retrieves the IP address of a running Docker container.
+
+14. **docker_root_check.sh**
+    Scans running containers to identify any running as the root user.
+
+## 🚀 Usage
+
+### Build and Push Image
+```bash
+./docker_build_push.sh --image "my-app" --tag "v1.0.0" --push
+```
+
+### Scan Image for Vulnerabilities
+```bash
+./trivyScans.sh my-app:v1.0.0
+```
+
+## ✅ Prerequisites
+
+- Docker Engine installed and running.
+- `trivy` installed (for `trivyScans.sh`).
+
+## 📘 Notes
 - Always use the `--dry-run` flag where available before performing cleanup operations.

@@ -4,7 +4,8 @@ set -e
 # IMPORTANT NOTE: this script would be used only after you have used git add . or git add /<certain_folder/file/etc>
 
 # Get the branch name
-branch=$(git branch | grep \* | cut -d ' ' -f2)
+# Optimized: use rev-parse for direct branch detection, reducing process forks
+branch=$(git rev-parse --abbrev-ref HEAD)
 
 # Ask the user for a commit message
 read -p "Enter commit message for branch $branch: " commit_message
@@ -16,7 +17,8 @@ if [ -z "$commit_message" ]; then
 fi
 
 # Get all the files in the branch you want to commit
-commit_files=$(git status -u -s | awk '{print $2}')
+# Optimized: use git diff --cached to directly list staged files, reducing process forks
+commit_files=$(git diff --name-only --cached)
 
 # Generate the commit message
 commit_message="[${branch}] $commit_message - files: $commit_files"

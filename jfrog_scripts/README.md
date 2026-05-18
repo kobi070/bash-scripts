@@ -1,6 +1,8 @@
 # jfrog_scripts
 
 This directory contains scripts for automating interactions with **JFrog Artifactory** and managing the **JFrog CLI**.
+## 📖 Overview
+This directory contains scripts for automating interactions with **JFrog Artifactory** and managing the **JFrog CLI**. It covers artifact management, security scanning, and package manager configuration.
 
 ## 📜 Scripts Overview
 
@@ -42,10 +44,26 @@ chmod +x <script_name>.sh
 ```
 
 ✅ Prerequisites
+    Generic scripts to upload/download files using `curl` and Artifactory APIs directly.
+
+## 🚀 Usage
+
+### Configure CLI
+```bash
+./jfrog_config.sh --url "https://artifactory.example.com" --token "$JF_AUTH_TOKEN"
+```
+
+### Upload Artifact
+```bash
+./jfrog_upload.sh --repo "generic-local" --source "./build/app.zip"
+```
+
+## ✅ Prerequisites
 
 - JFrog CLI (`jf` or `jfrog`) installed.
 - Valid Artifactory credentials or Access Token.
 - `curl` installed for generic scripts.
 
 📘 Notes
+## 📘 Notes
 - It is recommended to set `JF_AUTH_TOKEN` or `JFROG_API_KEY` as environment variables instead of passing them as arguments.
