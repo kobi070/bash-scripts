@@ -17,3 +17,8 @@
 **Vulnerability:** Decoded Kubernetes secrets are printed directly to stdout, which can be captured in CI/CD logs or persistent shell history if redirected.
 **Learning:** DevOps utility scripts are often used in both interactive debugging and non-interactive CI/CD contexts. Without checking the terminal type, sensitive data is indiscriminately logged in persistent storage.
 **Prevention:** Implement a check for an interactive terminal (`[ -t 1 ]`) before printing sensitive data. Redact secrets by default in non-interactive modes, providing an explicit override flag (e.g., `--raw`) for authorized automated extraction.
+
+## 2025-05-18 - Secret Exposure in Process Lists via Curl Headers
+**Vulnerability:** Passing sensitive headers to `curl` using the `-H` flag (e.g., `-H "Authorization: token $TOKEN"`) makes the secrets visible in the system's process list (via `ps` or `/proc`) during the entire duration of the network request.
+**Learning:** Even when scripts correctly use environment variables, the final call to a CLI tool can re-expose those secrets if they are passed as command-line arguments.
+**Prevention:** Use `curl`'s `--config -` (or `-K-`) option to pass sensitive headers via standard input. Using `printf` (a shell builtin) to pipe the configuration ensures the secret is never part of an `argv` array for an external process.

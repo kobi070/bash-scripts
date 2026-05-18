@@ -20,8 +20,8 @@ done
 SOURCE_PATH="$1"
 OUTPUT_FILENAME="$2"
 
-# Removed -v to prevent leaking JFROG_API_KEY in logs
-curl -sS -H "X-JFrog-Art-Api: $JFROG_API_KEY" \
+# Use curl config file via stdin to prevent leaking JFROG_API_KEY in process lists (ps)
+printf "header = \"X-JFrog-Art-Api: %s\"\n" "$JFROG_API_KEY" | curl -sS -K- \
      -L -o "$OUTPUT_FILENAME" \
      "$JFROG_URL/$JFROG_REPO/$SOURCE_PATH"
 
