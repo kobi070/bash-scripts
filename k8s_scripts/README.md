@@ -47,6 +47,8 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 11. **k8s_find_unused_pvcs.sh**
     Identifies PersistentVolumeClaims (PVCs) that are not currently used by any Pods.
 
+12. **k8s_copy_secret.sh**
+    Copies a Kubernetes secret from one namespace to another, cleaning up metadata to ensure a clean import.
 12. **k8s_node_drain_helper.sh**
     Assess the impact of draining a node by identifying pods without PDBs, pods with local storage, and standalone pods.
 12. **k8s_orphaned_resources.sh**
@@ -79,6 +81,11 @@ chmod +x <script_name>.sh
 ### Find Orphaned Resources
 ```bash
 ./k8s_orphaned_resources.sh [namespace]
+```
+
+### Copy Secret to another Namespace
+```bash
+./k8s_copy_secret.sh <secret_name> <source_namespace> <target_namespace>
 ```
 
 ## ✅ Prerequisites

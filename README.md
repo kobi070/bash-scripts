@@ -233,6 +233,9 @@ Many scripts prioritize environment variables for secure automation:
 - `k8s_node_resource_usage.sh`: Summarizes cluster resource usage.
 - `k8s_check_resource_limits.sh`: Verifies CPU/Memory limits on all pods.
 - `k8s_decode_secret.sh`: Decodes all keys in a Kubernetes secret.
+- `k8s_copy_secret.sh`: Copies a secret between namespaces.
+
+### 🐳 Docker Scripts
 - `k8s_create_ns.sh` / `del_ns.sh`: Quick namespace management.
 - `k8s_pod_restart_detector.sh`: Identifies frequently restarting pods.
 - `k8s_pod_logs_by_label.sh`: Aggregates logs from pods by label.
@@ -245,6 +248,7 @@ Many scripts prioritize environment variables for secure automation:
 - `install_docker.sh`: Clean installation of the latest Docker.
 - `docker_build_push.sh`: Advanced build and push with multi-tag support.
 - `trivyScans.sh`: Vulnerability scanning using Trivy.
+- `docker_layer_analysis.sh`: Analyzes image layer sizes and commands.
 - `docker_tag_exists.sh`: Remote registry tag verification.
 - `docker_image_size.sh`: Validates image size limits.
 - `docker_clean_unused.sh`: Safe pruning of unused resources (images, volumes, networks).
@@ -274,6 +278,7 @@ Many scripts prioritize environment variables for secure automation:
 ### GitHub Scripts
 - `gh_create_release.sh`: Automated release creation via API.
 - `gh_get_latest_release.sh`: Fetches the latest release tag.
+- `gh_workflow_failure_logs.sh`: Fetches logs for failed workflow runs.
 - `gh_download_release_asset.sh`: Downloads assets from releases.
 - `gh_list_pull_requests.sh`: Lists open PRs and their status.
 - `gh_list_collaborators.sh`: Lists repository collaborators.
@@ -294,6 +299,7 @@ Many scripts prioritize environment variables for secure automation:
 
 ### ☁️ AWS Scripts
 - `aws_s3_sync.sh`: Robust S3 synchronization with dry-run support.
+- `aws_iam_admin_audit.sh`: Audits users/groups for AdministratorAccess.
 - `aws_find_unused_ebs.sh`: Lists unattached EBS volumes.
 - `aws_list_iam_users_last_login.sh`: Lists IAM user activity for cleanup.
 ### AWS Scripts
@@ -304,6 +310,7 @@ Many scripts prioritize environment variables for secure automation:
 - `check_sys_info.sh`: Linux system health summary.
 - `check_disk_space.sh`: Monitoring with alerting thresholds.
 - `check_ssl_expiry.sh`: Monitors SSL certificate expiration.
+- `multi_url_monitor.sh`: Health-checks multiple URLs with alerting.
 - `find_large_files.sh`: Identifies storage consumers.
 - `send_slack_notification.sh`: Pipeline-integrated Slack alerts.
 - `hadolint_scan.sh`: Dockerfile linting via Docker.

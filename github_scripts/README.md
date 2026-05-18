@@ -28,23 +28,25 @@ This directory contains scripts for automating **GitHub** workflows and interact
 5. **gh_list_collaborators.sh**
    Lists all collaborators of a GitHub repository using the GitHub API.
 
+6. **gh_workflow_failure_logs.sh**
+   Fetches and displays logs of the most recent failed GitHub workflow run.
 6. **gh_pr_size_checker.sh**
    Categorizes open PRs by size (XS to XL) based on total lines of code changed.
 6. **gh_pr_stats.sh**
    Calculates average time-to-merge and detailed stats for the last N pull requests.
 
 ### Repository Management
-6. **init_repo.sh**
+7. **init_repo.sh**
    Initializes a new Git repository with a default `main` branch.
 
-7. **commit_script.sh / commit_script_no_push.sh**
+8. **commit_script.sh / commit_script_no_push.sh**
    Simplifies the workflow of adding, committing, and optionally pushing changes.
 
-8. **logs_script.sh**
+9. **logs_script.sh**
    Displays formatted Git logs for better readability.
 
 ### Git Configuration & Utilities
-9. **create_command_alias.sh / check_alias.sh**
+10. **create_command_alias.sh / check_alias.sh**
    Utilities for managing and verifying Git aliases.
 
 10. **gh_workflow_stats.sh**
@@ -80,6 +82,10 @@ chmod +x <script_name>.sh
 ./commit_script.sh "docs: improve readme"
 ```
 
+### Fetch Failed Workflow Logs
+```bash
+export GITHUB_TOKEN="your_token"
+./gh_workflow_failure_logs.sh octocat/hello-world ci.yml
 ### Check PR Sizes
 ```bash
 ./gh_pr_size_checker.sh kubernetes/kubernetes
