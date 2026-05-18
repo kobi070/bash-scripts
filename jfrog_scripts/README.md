@@ -1,5 +1,6 @@
 # jfrog_scripts
 
+This directory contains scripts for automating interactions with **JFrog Artifactory** and managing the **JFrog CLI**.
 ## 📖 Overview
 This directory contains scripts for automating interactions with **JFrog Artifactory** and managing the **JFrog CLI**. It covers artifact management, security scanning, and package manager configuration.
 
@@ -33,6 +34,16 @@ This directory contains scripts for automating interactions with **JFrog Artifac
    Manages the creation and distribution of JFrog Release Bundles.
 
 10. **upload_generic.sh / pull_generic.sh**
+   Generic scripts to upload/download files using `curl` and Artifactory APIs directly.
+
+## 🚀 Usage
+
+```bash
+chmod +x <script_name>.sh
+./<script_name>.sh
+```
+
+✅ Prerequisites
     Generic scripts to upload/download files using `curl` and Artifactory APIs directly.
 
 ## 🚀 Usage
@@ -53,5 +64,6 @@ This directory contains scripts for automating interactions with **JFrog Artifac
 - Valid Artifactory credentials or Access Token.
 - `curl` installed for generic scripts.
 
+📘 Notes
 ## 📘 Notes
 - It is recommended to set `JF_AUTH_TOKEN` or `JFROG_API_KEY` as environment variables instead of passing them as arguments.
