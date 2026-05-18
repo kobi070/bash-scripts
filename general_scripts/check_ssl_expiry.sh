@@ -36,6 +36,17 @@ DOMAIN=$1
 PORT=${2:-443}
 THRESHOLD_DAYS=${3:-30}
 
+# Security check: Ensure PORT and THRESHOLD_DAYS are numeric integers to prevent shell arithmetic injection
+if [[ ! "$PORT" =~ ^[0-9]+$ ]]; then
+    echo "Error: PORT must be a positive numeric integer."
+    exit 1
+fi
+
+if [[ ! "$THRESHOLD_DAYS" =~ ^[0-9]+$ ]]; then
+    echo "Error: THRESHOLD_DAYS must be a positive numeric integer."
+    exit 1
+fi
+
 echo "Checking SSL certificate for $DOMAIN:$PORT..."
 
 # Get expiry date using openssl
