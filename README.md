@@ -9,20 +9,56 @@
 
 A comprehensive collection of specialized DevOps scripts and Azure DevOps YAML templates designed to automate installations, configurations, and CI/CD workflows across various environments.
 
+---
+
+## 📑 Table of Contents
+
+- [🚀 Key Features](#-key-features)
+- [🧠 Core Philosophies](#-core-philosophies)
+- [📂 Repository Structure](#-repository-structure)
+- [🛠️ Prerequisites](#️-prerequisites)
+- [🔐 Environment Variables](#-environment-variables)
+- [⚡ Quick Start](#-quick-start)
+- [📜 Available Scripts](#-available-scripts)
+- [🏗️ Azure DevOps Templates](#️-azure-devops-templates)
+- [🛡️ Security](#️-security)
+- [🤝 Contributing](#-contributing)
+- [📜 License](#-license)
+
+---
+
 ## 🚀 Key Features
 
 - **Modularity**: Small, single-purpose scripts and templates that can be easily composed.
-- **Security-First (Sentinel)**: Integrated secret scanning, vulnerability checks, and best practices for credential handling.
+- **Security-First**: Integrated secret scanning, vulnerability checks, and best practices for credential handling.
+- **Performance Optimized**: Efficient shell scripting techniques to minimize overhead.
 - **Cloud Native**: Native support for AWS, Azure, Docker, and Kubernetes.
 - **CI/CD Ready**: Reusable Azure DevOps templates and GitHub API automation.
 - **Standardized**: Consistent usage patterns, help functions, and error handling across all scripts.
+
+## 🧠 Core Philosophies
+
+This repository is built and maintained following two core personas:
+
+### 🛡️ Sentinel (Security)
+Prioritizes a "Security-First" approach to DevOps:
+- **Left-Shift Security**: Integration of security checks (Gitleaks, Trivy, Xray) at the earliest stages.
+- **Safe Logging**: Explicitly avoids verbose modes (like `curl -v`) that could leak sensitive headers.
+- **Secure Credential Handling**: Prioritizes environment variables over positional arguments to prevent exposure in process lists and shell history.
+- **Clean Configuration**: Avoids embedding secrets in persistent files, such as Git remote URLs.
+
+### ⚡ Bolt (Performance)
+Focuses on making automation as fast and efficient as possible:
+- **Process Reduction**: Consolidates shell pipelines (e.g., using `sed` or `awk` instead of multiple `grep | head` calls) to reduce process forking overhead.
+- **Git Plumbing**: Utilizes Git plumbing commands for faster and more robust automation compared to parsing porcelain output.
+- **Native Tools**: Leverages built-in shell features (like `$SECONDS`) over external calls where possible.
 
 ## 📂 Repository Structure
 
 The repository is organized into technology-specific directories:
 
 - [argocd_scripts/](./argocd_scripts/): ArgoCD installation and app management.
-- [aws_scripts/](./aws_scripts/): AWS CLI and S3 automation.
+- [aws_scripts/](./aws_scripts/): AWS CLI, S3 automation, and resource cleanup.
 - [az_devops_templates/](./az_devops_templates/): Reusable YAML templates for Azure DevOps pipelines.
 - [az_scripts/](./az_scripts/): Azure CLI and Azure DevOps automation.
 - [docker_scripts/](./docker_scripts/): Docker environment management and security.
@@ -34,8 +70,19 @@ The repository is organized into technology-specific directories:
 
 ## 🛠️ Prerequisites
 
-Most scripts require specific CLI tools. Ensure you have the relevant ones installed:
+Ensure you have the relevant CLI tools installed for the scripts you intend to use:
 
+| Tool | Purpose | Targeted Scripts |
+|------|---------|------------------|
+| **Bash** | Execution environment | All `.sh` scripts |
+| **jq** | JSON parsing | Most scripts (Essential) |
+| **kubectl** | K8s management | `k8s_scripts/`, `argocd_scripts/` |
+| **Docker** | Containerization | `docker_scripts/`, `general_scripts/hadolint_scan.sh` |
+| **Azure CLI** | Azure & ADO | `az_scripts/` (Requires `azure-devops` extension) |
+| **AWS CLI** | AWS management | `aws_scripts/` |
+| **JFrog CLI** | Artifact mgmt | `jfrog_scripts/` |
+| **Terraform** | IaC management | `terraform_scripts/` |
+| **curl** | API interactions | `github_scripts/`, `jfrog_scripts/`, `general_scripts/` |
 | Tool | Purpose |
 |------|---------|
 | **Bash** | Core execution environment (uses `set -euo pipefail`). |
@@ -183,6 +230,7 @@ Ensure the following tools are installed based on your requirements:
 
 <h2 id="environment-variables">🔐 Environment Variables</h2>
 
+Scripts prioritize environment variables for security. Common variables include:
 Many scripts prioritize environment variables for secure automation:
 
 | Variable | Purpose |
@@ -219,20 +267,21 @@ Many scripts prioritize environment variables for secure automation:
    ./k8s_scripts/k8s_node_resource_usage.sh
    ```
 
-4. **Scan a Docker image**:
-   ```bash
-   ./docker_scripts/trivyScans.sh my-image:latest
-   ```
-
 ## 📜 Available Scripts
 
+### ☸️ Kubernetes Scripts ([Details](./k8s_scripts/README.md))
 ### Kubernetes Scripts
 - `init_k8s.sh`: Kubernetes initialization and health check.
-- `minikube_install.sh`: Automated Minikube installation.
 - `k8s_wait_ready.sh`: Waits for resources to reach a ready state.
 - `k8s_node_resource_usage.sh`: Summarizes cluster resource usage.
 - `k8s_check_resource_limits.sh`: Verifies CPU/Memory limits on all pods.
 - `k8s_decode_secret.sh`: Decodes all keys in a Kubernetes secret.
+- `k8s_find_unused_pvcs.sh`: Identifies unused PersistentVolumeClaims.
+- `k8s_check_resource_limits.sh`: Verifies resource limits in a namespace.
+- `k8s_pod_restart_detector.sh`: Identifies frequently restarting pods.
+- `k8s_pod_logs_by_label.sh`: Aggregates logs from pods by label.
+
+### 🐳 Docker Scripts ([Details](./docker_scripts/README.md))
 - `k8s_copy_secret.sh`: Copies a secret between namespaces.
 
 ### 🐳 Docker Scripts
@@ -256,15 +305,22 @@ Many scripts prioritize environment variables for secure automation:
 - `docker_inspect_security.sh`: Container security audit (root, privileged, mounts).
 - `docker_image_size.sh`: Validates image size constraints.
 - `docker_clean_unused.sh`: Safe pruning of unused resources.
+- `docker_image_size.sh`: Validates image size against limits.
+
+### ☁️ Azure & Azure DevOps Scripts ([Details](./az_scripts/README.md))
 - `docker_list_latest_images.sh`: Lists local Docker images using the 'latest' tag.
 
 ### Azure & Azure DevOps Scripts
 - `az_devops_config.sh`: Configures CLI with Org URL and PAT.
 - `az_devops_run_pipeline.sh`: Triggers and monitors a pipeline run.
+- `az_devops_wait_pipeline.sh`: Waits for a specific pipeline run completion.
+- `az_pipeline_status.sh`: Checks status and result of a pipeline run.
 - `az_repo_tag_watcher.sh`: Automated pipeline triggering based on Git tags.
 - `az_devops_vars_util.sh`: Manages Azure DevOps variable groups.
-- `az_script_advance.sh`: E2E project and pipeline setup.
+- `az_list_repos.sh`: Lists all repositories in a project.
+- `az_devops_list_pipelines.sh`: Lists all pipelines in a project.
 
+### 📦 JFrog Scripts ([Details](./jfrog_scripts/README.md))
 ### JFrog Scripts
 - `jfrog_config.sh`: Server configuration for JFrog CLI.
 - `jf_xray_scan.sh`: Security scans for artifacts and builds.
@@ -275,6 +331,15 @@ Many scripts prioritize environment variables for secure automation:
 - `upload_generic.sh` / `pull_generic.sh`: API-based artifact management via curl.
 - `jf_cleanup_old_artifacts.sh`: Automated artifact cleanup by age.
 
+### 🐙 GitHub Scripts ([Details](./github_scripts/README.md))
+- `gh_create_release.sh`: Automated release creation via API.
+- `gh_get_latest_release.sh`: Fetches the latest release tag.
+- `gh_download_release_asset.sh`: Downloads specific assets from a release.
+- `gh_list_pull_requests.sh`: Lists open PRs and their status.
+- `gh_list_collaborators.sh`: Lists repository collaborators.
+- `init_repo.sh`: Initializes a new Git repository with best practices.
+
+### 🏗️ Terraform Scripts ([Details](./terraform_scripts/README.md))
 ### GitHub Scripts
 - `gh_create_release.sh`: Automated release creation via API.
 - `gh_get_latest_release.sh`: Fetches the latest release tag.
@@ -292,13 +357,19 @@ Many scripts prioritize environment variables for secure automation:
 - `tf_validate_all.sh`: Recursive module validation.
 - `tf_check_fmt.sh`: Canonical formatting enforcement.
 
-### 🐙 ArgoCD Scripts
+### 🐙 ArgoCD Scripts ([Details](./argocd_scripts/README.md))
 - `install-argocd.sh`: Automated ArgoCD installation.
 - `argocd_app_sync.sh`: Syncs ArgoCD applications and waits for health.
-- `argocd_list_apps.sh`: Lists all apps and their status.
 
-### ☁️ AWS Scripts
+### ☁️ AWS Scripts ([Details](./aws_scripts/README.md))
 - `aws_s3_sync.sh`: Robust S3 synchronization with dry-run support.
+- `aws_find_unused_ebs.sh`: Identifies unattached EBS volumes.
+
+### 🛠️ General Utilities ([Details](./general_scripts/README.md))
+- `check_sys_info.sh`: Linux system health summary.
+- `check_zombie_processes.sh`: Detects zombie processes.
+- `wait_for_url.sh`: Polls a URL until it returns 200 OK.
+- `bump_version.sh`: Automates version bumping in files.
 - `aws_iam_admin_audit.sh`: Audits users/groups for AdministratorAccess.
 - `aws_find_unused_ebs.sh`: Lists unattached EBS volumes.
 - `aws_list_iam_users_last_login.sh`: Lists IAM user activity for cleanup.
@@ -316,12 +387,24 @@ Many scripts prioritize environment variables for secure automation:
 - `hadolint_scan.sh`: Dockerfile linting via Docker.
 - `check_url_content.sh`: Waits for a URL to return 200 OK and verifies body content.
 
+## 🏗️ Azure DevOps Templates ([Details](./az_devops_templates/README.md))
+
 ## 🏗️ Azure DevOps Templates
 Located in `az_devops_templates/`, these follow a modular design:
 - **`common/`**: Step-level templates for security, docker, and gitflow.
 - **`jobs/`**: Parameterized job templates for multi-language builds and deployments.
 - **`pipelines/`**: End-to-end example pipelines.
 
+- **`common/`**: Step-level templates for security (Gitleaks, Trivy, Xray), docker, and gitflow.
+- **`jobs/`**: Parameterized job templates for multi-language builds and deployments (K8s, VM, Web App).
+- **`pipelines/`**: End-to-end example pipelines and utility maintenance scripts.
+
+## 🛡️ Security
+
+This repository follows strict security principles to ensure automation is safe and reliable:
+- **Secret Scanning**: Mandatory Gitleaks integration in pipelines.
+- **Vulnerability Scanning**: Automated Trivy and JFrog Xray scans for images and artifacts.
+- **Safe Environment**: Implementation of best practices for secret handling as documented in [Sentinel Principles](#-sentinel-security).
 ## 🛡️ Security
 
 This repository follows **Sentinel** security principles:
