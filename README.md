@@ -125,6 +125,7 @@ Many scripts prioritize environment variables for secure automation:
 - `k8s_pod_logs_by_label.sh`: Aggregates logs from pods matching a label.
 - `k8s_check_resource_limits.sh`: Verifies resource limits in a namespace.
 - `k8s_find_unused_pvcs.sh`: Identifies unused PersistentVolumeClaims.
+- `k8s_audit_pdb.sh`: Identifies workloads missing PodDisruptionBudgets.
 
 ### 🐳 Docker Scripts
 - `install_docker.sh`: Clean installation of the latest Docker Engine.
@@ -138,6 +139,7 @@ Many scripts prioritize environment variables for secure automation:
 - `docker-vol-prune.sh` / `docker-net-prune.sh`: Targeted resource pruning.
 - `clean_docker_images.sh` / `clean_docker_ps.sh`: Quick cleanup scripts.
 - `docker_get_container_ip.sh`: Retrieves the IP of a running container.
+- `docker_root_check.sh`: Scans for containers running as root.
 - `docker_push_to_repo.sh`: Pushes images to a target repository.
 - `docker-tag-push.sh` / `docker-tag-push-from-file.sh`: Tag and push utilities.
 
@@ -152,6 +154,11 @@ Many scripts prioritize environment variables for secure automation:
 - `az_script.sh`: Basic project and repo setup.
 - `az_script_advance.sh`: E2E project, repo, and pipeline setup.
 - `az_script_with_user.sh`: Interactive project setup wizard.
+
+### ☁️ AWS Scripts
+- `aws_s3_sync.sh`: Robust S3 synchronization with dry-run support.
+- `aws_find_unused_ebs.sh`: Identifies unattached EBS volumes.
+- `aws_iam_key_age.sh`: Identifies unrotated IAM access keys.
 
 ### 📦 JFrog Scripts
 - `jfrog_config.sh`: Server configuration for JFrog CLI.
@@ -169,6 +176,7 @@ Many scripts prioritize environment variables for secure automation:
 - `gh_download_release_asset.sh`: Downloads specific release assets.
 - `gh_list_pull_requests.sh`: Lists open PRs and their status.
 - `gh_list_collaborators.sh`: Lists repository collaborators.
+- `gh_workflow_stats.sh`: Analyzes GitHub Actions workflow statistics.
 - `init_repo.sh`: Initializes a new Git repository with best practices.
 - `commit_script.sh` / `commit_script_no_push.sh`: Streamlined commit workflows.
 - `logs_script.sh`: Colorized and formatted Git log display.
@@ -184,10 +192,7 @@ Many scripts prioritize environment variables for secure automation:
 - `install-argocd.sh`: Automated ArgoCD installation on K8s.
 - `argocd_app_sync.sh`: Syncs apps and waits for health/sync status.
 - `argocd_list_apps.sh`: Lists all apps and their health status.
-
-### ☁️ AWS Scripts
-- `aws_s3_sync.sh`: Robust S3 synchronization with dry-run support.
-- `aws_find_unused_ebs.sh`: Identifies unattached EBS volumes.
+- `argocd_app_diff.sh`: Shows diff between Git and Cluster for an app.
 
 ### 🛠️ General Utilities
 - `check_sys_info.sh`: Linux system health and resource summary.

@@ -14,6 +14,9 @@ This directory contains shell scripts for setting up and managing **Argo CD**, a
 3. **argocd_list_apps.sh**
    Lists all applications managed by Argo CD along with their health and synchronization status.
 
+4. **argocd_app_diff.sh**
+   Displays the diff between Git and Cluster state for a specified ArgoCD application.
+
 ## 🚀 Usage
 
 ### Install Argo CD
