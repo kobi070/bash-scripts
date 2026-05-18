@@ -47,6 +47,8 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 11. **k8s_find_unused_pvcs.sh**
     Identifies PersistentVolumeClaims (PVCs) that are not currently used by any Pods.
 
+12. **k8s_orphaned_resources.sh**
+    Heuristically identifies ConfigMaps and Secrets that are not referenced by any Pods, Deployments, or StatefulSets.
 12. **k8s_audit_pdb.sh**
     Identifies Deployments and StatefulSets missing PodDisruptionBudgets (PDB).
 
@@ -65,6 +67,11 @@ chmod +x <script_name>.sh
 ### Decode Secrets
 ```bash
 ./k8s_decode_secret.sh <secret_name> [namespace] [--raw]
+```
+
+### Find Orphaned Resources
+```bash
+./k8s_orphaned_resources.sh [namespace]
 ```
 
 ## ✅ Prerequisites

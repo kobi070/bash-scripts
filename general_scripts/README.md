@@ -39,6 +39,9 @@ This directory contains general-purpose utility scripts for system monitoring, d
 7. **proc_exist_script.sh**
    Checks if a specific process is running.
 
+8. **monitor_process_resources.sh**
+   Monitors CPU and Memory usage of a specific PID over time.
+
 ### Development & Automation
 8. **bump_version.sh / bump_version_nb.sh**
    Automates version bumping in files (with or without backups).
@@ -107,6 +110,11 @@ chmod +x <script_name>.sh
 📘 Notes
 export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
 ./send_slack_notification.sh "Build successful!"
+```
+
+### Monitor Process
+```bash
+./monitor_process_resources.sh <pid> 60 5
 ```
 
 ## ✅ Prerequisites
