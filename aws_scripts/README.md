@@ -11,6 +11,9 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 2. **aws_find_unused_ebs.sh**
    Lists AWS EBS volumes that are in 'available' state (not attached to any instance).
 
+3. **aws_iam_key_age.sh**
+   Identifies IAM access keys older than a specified number of days (default 90).
+
 ## 🚀 Usage
 
 ### Sync local directory to S3

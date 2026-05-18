@@ -48,6 +48,9 @@ This directory contains scripts for managing **Docker** environments, image work
 13. **docker_get_container_ip.sh**
     Retrieves the IP address of a running Docker container.
 
+14. **docker_root_check.sh**
+    Scans running containers to identify any running as the root user.
+
 ## 🚀 Usage
 
 ### Build and Push Image

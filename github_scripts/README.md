@@ -35,6 +35,9 @@ This directory contains scripts for automating **GitHub** workflows and interact
 9. **create_command_alias.sh / check_alias.sh**
    Utilities for managing and verifying Git aliases.
 
+10. **gh_workflow_stats.sh**
+    Analyzes recent GitHub Actions workflow runs for success rate and duration.
+
 ## 🚀 Usage
 
 ### Create a Release

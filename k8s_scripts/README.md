@@ -41,6 +41,9 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 11. **k8s_find_unused_pvcs.sh**
     Identifies PersistentVolumeClaims (PVCs) that are not currently used by any Pods.
 
+12. **k8s_audit_pdb.sh**
+    Identifies Deployments and StatefulSets missing PodDisruptionBudgets (PDB).
+
 ## 🚀 Usage
 
 ### Check Cluster Usage

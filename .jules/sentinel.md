@@ -17,3 +17,8 @@
 **Vulnerability:** Decoded Kubernetes secrets are printed directly to stdout, which can be captured in CI/CD logs or persistent shell history if redirected.
 **Learning:** DevOps utility scripts are often used in both interactive debugging and non-interactive CI/CD contexts. Without checking the terminal type, sensitive data is indiscriminately logged in persistent storage.
 **Prevention:** Implement a check for an interactive terminal (`[ -t 1 ]`) before printing sensitive data. Redact secrets by default in non-interactive modes, providing an explicit override flag (e.g., `--raw`) for authorized automated extraction.
+
+## 2026-05-18 - Kubernetes Availability and Container Security Audits
+**Vulnerability:** Workloads running without PodDisruptionBudgets (PDB) are at risk of downtime during node maintenance. Running containers as root increases the blast radius of a container escape.
+**Learning:** Correlating Kubernetes resources (Deployments/PDBs) in shell scripts is most efficient when fetching both as JSON and using `jq` for label matching, rather than multiple `kubectl` calls.
+**Prevention:** Implement automated PDB auditing and container root-check scripts to "left-shift" these availability and security checks.
