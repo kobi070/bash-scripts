@@ -15,3 +15,7 @@
 ## 2026-05-15 - [Bash built-ins for string manipulation]
 **Learning:** External processes like `sed`, `cut`, and `tr` are often used for simple string sanitization and transformation, but they incur process fork overhead. Bash parameter expansion (`${VAR//search/replace}`, `${VAR#prefix}`, `${VAR%suffix}`) is executed directly by the shell and is significantly faster for these tasks.
 **Action:** Use Bash parameter expansion instead of piping to `sed` or `cut` for basic string manipulation in performance-critical or frequently executed scripts.
+
+## 2026-05-18 - High-Performance Workflow Analytics and IAM Audits
+**Learning:** In `jq`, performing numeric calculations (like date differences) can lose the object context. Assigning fields to variables (e.g., `.AccessKeyId as $id`) before the calculation ensures they remain accessible for the final output string, avoiding "Cannot index number with string" errors.
+**Action:** Consistently use `jq` variables for field extraction in scripts involving multi-stage JSON transformations.

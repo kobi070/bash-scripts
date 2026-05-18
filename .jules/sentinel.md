@@ -18,7 +18,7 @@
 **Learning:** DevOps utility scripts are often used in both interactive debugging and non-interactive CI/CD contexts. Without checking the terminal type, sensitive data is indiscriminately logged in persistent storage.
 **Prevention:** Implement a check for an interactive terminal (`[ -t 1 ]`) before printing sensitive data. Redact secrets by default in non-interactive modes, providing an explicit override flag (e.g., `--raw`) for authorized automated extraction.
 
-## 2025-05-18 - Secret Exposure in Process Lists via Curl Headers
-**Vulnerability:** Passing sensitive headers to `curl` using the `-H` flag (e.g., `-H "Authorization: token $TOKEN"`) makes the secrets visible in the system's process list (via `ps` or `/proc`) during the entire duration of the network request.
-**Learning:** Even when scripts correctly use environment variables, the final call to a CLI tool can re-expose those secrets if they are passed as command-line arguments.
-**Prevention:** Use `curl`'s `--config -` (or `-K-`) option to pass sensitive headers via standard input. Using `printf` (a shell builtin) to pipe the configuration ensures the secret is never part of an `argv` array for an external process.
+## 2026-05-18 - Kubernetes Availability and Container Security Audits
+**Vulnerability:** Workloads running without PodDisruptionBudgets (PDB) are at risk of downtime during node maintenance. Running containers as root increases the blast radius of a container escape.
+**Learning:** Correlating Kubernetes resources (Deployments/PDBs) in shell scripts is most efficient when fetching both as JSON and using `jq` for label matching, rather than multiple `kubectl` calls.
+**Prevention:** Implement automated PDB auditing and container root-check scripts to "left-shift" these availability and security checks.
