@@ -25,6 +25,9 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 3. **aws_iam_key_age.sh**
    Identifies IAM access keys older than a specified number of days (default 90).
 
+4. **aws_ec2_public_ip_checker.sh**
+   Identifies EC2 instances with public IP addresses to highlight potential security exposures.
+
 ## 🚀 Usage
 
 ### Sync local directory to S3

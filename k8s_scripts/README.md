@@ -39,6 +39,9 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 10. **k8s_check_resource_limits.sh**
     Verifies that all pods in a namespace have resource limits defined.
 
+11. **k8s_resource_usage_percentage.sh**
+    Calculates Pod resource usage (CPU/Memory) as a percentage of their defined limits.
+
 ## 🚀 Usage
 
 10. **k8s_check_resource_limits.sh**
@@ -73,6 +76,11 @@ chmod +x <script_name>.sh
 ### Assess Node Drain Impact
 ```bash
 ./k8s_node_drain_helper.sh <node_name>
+```
+
+### Check Pod Resource Usage Percentage
+```bash
+./k8s_resource_usage_percentage.sh [namespace]
 ```
 
 ### Decode Secrets

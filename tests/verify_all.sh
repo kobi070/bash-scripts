@@ -111,4 +111,107 @@ else
     exit 1
 fi
 
+# --- 6. Mock for k8s_resource_usage_percentage.sh ---
+cat <<'EOF' > "$MOCK_BIN/kubectl"
+#!/bin/bash
+if [[ "$*" == *"top pod --all-namespaces"* ]]; then
+  echo "prod web-pod 500m 256Mi"
+elif [[ "$*" == *"top pod -n prod"* ]]; then
+  echo "web-pod 500m 256Mi"
+elif [[ "$*" == *"get pods"* ]]; then
+  echo '{"items": [{"metadata": {"namespace": "prod", "name": "web-pod"}, "spec": {"containers": [{"resources": {"limits": {"cpu": "1000m", "memory": "512Mi"}}}]}}]}'
+fi
+EOF
+chmod +x "$MOCK_BIN/kubectl"
+
+echo "Testing k8s_resource_usage_percentage.sh (all-namespaces)..."
+if ./k8s_scripts/k8s_resource_usage_percentage.sh all 2>&1 | grep -q "50.0%"; then
+    echo "  ✔ Calculated correct usage percentage (all-namespaces)"
+else
+    echo "  ✖ Failed usage percentage check (all-namespaces)"
+    exit 1
+fi
+
+echo "Testing k8s_resource_usage_percentage.sh (namespace prod)..."
+if ./k8s_scripts/k8s_resource_usage_percentage.sh prod 2>&1 | grep -q "50.0%"; then
+    echo "  ✔ Calculated correct usage percentage (namespace prod)"
+else
+    echo "  ✖ Failed usage percentage check (namespace prod)"
+    exit 1
+fi
+
+# --- 7. Mock for gh_list_merged_pr_authors.sh ---
+cat <<'EOF' > "$MOCK_BIN/gh"
+#!/bin/bash
+if [[ "$*" == *"pr list"* ]]; then
+  echo '[{"author": {"login": "jules-dev"}, "mergedAt": "2023-11-01T00:00:00Z"}, {"author": {"login": "bolt-bot"}, "mergedAt": "2023-11-02T00:00:00Z"}]'
+fi
+EOF
+chmod +x "$MOCK_BIN/gh"
+
+echo "Testing gh_list_merged_pr_authors.sh..."
+if ./github_scripts/gh_list_merged_pr_authors.sh owner/repo 2023-01-01 2>&1 | grep -q "jules-dev"; then
+    echo "  ✔ Found merged PR author"
+else
+    echo "  ✖ Failed to find author"
+    exit 1
+fi
+
+# --- 8. Mock for check_port_listening.sh ---
+cat <<'EOF' > "$MOCK_BIN/ss"
+#!/bin/bash
+echo "LISTEN 0 128 127.0.0.1:8080 0.0.0.0:*"
+EOF
+chmod +x "$MOCK_BIN/ss"
+
+echo "Testing check_port_listening.sh..."
+if ./general_scripts/check_port_listening.sh 8080 2>&1 | grep -q "PASS"; then
+    echo "  ✔ Detected listening port"
+else
+    echo "  ✖ Failed to detect port"
+    exit 1
+fi
+
+# --- 9. Mock for docker_image_vulnerability_summary.sh ---
+cat <<'EOF' > "trivy_mock.json"
+{
+  "Results": [
+    {
+      "Vulnerabilities": [
+        {"Severity": "CRITICAL"},
+        {"Severity": "HIGH"},
+        {"Severity": "HIGH"}
+      ]
+    }
+  ]
+}
+EOF
+
+echo "Testing docker_image_vulnerability_summary.sh..."
+if ./docker_scripts/docker_image_vulnerability_summary.sh trivy_mock.json 2>&1 | grep -q "CRITICAL: 1"; then
+    echo "  ✔ Summarized vulnerabilities correctly"
+else
+    echo "  ✖ Failed vulnerability summary"
+    rm trivy_mock.json
+    exit 1
+fi
+rm trivy_mock.json
+
+# --- 10. Mock for aws_ec2_public_ip_checker.sh ---
+cat <<'EOF' > "$MOCK_BIN/aws"
+#!/bin/bash
+if [[ "$*" == *"ec2 describe-instances"* ]]; then
+  echo '[[{"InstanceId": "i-123", "PublicIp": "1.2.3.4", "State": "running", "Name": "prod-web"}]]'
+fi
+EOF
+chmod +x "$MOCK_BIN/aws"
+
+echo "Testing aws_ec2_public_ip_checker.sh..."
+if ./aws_scripts/aws_ec2_public_ip_checker.sh 2>&1 | grep -q "1.2.3.4"; then
+    echo "  ✔ Found public IP"
+else
+    echo "  ✖ Failed to find public IP"
+    exit 1
+fi
+
 echo "All logic verifications passed!"

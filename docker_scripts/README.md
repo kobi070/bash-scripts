@@ -90,6 +90,9 @@ chmod +x <script_name>.sh
 14. **docker_root_check.sh**
     Scans running containers to identify any running as the root user.
 
+15. **docker_image_vulnerability_summary.sh**
+    Summarizes vulnerability counts by severity from a Trivy JSON report.
+
 ## 🚀 Usage
 
 ### Build and Push Image
