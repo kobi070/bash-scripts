@@ -43,8 +43,8 @@ WORKFLOW=$2
 echo "Fetching last failed run for $WORKFLOW in $REPO..."
 
 # Get the latest failed run ID
-RUN_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-    "https://api.github.com/repos/$REPO/actions/workflows/$WORKFLOW/runs?status=failure&per_page=1" \
+RUN_ID=$(printf "header = \"Authorization: token %s\"\n" "$GITHUB_TOKEN" | \
+    curl -s -K- "https://api.github.com/repos/$REPO/actions/workflows/$WORKFLOW/runs?status=failure&per_page=1" \
     | jq -r '.workflow_runs[0].id')
 
 if [ "$RUN_ID" == "null" ] || [ -z "$RUN_ID" ]; then
@@ -55,8 +55,8 @@ fi
 echo "Found failed run ID: $RUN_ID. Fetching jobs..."
 
 # Get jobs data for the failed run once
-JOBS_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-    "https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/jobs")
+JOBS_DATA=$(printf "header = \"Authorization: token %s\"\n" "$GITHUB_TOKEN" | \
+    curl -s -K- "https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/jobs")
 
 # Extract IDs and names of failed jobs
 # We use a custom separator to handle job names with spaces
@@ -70,8 +70,8 @@ echo "$FAILED_JOBS" | while IFS='|' read -r JOB_ID JOB_NAME; do
     echo "---------------------------------------------------------"
 
     # Fetch logs for the job
-    curl -s -H "Authorization: token $GITHUB_TOKEN" \
-        -L "https://api.github.com/repos/$REPO/actions/jobs/$JOB_ID/logs"
+    printf "header = \"Authorization: token %s\"\n" "$GITHUB_TOKEN" | \
+        curl -s -K- -L "https://api.github.com/repos/$REPO/actions/jobs/$JOB_ID/logs"
 
     echo ""
 done

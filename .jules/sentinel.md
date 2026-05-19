@@ -26,3 +26,8 @@
 **Vulnerability:** Workloads running without PodDisruptionBudgets (PDB) are at risk of downtime during node maintenance. Running containers as root increases the blast radius of a container escape.
 **Learning:** Correlating Kubernetes resources (Deployments/PDBs) in shell scripts is most efficient when fetching both as JSON and using `jq` for label matching, rather than multiple `kubectl` calls.
 **Prevention:** Implement automated PDB auditing and container root-check scripts to "left-shift" these availability and security checks.
+
+## 2026-05-19 - GITHUB_TOKEN Exposure in Process List via curl Headers
+**Vulnerability:** Using `curl -H "Authorization: token $GITHUB_TOKEN"` exposes the sensitive token in the system's process list (visible via `ps`), making it accessible to other users or logging tools on the same host.
+**Learning:** While environment variables are safer than positional arguments, passing them as command-line flags to external binaries still leaks them into the process table.
+**Prevention:** Use `curl`'s `--config -` (or `-K-`) flag to pass sensitive headers via standard input. By piping the header string directly to `curl`, the secret never appears in the command-line arguments.
