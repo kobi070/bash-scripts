@@ -25,3 +25,7 @@
 ## 2026-05-18 - High-Performance Workflow Analytics and IAM Audits
 **Learning:** In `jq`, performing numeric calculations (like date differences) can lose the object context. Assigning fields to variables (e.g., `.AccessKeyId as $id`) before the calculation ensures they remain accessible for the final output string, avoiding "Cannot index number with string" errors.
 **Action:** Consistently use `jq` variables for field extraction in scripts involving multi-stage JSON transformations.
+
+## 2026-05-19 - [jq Operator Precedence with Variable Assignment]
+**Learning:** In `jq`, the division operator (`/`) has higher precedence than variable assignment (`as`). Attempting a calculation like `A - B / 3600 as $h` results in `jq` trying to divide `B` by the string `"as $h ..."`, leading to a type error. Parenthesizing the entire calculation is required.
+**Action:** Always parenthesize complex calculations in `jq` filters before assigning the result to a variable: `((.mergedAt | fromdateiso8601) - (.createdAt | fromdateiso8601)) / 3600 as $diff_hours`.
