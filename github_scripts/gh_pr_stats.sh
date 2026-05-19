@@ -51,26 +51,31 @@ echo "--------------------------------------------------------------------------
 echo "PR #   | Merged At            | Duration (Hours) | Title"
 echo "--------------------------------------------------------------------------------"
 
-# Process PRs and calculate stats
-# Note: We use awk for date arithmetic because bc is not available and bash lacks floating point
-echo "$PR_DATA" | jq -r '.[] | "\(.number)\t\(.mergedAt)\t\(.createdAt)\t\(.title)"' | while IFS=$'\t' read -r num merged created title; do
-    # Convert ISO 8601 to epoch (requires GNU date or compatible)
-    CREATED_EPOCH=$(date -d "$created" +%s)
-    MERGED_EPOCH=$(date -d "$merged" +%s)
-
-    DIFF_SECONDS=$((MERGED_EPOCH - CREATED_EPOCH))
-    # Using awk for division to get decimal hours
-    DIFF_HOURS=$(awk "BEGIN {printf \"%.2f\", $DIFF_SECONDS / 3600}")
-
-    printf "%-6s | %-20s | %-16s | %s\n" "$num" "${merged:0:19}" "$DIFF_HOURS" "${title:0:40}"
+# Bolt optimization: Move all date arithmetic and string manipulation into a single jq process.
+# This eliminates 2x 'date' and 1x 'awk' process forks per pull request (3*N forks total).
+# We calculate duration in hours and format fields directly in jq.
+# The shell loop now only uses the 'printf' builtin for consistent decimal formatting.
+echo "$PR_DATA" | jq -r '
+  .[] |
+  .number as $num |
+  .mergedAt as $merged |
+  .createdAt as $created |
+  .title as $title |
+  ((($merged | fromdateiso8601) - ($created | fromdateiso8601)) / 3600) as $diff_hours |
+  "\($num)\t\($merged[0:19])\t\($diff_hours)\t\($title[0:40])"
+' | while IFS=$'\t' read -r num merged diff_hours title; do
+    printf "%-6s | %-20s | %-16.2f | %s\n" "$num" "$merged" "$diff_hours" "$title"
 done
 
 # Calculate overall average
-AVG_HOURS=$(echo "$PR_DATA" | jq -r '.[] | .createdAt as $c | .mergedAt as $m | ( ($m | fromdateiso8601) - ($c | fromdateiso8601) )' | \
-    awk '{ sum += $1; count++ } END { if (count > 0) printf "%.2f", (sum / count) / 3600; else print "0" }')
+# Bolt optimization: Reuse the already fetched PR_DATA
+AVG_HOURS=$(echo "$PR_DATA" | jq -r '
+  [ .[] | ( (.mergedAt | fromdateiso8601) - (.createdAt | fromdateiso8601) ) ] |
+  if length > 0 then (add / length) / 3600 else 0 end
+')
 
 echo "--------------------------------------------------------------------------------"
 echo "SUMMARY:"
 echo "Analyzed PRs: $(echo "$PR_DATA" | jq '. | length')"
-echo "Average Time-to-Merge: $AVG_HOURS hours"
+printf "Average Time-to-Merge: %.2f hours\n" "$AVG_HOURS"
 echo "--------------------------------------------------------------------------------"
