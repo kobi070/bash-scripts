@@ -42,7 +42,10 @@ This directory contains general-purpose utility scripts for system monitoring, d
 8. **proc_exist_script.sh**
    Checks if a specific process is running.
 
-8. **monitor_process_resources.sh**
+9. **check_port_listening.sh**
+   Verifies if a specific list of ports is listening on localhost.
+
+10. **monitor_process_resources.sh**
    Monitors CPU and Memory usage of a specific PID over time.
 
 ### Development & Automation
