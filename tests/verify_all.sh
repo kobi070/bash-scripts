@@ -50,7 +50,7 @@ else
     exit 1
 fi
 
-# --- 3. Mock for aws_iam_key_age.sh ---
+# --- 3. Mock for AWS IAM scripts ---
 cat <<'EOF' > "$MOCK_BIN/aws"
 #!/bin/bash
 if [[ "$*" == *"list-users"* ]]; then
@@ -59,6 +59,13 @@ elif [[ "$*" == *"list-access-keys"* ]]; then
   # Create a date in the past
   OLD_DATE=$(date -u -d "100 days ago" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -v-100d +"%Y-%m-%dT%H:%M:%SZ")
   echo "{\"AccessKeyMetadata\": [{\"UserName\": \"jules-user\", \"AccessKeyId\": \"AKIA123\", \"Status\": \"Active\", \"CreateDate\": \"$OLD_DATE\"}]}"
+elif [[ "$*" == *"generate-credential-report"* ]]; then
+  echo "COMPLETE"
+elif [[ "$*" == *"get-credential-report"* ]]; then
+  # Mock CSV: user,arn,user_creation_time,password_enabled,password_last_used,...
+  # access_key_1_last_used_date is field 11, access_key_2_last_used_date is field 16
+  CSV_CONTENT="user,arn,user_creation_time,password_enabled,password_last_used,password_last_changed,password_next_rotation,mfa_active,access_key_1_active,access_key_1_last_rotated,access_key_1_last_used_date,access_key_1_last_used_region,access_key_1_last_used_service,access_key_2_active,access_key_2_last_rotated,access_key_2_last_used_date\njules-user,arn:aws:iam::123456789012:user/jules-user,2023-01-01T00:00:00+00:00,true,2023-11-01T00:00:00+00:00,2023-01-01T00:00:00+00:00,N/A,true,true,2023-01-01T00:00:00+00:00,2023-11-02T00:00:00+00:00,us-east-1,ec2,false,N/A,N/A"
+  echo -e "$CSV_CONTENT" | base64 | tr -d '\n'
 fi
 EOF
 chmod +x "$MOCK_BIN/aws"
@@ -68,6 +75,14 @@ if ./aws_scripts/aws_iam_key_age.sh 90 2>&1 | grep -q "AKIA123"; then
     echo "  ✔ Found old IAM key"
 else
     echo "  ✖ Failed to find old IAM key"
+    exit 1
+fi
+
+echo "Testing aws_list_iam_users_last_login.sh..."
+if ./aws_scripts/aws_list_iam_users_last_login.sh 2>&1 | grep -q "2023-11-02T00:00:00+00:00"; then
+    echo "  ✔ Found last key usage in credential report"
+else
+    echo "  ✖ Failed to find last key usage"
     exit 1
 fi
 
