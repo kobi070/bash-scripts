@@ -29,3 +29,7 @@
 ## 2026-05-19 - [jq Operator Precedence with Variable Assignment]
 **Learning:** In `jq`, the division operator (`/`) has higher precedence than variable assignment (`as`). Attempting a calculation like `A - B / 3600 as $h` results in `jq` trying to divide `B` by the string `"as $h ..."`, leading to a type error. Parenthesizing the entire calculation is required.
 **Action:** Always parenthesize complex calculations in `jq` filters before assigning the result to a variable: `((.mergedAt | fromdateiso8601) - (.createdAt | fromdateiso8601)) / 3600 as $diff_hours`.
+
+## 2026-05-20 - [O(N) to O(1) AWS IAM Auditing]
+**Learning:** Auditing IAM user activity using loops of `aws iam get-user` or `list-access-keys` is highly inefficient and prone to rate limiting as it scales with the number of users ($O(N)$ API calls). The AWS Credential Report provides a comprehensive snapshot of all users and their credential usage in a single CSV artifact, enabling $O(1)$ network complexity for account-wide audits.
+**Action:** Use `aws iam generate-credential-report` followed by `aws iam get-credential-report` and `awk` for high-performance IAM activity reporting.
