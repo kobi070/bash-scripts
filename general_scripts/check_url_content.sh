@@ -52,6 +52,17 @@ if [[ -z "$URL" || -z "$SEARCH_STRING" ]]; then
     usage
 fi
 
+# Security check: Ensure TIMEOUT and INTERVAL are numeric integers to prevent shell arithmetic injection
+if [[ ! "$TIMEOUT" =~ ^[0-9]+$ ]]; then
+    echo "Error: TIMEOUT must be a positive numeric integer."
+    exit 1
+fi
+
+if [[ ! "$INTERVAL" =~ ^[0-9]+$ ]]; then
+    echo "Error: INTERVAL must be a positive numeric integer."
+    exit 1
+fi
+
 # Verify dependencies
 if ! command -v curl &> /dev/null; then
     echo "Error: curl is not installed."

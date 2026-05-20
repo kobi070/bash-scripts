@@ -33,6 +33,13 @@ if [ "$#" -ge 1 ] && [ "$1" != "all" ]; then
 fi
 
 THRESHOLD_DAYS=${2:-30}
+
+# Security check: Ensure THRESHOLD_DAYS is a numeric integer to prevent shell arithmetic injection
+if [[ ! "$THRESHOLD_DAYS" =~ ^[0-9]+$ ]]; then
+    echo "Error: THRESHOLD_DAYS must be a positive numeric integer."
+    exit 1
+fi
+
 CURRENT_SEC=$(date +%s)
 THRESHOLD_SEC=$((THRESHOLD_DAYS * 86400))
 

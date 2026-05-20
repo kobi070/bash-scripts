@@ -28,6 +28,13 @@ for tool in aws jq; do
 done
 
 MAX_DAYS=${1:-90}
+
+# Security check: Ensure MAX_DAYS is a numeric integer to prevent shell arithmetic injection
+if [[ ! "$MAX_DAYS" =~ ^[0-9]+$ ]]; then
+    echo "Error: MAX_DAYS must be a positive numeric integer."
+    exit 1
+fi
+
 MAX_SECONDS=$((MAX_DAYS * 86400))
 CURRENT_EPOCH=$(date +%s)
 
