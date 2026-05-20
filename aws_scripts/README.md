@@ -28,6 +28,9 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 4. **aws_ec2_public_ip_checker.sh**
    Identifies EC2 instances with public IP addresses to highlight potential security exposures.
 
+5. **aws_ebs_unencrypted_volumes.sh**
+   Identifies all EBS volumes in the current region that are not encrypted.
+
 ## 🚀 Usage
 
 ### Sync local directory to S3

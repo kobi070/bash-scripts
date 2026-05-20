@@ -158,6 +158,7 @@ Many scripts prioritize environment variables for secure automation:
 - `k8s_node_drain_helper.sh`: Assess node drain impact (PDBs, local storage).
 - `k8s_secret_expiry_check.sh`: Identifies expiring TLS secrets.
 - `k8s_unused_secrets_finder.sh`: Identifies secrets not used by any Pod or ServiceAccount.
+- `k8s_configmap_secret_sync_check.sh`: Verifies referenced ConfigMaps and Secrets exist.
 </details>
 
 <details id="docker-scripts">
@@ -181,6 +182,7 @@ Many scripts prioritize environment variables for secure automation:
 - `docker_inspect_security.sh`: Detailed container security audit.
 - `docker_layer_analysis.sh` / `docker_layer_size_analyzer.sh`: Image layer inspection.
 - `docker_list_latest_images.sh`: Lists local images using the 'latest' tag.
+- `docker_image_history_audit.sh`: Audits image history for secrets and size.
 </details>
 
 <details id="azure-devops-scripts">
@@ -224,6 +226,7 @@ Many scripts prioritize environment variables for secure automation:
 - `gh_workflow_stats.sh`: Analyzes GitHub Actions workflow statistics.
 - `gh_workflow_failure_logs.sh`: Fetches logs for failed workflow runs.
 - `gh_pr_size_checker.sh`: Categorizes PRs by size (XS-XL).
+- `gh_repo_compliance_audit.sh`: Audits repository settings against best practices.
 - `init_repo.sh`: Initializes a new Git repository with best practices.
 - `commit_script.sh` / `commit_script_no_push.sh`: Streamlined commit workflows.
 - `logs_script.sh`: Colorized and formatted Git log display.
@@ -260,6 +263,7 @@ Many scripts prioritize environment variables for secure automation:
 - `aws_list_old_ebs_snapshots.sh`: Lists EBS snapshots older than X days.
 - `aws_secret_rotation_check.sh`: Identifies stale or unrotated Secrets Manager secrets.
 - `aws_sg_audit.sh`: Audits Security Groups for overly permissive rules.
+- `aws_ebs_unencrypted_volumes.sh`: Identifies unencrypted EBS volumes.
 </details>
 
 <details id="general-utilities">
@@ -268,6 +272,7 @@ Many scripts prioritize environment variables for secure automation:
 - `check_sys_info.sh`: Linux system health and resource summary.
 - `check_disk_space.sh`: Monitoring with configurable thresholds.
 - `check_ssl_expiry.sh`: Monitors SSL certificate expiration dates.
+- `check_system_entropy.sh`: Monitors system entropy levels.
 - `check_zombie_processes.sh`: Detects and reports zombie processes.
 - `check_url_content.sh`: Verifies URL status and body content.
 - `find_large_files.sh`: Identifies top storage consumers.
