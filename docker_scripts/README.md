@@ -93,6 +93,9 @@ chmod +x <script_name>.sh
 15. **docker_image_vulnerability_summary.sh**
     Summarizes vulnerability counts by severity from a Trivy JSON report.
 
+16. **docker_image_history_audit.sh**
+    Audits Docker image history for sensitive commands and identifies oversized layers.
+
 ## 🚀 Usage
 
 ### Build and Push Image

@@ -55,6 +55,9 @@ This directory contains scripts for automating **GitHub** workflows and interact
 15. **git_cleanup_merged_branches.sh**
     Deletes local branches that have already been merged into the default branch.
 
+16. **gh_repo_compliance_audit.sh**
+    Audits GitHub repository settings (visibility, branch protection) against best practices.
+
 ## 🚀 Usage
 ### Create a Release
 ```bash

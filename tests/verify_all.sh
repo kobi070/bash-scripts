@@ -229,4 +229,120 @@ else
     exit 1
 fi
 
+# --- 11. Mock for k8s_configmap_secret_sync_check.sh ---
+cat <<'EOF' > "$MOCK_BIN/kubectl"
+#!/bin/bash
+if [[ "$*" == *"get deployment,statefulset"* ]]; then
+  echo '{"items": [{"kind": "Deployment", "metadata": {"namespace": "prod", "name": "web"}, "spec": {"template": {"spec": {"containers": [{"env": [{"name": "FOO", "valueFrom": {"configMapKeyRef": {"name": "missing-cm", "key": "foo"}}}]}]}}}}]}'
+elif [[ "$*" == *"get configmap"* ]]; then
+  echo '{"items": []}'
+elif [[ "$*" == *"get secret"* ]]; then
+  echo '{"items": []}'
+fi
+EOF
+chmod +x "$MOCK_BIN/kubectl"
+
+echo "Testing k8s_configmap_secret_sync_check.sh..."
+if ./k8s_scripts/k8s_configmap_secret_sync_check.sh prod 2>&1 | grep -q "missing-cm"; then
+    echo "  ✔ Detected missing ConfigMap reference"
+else
+    echo "  ✖ Failed to detect missing reference"
+    exit 1
+fi
+
+# --- 12. Mock for aws_ebs_unencrypted_volumes.sh ---
+cat <<'EOF' > "$MOCK_BIN/aws"
+#!/bin/bash
+if [[ "$*" == *"ec2 describe-volumes"* ]]; then
+  echo '[["vol-0123456789abcdef0", 10, "in-use", "prod-data"]]'
+fi
+EOF
+chmod +x "$MOCK_BIN/aws"
+
+echo "Testing aws_ebs_unencrypted_volumes.sh..."
+if ./aws_scripts/aws_ebs_unencrypted_volumes.sh 2>&1 | grep -q "vol-0123456789abcdef0"; then
+    echo "  ✔ Found unencrypted EBS volume"
+else
+    echo "  ✖ Failed to find unencrypted volume"
+    exit 1
+fi
+
+# --- 13. Mock for docker_image_history_audit.sh ---
+cat <<'EOF' > "$MOCK_BIN/docker"
+#!/bin/bash
+if [[ "$*" == *"history"* ]]; then
+  echo -e "COPY /app/secret.txt /app/secret.txt\t100MB"
+  echo -e "ENV DB_PASS=secret123\t0B"
+  echo -e "RUN apt-get update\t200MB"
+fi
+EOF
+chmod +x "$MOCK_BIN/docker"
+
+echo "Testing docker_image_history_audit.sh..."
+if ./docker_scripts/docker_image_history_audit.sh my-image 2>&1 | grep -q "DB_PASS"; then
+    echo "  ✔ Found sensitive keyword in history"
+else
+    echo "  ✖ Failed to find sensitive keyword"
+    exit 1
+fi
+
+# --- 14. Mock for gh_repo_compliance_audit.sh ---
+cat <<'EOF' > "$MOCK_BIN/gh"
+#!/bin/bash
+if [[ "$*" == *"repo view"* ]]; then
+  echo '{"isPrivate": false, "deleteBranchOnMerge": false, "defaultBranchRef": {"name": "main"}}'
+elif [[ "$*" == *"api"* ]]; then
+  echo '{"message": "Not Found"}'
+fi
+EOF
+chmod +x "$MOCK_BIN/gh"
+
+echo "Testing gh_repo_compliance_audit.sh..."
+if ./github_scripts/gh_repo_compliance_audit.sh owner/repo 2>&1 | grep -q "Public"; then
+    echo "  ✔ Audited repo compliance"
+else
+    echo "  ✖ Failed compliance audit"
+    exit 1
+fi
+
+# --- 15. Mock for check_system_entropy.sh ---
+# Create a dummy entropy file and mock 'cat' to use it
+mkdir -p "$MOCK_BIN/proc/sys/kernel/random"
+echo "500" > "$MOCK_BIN/proc/sys/kernel/random/entropy_avail"
+echo "4096" > "$MOCK_BIN/proc/sys/kernel/random/poolsize"
+
+cat <<EOF > "$MOCK_BIN/cat"
+#!/bin/bash
+if [[ "\$*" == "/proc/sys/kernel/random/entropy_avail" ]]; then
+  echo "500"
+elif [[ "\$*" == "/proc/sys/kernel/random/poolsize" ]]; then
+  echo "4096"
+else
+  /bin/cat "\$@"
+fi
+EOF
+chmod +x "$MOCK_BIN/cat"
+
+# We also need to fool the [ -f ] check if possible, or just skip it if it's hard.
+# Actually, the script checks [ -f "$ENTROPY_FILE" ].
+# In the sandbox, /proc/sys/kernel/random/entropy_avail MIGHT exist.
+# Let's check if it exists first.
+
+echo "Testing check_system_entropy.sh..."
+if [ -f "/proc/sys/kernel/random/entropy_avail" ]; then
+    # Use real cat but expect the warning if entropy is low, or mock it.
+    # Since we can't easily change the real /proc, we rely on the mocked 'cat'
+    # but the [ -f ] check still looks at the real file system.
+    if ./general_scripts/check_system_entropy.sh 1000 2>&1 | grep -q "Low entropy detected"; then
+        echo "  ✔ Detected low entropy (via mocked cat)"
+    else
+        # If it didn't find "Low entropy", maybe it's because entropy > 1000 on this machine.
+        # But our mocked cat returns 500.
+        echo "  ✖ Failed to detect low entropy"
+        exit 1
+    fi
+else
+    echo "  ⚠ Skipping entropy test (not on Linux or /proc not available)"
+fi
+
 echo "All logic verifications passed!"

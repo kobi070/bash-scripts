@@ -19,6 +19,9 @@ This directory contains general-purpose utility scripts for system monitoring, d
 4. **check_ssl_expiry.sh**
    Checks the expiration date of an SSL certificate for a given domain.
 
+5. **check_system_entropy.sh**
+   Monitors system entropy levels to ensure cryptographic reliability.
+
 ### Process Management
 5. **kill_proc.sh**
    Finds and kills a process by name or port.
