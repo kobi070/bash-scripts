@@ -36,6 +36,7 @@ A high-performance, security-focused collection of specialized DevOps scripts an
 - [🏗️ Azure DevOps Templates](#azure-devops-templates)
 - [⚡ Performance (Bolt)](#performance-bolt)
 - [🛡️ Security (Sentinel)](#security-sentinel)
+- [🧪 Testing & Verification](#testing-verification)
 - [🤝 Contributing](#contributing)
 - [📜 License](#license)
 
@@ -151,6 +152,7 @@ Many scripts prioritize environment variables for secure automation:
 - `k8s_pod_restart_detector.sh`: Identifies frequently restarting pods.
 - `k8s_pod_logs_by_label.sh`: Aggregates logs from pods matching a label.
 - `k8s_check_resource_limits.sh`: Verifies resource limits in a namespace.
+- `k8s_resource_usage_percentage.sh`: Calculates Pod resource usage vs limits.
 - `k8s_find_unused_pvcs.sh`: Identifies unused PersistentVolumeClaims.
 - `k8s_orphaned_resources.sh`: Heuristic discovery of unused ConfigMaps and Secrets.
 - `k8s_audit_pdb.sh`: Identifies workloads missing PodDisruptionBudgets.
@@ -181,6 +183,7 @@ Many scripts prioritize environment variables for secure automation:
 - `docker_inspect_security.sh`: Detailed container security audit.
 - `docker_layer_analysis.sh` / `docker_layer_size_analyzer.sh`: Image layer inspection.
 - `docker_list_latest_images.sh`: Lists local images using the 'latest' tag.
+- `docker_image_vulnerability_summary.sh`: Summarizes Trivy vulnerability reports.
 </details>
 
 <details id="azure-devops-scripts">
@@ -219,6 +222,7 @@ Many scripts prioritize environment variables for secure automation:
 - `gh_get_latest_release.sh`: Fetch the latest release tag.
 - `gh_download_release_asset.sh`: Downloads specific release assets.
 - `gh_list_pull_requests.sh`: Lists open PRs and their status.
+- `gh_list_merged_pr_authors.sh`: Lists unique authors of merged PRs.
 - `gh_pr_stats.sh`: Calculates average time-to-merge for PRs.
 - `gh_list_collaborators.sh`: Lists repository collaborators.
 - `gh_workflow_stats.sh`: Analyzes GitHub Actions workflow statistics.
@@ -258,6 +262,7 @@ Many scripts prioritize environment variables for secure automation:
 - `aws_iam_admin_audit.sh`: Audits users/groups for AdministratorAccess.
 - `aws_list_iam_users_last_login.sh`: Lists IAM user activity for cleanup.
 - `aws_list_old_ebs_snapshots.sh`: Lists EBS snapshots older than X days.
+- `aws_ec2_public_ip_checker.sh`: Identifies EC2 instances with public IPs.
 - `aws_secret_rotation_check.sh`: Identifies stale or unrotated Secrets Manager secrets.
 - `aws_sg_audit.sh`: Audits Security Groups for overly permissive rules.
 </details>
@@ -267,6 +272,7 @@ Many scripts prioritize environment variables for secure automation:
 
 - `check_sys_info.sh`: Linux system health and resource summary.
 - `check_disk_space.sh`: Monitoring with configurable thresholds.
+- `check_port_listening.sh`: Verifies if specific ports are listening.
 - `check_ssl_expiry.sh`: Monitors SSL certificate expiration dates.
 - `check_zombie_processes.sh`: Detects and reports zombie processes.
 - `check_url_content.sh`: Verifies URL status and body content.
@@ -315,6 +321,22 @@ The **Sentinel** philosophy ensures all automation is "Secure by Default":
 - **Credential Safety**: Prioritizing environment variables over positional arguments. Using `--password-stdin` and array-based `curl` arguments to prevent leakage.
 - **Stealth Logging & Redaction**: Automated check for interactive terminals (`[ -t 1 ]`) to redact sensitive output in CI/CD environments.
 - **Input Validation**: Robust validation of numeric inputs using `[[ "$VAR" =~ ^[0-9]+$ ]]` to prevent injection vulnerabilities.
+
+---
+
+<h2 id="testing-verification">🧪 Testing & Verification</h2>
+
+This repository includes a comprehensive testing suite to ensure the reliability and security of all scripts:
+
+- **Mock-Based Testing**: Use `tests/verify_all.sh` to run logic verification against mocked CLI binaries (kubectl, docker, aws, etc.). This ensures script logic is correct even in environments without the full toolsets.
+- **Curl Behavior Validation**: Use `tests/verify_curl_scripts.sh` to specifically validate how scripts handle API interactions and secret headers.
+- **Continuous Verification**: Scripts are designed to fail-fast with `set -euo pipefail` and include built-in help/usage functions.
+
+To run the full test suite:
+```bash
+./tests/verify_all.sh
+./tests/verify_curl_scripts.sh
+```
 
 ---
 
