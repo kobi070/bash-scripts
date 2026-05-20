@@ -1,75 +1,40 @@
 # k8s_scripts
 
 This directory contains scripts for managing **Kubernetes** resources and **Minikube** environments.
+
 ## 📖 Overview
-This directory contains scripts for managing **Kubernetes** resources and **Minikube** environments. It covers cluster initialization, resource monitoring, and debugging utilities.
+These scripts cover cluster initialization, resource monitoring, and debugging utilities.
 
 ## 📜 Scripts Overview
 
 ### Minikube Lifecycle
-1. **minikube_install.sh**
-   Installs Minikube on the local system.
-
-2. **minikube_start.sh / minikube_stop.sh / minikube_status.sh**
-   Commands for managing the Minikube cluster lifecycle.
+1. **minikube_install.sh**: Installs Minikube on the local system.
+2. **minikube_start.sh / minikube_stop.sh / minikube_status.sh**: Commands for managing the Minikube cluster lifecycle.
 
 ### Cluster Management
-3. **init_k8s.sh**
-   Initializes the Kubernetes environment and checks core components.
-
-4. **k8s_create_ns.sh / k8s_del_ns.sh**
-   Quickly create or delete Kubernetes namespaces.
-
-5. **k8s_wait_ready.sh**
-   Waits for deployments, statefulsets, or daemonsets to become ready.
-
-6. **k8s_node_resource_usage.sh**
-   Summarizes CPU and Memory usage across all nodes.
+3. **init_k8s.sh**: Initializes the Kubernetes environment and checks core components.
+4. **k8s_create_ns.sh / k8s_del_ns.sh**: Quickly create or delete Kubernetes namespaces.
+5. **k8s_wait_ready.sh**: Waits for deployments, statefulsets, or daemonsets to become ready.
+6. **k8s_node_resource_usage.sh**: Summarizes CPU and Memory usage across all nodes.
+7. **k8s_copy_secret.sh**: Copies a Kubernetes secret from one namespace to another.
 
 ### Monitoring & Debugging
-7. **k8s_pod_restart_detector.sh**
-   Identifies pods that are restarting frequently.
-
-8. **k8s_pod_logs_by_label.sh**
-   Aggregates logs from all pods matching a specific label.
-
-9. **k8s_decode_secret.sh**
-   Decodes all Base64 values in a Kubernetes secret for easy inspection.
-
-10. **k8s_check_resource_limits.sh**
-    Verifies that all pods in a namespace have resource limits defined.
-
-11. **k8s_resource_usage_percentage.sh**
-    Calculates Pod resource usage (CPU/Memory) as a percentage of their defined limits.
-
-## 🚀 Usage
-
-10. **k8s_check_resource_limits.sh**
-    Verifies that all pods in a namespace have resource limits defined.
-
-11. **k8s_find_unused_pvcs.sh**
-    Identifies PersistentVolumeClaims (PVCs) that are not currently used by any Pods.
-
-12. **k8s_secret_expiry_check.sh**
-    Identifies TLS secrets in the cluster that are nearing expiration.
-12. **k8s_copy_secret.sh**
-    Copies a Kubernetes secret from one namespace to another, cleaning up metadata to ensure a clean import.
-12. **k8s_node_drain_helper.sh**
-    Assess the impact of draining a node by identifying pods without PDBs, pods with local storage, and standalone pods.
-12. **k8s_orphaned_resources.sh**
-    Heuristically identifies ConfigMaps and Secrets that are not referenced by any Pods, Deployments, or StatefulSets.
-12. **k8s_audit_pdb.sh**
-    Identifies Deployments and StatefulSets missing PodDisruptionBudgets (PDB).
+8. **k8s_pod_restart_detector.sh**: Identifies pods that are restarting frequently.
+9. **k8s_pod_logs_by_label.sh**: Aggregates logs from all pods matching a specific label.
+10. **k8s_decode_secret.sh**: Decodes all Base64 values in a Kubernetes secret for easy inspection.
+11. **k8s_check_resource_limits.sh**: Verifies that all pods in a namespace have resource limits defined.
+12. **k8s_resource_usage_percentage.sh**: Calculates Pod resource usage (CPU/Memory) as a percentage of their defined limits.
+13. **k8s_find_unused_pvcs.sh**: Identifies PersistentVolumeClaims (PVCs) that are not currently used by any Pods.
+14. **k8s_secret_expiry_check.sh**: Identifies TLS secrets in the cluster that are nearing expiration.
+15. **k8s_node_drain_helper.sh**: Assess the impact of draining a node by identifying pods without PDBs, etc.
+16. **k8s_orphaned_resources.sh**: Heuristically identifies ConfigMaps and Secrets that are not referenced by any Pods.
+17. **k8s_audit_pdb.sh**: Identifies Deployments and StatefulSets missing PodDisruptionBudgets (PDB).
+18. **k8s_unused_secrets_finder.sh**: Identifies secrets not used by any Pod or ServiceAccount.
 
 ## 🚀 Usage
 
 ### Check Cluster Usage
 ```bash
-chmod +x <script_name>.sh
-./<script_name>.sh
-```
-
-✅ Prerequisites
 ./k8s_node_resource_usage.sh
 ```
 

@@ -1,53 +1,21 @@
 # jfrog_scripts
 
-This directory contains scripts for automating interactions with **JFrog Artifactory** and managing the **JFrog CLI**.
+This directory contains scripts for managing **JFrog Artifactory** and **Xray** using the JFrog CLI and APIs.
+
 ## 📖 Overview
-This directory contains scripts for automating interactions with **JFrog Artifactory** and managing the **JFrog CLI**. It covers artifact management, security scanning, and package manager configuration.
+These scripts handle server configuration, artifact management, and security scanning.
 
 ## 📜 Scripts Overview
 
-1. **jfrog_config.sh**
-   Configures the JFrog CLI with server details, including URL and authentication (Access Token/API Key).
-
-2. **jfrog_upload.sh**
-   Uploads files or directories to a specified Artifactory repository using the JFrog CLI.
-
-3. **jfrog_download.sh**
-   Downloads artifacts from Artifactory using the JFrog CLI.
-
-4. **jfrog_search.sh**
-   Searches for artifacts in Artifactory repositories.
-
-5. **jfrog_delete.sh**
-   Safely deletes artifacts from Artifactory, supporting dry-run mode.
-
-6. **jf_xray_scan.sh**
-   Triggers an Xray scan for a specific artifact or build to identify security vulnerabilities.
-
-7. **jf_docker_push.sh**
-   Pushes Docker images to Artifactory using the JFrog CLI.
-
-8. **jf_node_config.sh / jf_python_config.sh**
-   Configures package managers (npm/pip) to use Artifactory as a registry.
-
-9. **jf_release_bundle.sh**
-   Manages the creation and distribution of JFrog Release Bundles.
-
-10. **upload_generic.sh / pull_generic.sh**
-   Generic scripts to upload/download files using `curl` and Artifactory APIs directly.
-
-## 🚀 Usage
-
-```bash
-chmod +x <script_name>.sh
-./<script_name>.sh
-```
-
-✅ Prerequisites
-    Generic scripts to upload/download files using `curl` and Artifactory APIs directly.
-
-11. **jf_cleanup_old_artifacts.sh**
-    Finds and optionally deletes artifacts in an Artifactory repository older than N days.
+1. **jfrog_config.sh**: Server configuration for JFrog CLI.
+2. **jf_xray_scan.sh**: Security scans for artifacts and builds using Xray.
+3. **jf_node_config.sh / jf_python_config.sh**: Package manager configuration for Artifactory.
+4. **jfrog_upload.sh / jfrog_download.sh**: High-level artifact upload and download.
+5. **jfrog_search.sh / jfrog_delete.sh**: Artifact discovery and safe removal.
+6. **jf_docker_push.sh**: Pushes Docker images to Artifactory repositories.
+7. **jf_release_bundle.sh**: Management of JFrog Release Bundles.
+8. **upload_generic.sh / pull_generic.sh**: API-based management using `curl`.
+9. **jf_cleanup_old_artifacts.sh**: Automated cleanup of artifacts older than N days.
 
 ## 🚀 Usage
 
@@ -70,8 +38,7 @@ chmod +x <script_name>.sh
 
 - JFrog CLI (`jf` or `jfrog`) installed.
 - Valid Artifactory credentials or Access Token.
-- `curl` installed for generic scripts.
+- `curl` and `jq` installed.
 
-📘 Notes
 ## 📘 Notes
 - It is recommended to set `JF_AUTH_TOKEN` or `JFROG_API_KEY` as environment variables instead of passing them as arguments.

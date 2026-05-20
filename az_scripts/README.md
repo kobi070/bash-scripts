@@ -1,95 +1,41 @@
 # az_scripts
 
-This directory contains shell scripts for managing **Azure** resources and **Azure DevOps** automation using the Azure CLI.
+This directory contains scripts for automating **Azure CLI** and **Azure DevOps** operations.
+
 ## 📖 Overview
-This directory contains shell scripts for managing **Azure** resources and **Azure DevOps** automation using the Azure CLI. It covers pipeline management, variable group manipulation, and repository synchronization.
+These scripts cover organization configuration, pipeline management, and repository setup.
 
 ## 📜 Scripts Overview
 
-### Azure DevOps Automation
-1. **az_devops_config.sh**
-   Configures the Azure DevOps CLI with Organization URL and Personal Access Token (PAT).
-
-2. **az_devops_vars_util.sh**
-   Utility for managing Azure DevOps Variable Groups (list, create, update).
-
-3. **az_devops_run_pipeline.sh / az_devops_wait_pipeline.sh**
-   Triggers a pipeline run and waits for its completion.
-
-4. **az_devops_list_pipelines.sh**
-   Lists all pipelines in the current project.
-
-5. **az_pipeline_status.sh**
-   Checks the current status and result of a specific pipeline run.
-
-6. **az_list_repos.sh**
-   Lists all repositories within an Azure DevOps project.
-
-7. **az_repo_tag_watcher.sh**
-   Monitors a repository for new tags and triggers a target pipeline, using a variable group for state persistence.
-
-### Resource Management
-8. **az_script.sh**
-   Basic script for Azure DevOps project and repo setup.
-
-9. **az_script_advance.sh**
-   An end-to-end script that creates a repo, pushes code, and sets up a CI/CD pipeline in Azure DevOps.
-
-10. **az_script_with_user.sh**
-    Interactive script for setting up Azure DevOps resources with user prompts.
-
-4. **az_devops_list_pipelines.sh**
-   Lists all pipelines in the current project.
-
-5. **az_pipeline_status.sh**
-   Checks the current status and result of a specific pipeline run.
-
-6. **az_list_repos.sh**
-   Lists all repositories within an Azure DevOps project.
-
-7. **az_repo_tag_watcher.sh**
-   Monitors a repository for new tags and triggers a target pipeline, using a variable group for state persistence.
-
-### Resource Management
-8. **az_script.sh**
-   Basic script for Azure DevOps project and repo setup.
-
-9. **az_script_advance.sh**
-   An end-to-end script that creates a repo, pushes code, and sets up a CI/CD pipeline in Azure DevOps.
-
-10. **az_script_with_user.sh**
-    Interactive script for setting up Azure DevOps resources with user prompts.
+1. **az_devops_config.sh**: Configures CLI with Org URL and PAT.
+2. **az_devops_run_pipeline.sh / az_devops_wait_pipeline.sh**: Triggers and monitors pipeline runs.
+3. **az_devops_list_pipelines.sh**: Lists all pipelines in a project.
+4. **az_pipeline_status.sh**: Detailed status of a specific pipeline run.
+5. **az_repo_tag_watcher.sh**: Triggers pipelines based on new Git tags.
+6. **az_devops_vars_util.sh**: Manages Azure DevOps variable groups.
+7. **az_list_repos.sh**: Lists all repositories in a project.
+8. **az_script.sh**: Basic project and repo setup.
+9. **az_script_advance.sh**: E2E project, repo, and pipeline setup.
+10. **az_script_with_user.sh**: Interactive project setup wizard.
 
 ## 🚀 Usage
-### Basic Execution
+
+### Configure CLI
 ```bash
-chmod +x <script_name>.sh
-./<script_name>.sh
+export AZ_DEVOPS_PAT="your_pat"
+./az_devops_config.sh https://dev.azure.com/your-org
 ```
 
-### Non-interactive Pipeline Run
+### Run Pipeline
 ```bash
-chmod +x <script_name>.sh
-./<script_name>.sh
-```
-
-✅ Prerequisites
-
-- Azure CLI (`az`) installed.
-- Azure DevOps extension for Azure CLI (`az extension add --name azure-devops`).
-- Valid PAT with sufficient permissions.
-
-📘 Notes
-export AZURE_DEVOPS_EXT_PAT="your_pat_here"
-./az_devops_run_pipeline.sh --name "MyPipeline"
+./az_devops_run_pipeline.sh --name "my-pipeline" --project "my-project"
 ```
 
 ## ✅ Prerequisites
 
-- Azure CLI (`az`) installed.
-- Azure DevOps extension for Azure CLI (`az extension add --name azure-devops`).
-- Valid PAT with sufficient permissions.
+- Azure CLI installed.
+- `azure-devops` extension installed (`az extension add --name azure-devops`).
+- `jq` installed for JSON processing.
 
 ## 📘 Notes
-- Use `az login` to authenticate before running resource management scripts.
-- For non-interactive use, set `AZURE_DEVOPS_EXT_PAT` as an environment variable.
+- Most scripts require `AZ_DEVOPS_PAT` to be set in the environment.
