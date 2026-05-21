@@ -1,6 +1,5 @@
 # github_scripts
 
-This directory contains scripts for automating **GitHub** workflows and interacting with the GitHub API.
 ## 📖 Overview
 This directory contains scripts for automating **GitHub** workflows and interacting with the GitHub API. It includes tools for release management, repository initialization, and PR monitoring.
 
@@ -36,21 +35,21 @@ This directory contains scripts for automating **GitHub** workflows and interact
    Calculates average time-to-merge and detailed stats for the last N pull requests.
 
 10. **gh_list_collaborators.sh**
-   Lists all collaborators of a GitHub repository using the GitHub API.
+    Lists all collaborators of a GitHub repository using the GitHub API.
 
 ### Repository Management
 11. **init_repo.sh**
-   Initializes a new Git repository with a default `main` branch.
+    Initializes a new Git repository with a default `main` branch.
 
 12. **commit_script.sh / commit_script_no_push.sh**
-   Simplifies the workflow of adding, committing, and optionally pushing changes.
+    Simplifies the workflow of adding, committing, and optionally pushing changes.
 
 13. **logs_script.sh**
-   Displays formatted Git logs for better readability.
+    Displays formatted Git logs for better readability.
 
 ### Git Configuration & Utilities
 14. **create_command_alias.sh / check_alias.sh**
-   Utilities for managing and verifying Git aliases.
+    Utilities for managing and verifying Git aliases.
 
 15. **git_cleanup_merged_branches.sh**
     Deletes local branches that have already been merged into the default branch.
@@ -59,6 +58,7 @@ This directory contains scripts for automating **GitHub** workflows and interact
     Audits GitHub repository settings (visibility, branch protection) against best practices.
 
 ## 🚀 Usage
+
 ### Create a Release
 ```bash
 export GITHUB_TOKEN="your_token"

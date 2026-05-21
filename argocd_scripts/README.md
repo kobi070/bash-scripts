@@ -14,9 +14,6 @@ This directory contains shell scripts for setting up and managing **Argo CD**, a
 3. **argocd_list_apps.sh**
    Lists all applications managed by Argo CD along with their health and synchronization status.
 
-## 🚀 Usage
-
-To install Argo CD:
 4. **argocd_app_diff.sh**
    Displays the diff between Git and Cluster state for a specified ArgoCD application.
 
@@ -27,13 +24,19 @@ To install Argo CD:
 ./install-argocd.sh
 ```
 
-To sync an app:
-```bash
-./argocd_app_sync.sh <app_name>
-```
 ### Sync an Application
 ```bash
 ./argocd_app_sync.sh <app_name>
+```
+
+### List Applications
+```bash
+./argocd_list_apps.sh
+```
+
+### App Diff
+```bash
+./argocd_app_diff.sh <app_name>
 ```
 
 ## ✅ Prerequisites
@@ -42,10 +45,5 @@ To sync an app:
 - `kubectl` installed and configured.
 - `argocd` CLI installed for app management scripts.
 
-- A running Kubernetes cluster.
-- `kubectl` installed and configured.
-- `argocd` CLI installed for app management scripts.
-
-📘 Notes
 ## 📘 Notes
 - After installation, use `kubectl port-forward` to access the Argo CD UI.
