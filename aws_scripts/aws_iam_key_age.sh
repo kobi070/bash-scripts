@@ -21,15 +21,12 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 fi
 
 # Check for required tools
-if ! command -v aws &> /dev/null; then
-    echo "Error: aws CLI is not installed or not in PATH."
-    exit 1
-fi
-
-if ! command -v jq &> /dev/null; then
-    echo "Error: jq is not installed or not in PATH."
-    exit 1
-fi
+for tool in aws jq base64 awk; do
+    if ! command -v "$tool" &> /dev/null; then
+        echo "Error: $tool is not installed or not in PATH."
+        exit 1
+    fi
+done
 
 MAX_AGE_DAYS=${1:-90}
 # Security Pattern: validate numeric input
@@ -38,13 +35,56 @@ if [[ ! "$MAX_AGE_DAYS" =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
+echo "Generating IAM credential report for initial scan..."
+
+# Bolt optimization: We use O(1) credential report instead of O(N) per-user calls for initial scan.
+aws iam generate-credential-report --query 'State' --output text > /dev/null
+
+# Poll for report completion
+MAX_ATTEMPTS=10
+ATTEMPT=1
+STATE="STARTED"
+while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+    STATE=$(aws iam generate-credential-report --query 'State' --output text)
+    if [ "$STATE" == "COMPLETE" ]; then
+        break
+    fi
+    sleep 2
+    ATTEMPT=$((ATTEMPT + 1))
+done
+
+if [ "$STATE" != "COMPLETE" ]; then
+    echo "Error: Failed to generate credential report after $MAX_ATTEMPTS attempts."
+    exit 1
+fi
+
 echo "Scanning IAM access keys older than $MAX_AGE_DAYS days..."
 
 # Get current time in seconds since epoch
 NOW=$(date +%s)
 
-# Fetch all users
-USERS=$(aws iam list-users --query 'Users[*].UserName' --output text)
+# Calculate threshold date for initial awk filtering (ISO 8601)
+# Use portable date command for GNU/BSD
+if date -u -d "90 days ago" +"%Y-%m-%dT%H:%M:%SZ" &> /dev/null; then
+    THRESHOLD_DATE=$(date -u -d "$MAX_AGE_DAYS days ago" +"%Y-%m-%dT%H:%M:%SZ")
+else
+    THRESHOLD_DATE=$(date -u -v-"${MAX_AGE_DAYS}d" +"%Y-%m-%dT%H:%M:%SZ")
+fi
+
+# Fetch report and filter for candidate users with potentially stale keys
+# Indices (1-based): user(1), key1_active(9), key1_rotated(10), key2_active(14), key2_rotated(15)
+USERS=$(aws iam get-credential-report --query 'Content' --output text | base64 --decode | awk -F',' -v limit="$THRESHOLD_DATE" '
+  NR > 1 {
+    user = $1
+    key1_active = $9
+    key1_rotated = $10
+    key2_active = $14
+    key2_rotated = $15
+    if ((key1_active == "true" && key1_rotated < limit) || (key2_active == "true" && key2_rotated < limit)) {
+      print user
+    }
+  }
+')
 
 STALE_KEYS_FOUND=0
 
