@@ -10,6 +10,8 @@
 ![GitHub Actions](https://img.shields.io/badge/GitHub-Actions-2088FF?logo=github-actions&logoColor=white)
 ![ArgoCD](https://img.shields.io/badge/ArgoCD-Automation-ef7b4d?logo=argocd&logoColor=white)
 ![JFrog](https://img.shields.io/badge/JFrog-Green?style=flat&logo=jfrog&logoColor=white)
+![jq](https://img.shields.io/badge/JSON-jq-000000?style=flat&logo=json&logoColor=white)
+![ShellCheck](https://img.shields.io/badge/Linter-ShellCheck-informational?style=flat&logo=shellcheck&logoColor=white)
 
 A high-performance, security-focused collection of specialized DevOps scripts and Azure DevOps YAML templates designed to automate installations, cloud configurations, and complex CI/CD workflows.
 
@@ -43,13 +45,14 @@ A high-performance, security-focused collection of specialized DevOps scripts an
 
 <h2 id="tech-stack">🛠️ Tech Stack</h2>
 
-- **Scripting**: Bash (POSIX-compliant & 4.0+)
+- **Scripting**: Bash (POSIX-compliant & 4.0+), Python 3
 - **Cloud**: AWS, Azure
 - **Containers**: Docker, Kubernetes, ArgoCD
 - **CI/CD**: Azure DevOps, GitHub Actions
-- **Security**: Trivy, Xray, Gitleaks, Hadolint
+- **Security**: Trivy, Xray, Gitleaks, Hadolint, ShellCheck
 - **IaC**: Terraform
 - **Artifacts**: JFrog Artifactory
+- **Data Parsing**: jq
 
 ---
 
@@ -151,6 +154,7 @@ Many scripts prioritize environment variables for secure automation:
 - `k8s_pod_restart_detector.sh`: Identifies frequently restarting pods.
 - `k8s_pod_logs_by_label.sh`: Aggregates logs from pods matching a label.
 - `k8s_check_resource_limits.sh`: Verifies resource limits in a namespace.
+- `k8s_resource_usage_percentage.sh`: Calculates Pod resource usage as a percentage of limits.
 - `k8s_find_unused_pvcs.sh`: Identifies unused PersistentVolumeClaims.
 - `k8s_orphaned_resources.sh`: Heuristic discovery of unused ConfigMaps and Secrets.
 - `k8s_audit_pdb.sh`: Identifies workloads missing PodDisruptionBudgets.
@@ -183,6 +187,7 @@ Many scripts prioritize environment variables for secure automation:
 - `docker_layer_analysis.sh` / `docker_layer_size_analyzer.sh`: Image layer inspection.
 - `docker_list_latest_images.sh`: Lists local images using the 'latest' tag.
 - `docker_image_history_audit.sh`: Audits image history for secrets and size.
+- `docker_image_vulnerability_summary.sh`: Summarizes vulnerability counts from Trivy reports.
 </details>
 
 <details id="azure-devops-scripts">
@@ -223,6 +228,7 @@ Many scripts prioritize environment variables for secure automation:
 - `gh_list_pull_requests.sh`: Lists open PRs and their status.
 - `gh_pr_stats.sh`: Calculates average time-to-merge for PRs.
 - `gh_list_collaborators.sh`: Lists repository collaborators.
+- `gh_list_merged_pr_authors.sh`: Lists authors of merged PRs in a date range.
 - `gh_workflow_stats.sh`: Analyzes GitHub Actions workflow statistics.
 - `gh_workflow_failure_logs.sh`: Fetches logs for failed workflow runs.
 - `gh_pr_size_checker.sh`: Categorizes PRs by size (XS-XL).
@@ -264,6 +270,7 @@ Many scripts prioritize environment variables for secure automation:
 - `aws_secret_rotation_check.sh`: Identifies stale or unrotated Secrets Manager secrets.
 - `aws_sg_audit.sh`: Audits Security Groups for overly permissive rules.
 - `aws_ebs_unencrypted_volumes.sh`: Identifies unencrypted EBS volumes.
+- `aws_ec2_public_ip_checker.sh`: Identifies EC2 instances with public IPs.
 </details>
 
 <details id="general-utilities">
@@ -275,6 +282,7 @@ Many scripts prioritize environment variables for secure automation:
 - `check_system_entropy.sh`: Monitors system entropy levels.
 - `check_zombie_processes.sh`: Detects and reports zombie processes.
 - `check_url_content.sh`: Verifies URL status and body content.
+- `check_port_listening.sh`: Verifies if specific ports are listening.
 - `find_large_files.sh`: Identifies top storage consumers.
 - `kill_proc.sh` / `proc_exist_script.sh`: Process management utilities.
 - `monitor_process_resources.sh`: Tracks CPU/MEM usage of a PID over time.

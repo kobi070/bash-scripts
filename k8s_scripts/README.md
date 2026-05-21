@@ -69,12 +69,6 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 
 ## 🚀 Usage
 
-### Common Commands
-```bash
-chmod +x <script_name>.sh
-./<script_name>.sh
-```
-
 ### Check Cluster Usage
 ```bash
 ./k8s_node_resource_usage.sh
@@ -110,3 +104,6 @@ chmod +x <script_name>.sh
 - `kubectl` installed and configured.
 - `minikube` installed (for minikube scripts).
 - `jq` installed for JSON parsing.
+
+## 📘 Notes
+- Ensure your `kubectl` context is correctly set before running these scripts.

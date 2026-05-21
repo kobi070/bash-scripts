@@ -1,6 +1,5 @@
 # general_scripts
 
-This directory contains general-purpose utility scripts for system monitoring, development workflows, and automation.
 ## 📖 Overview
 This directory contains general-purpose utility scripts for system monitoring, development workflows, and automation. These tools are designed to be portable and easily integrated into various CI/CD pipelines.
 
@@ -22,87 +21,60 @@ This directory contains general-purpose utility scripts for system monitoring, d
 5. **check_system_entropy.sh**
    Monitors system entropy levels to ensure cryptographic reliability.
 
-### Process Management
-5. **kill_proc.sh**
-   Finds and kills a process by name or port.
-
-6. **proc_exist_script.sh**
-   Checks if a specific process is running.
-
-### Development & Automation
-7. **bump_version.sh / bump_version_nb.sh**
-   Automates version bumping in files (with or without backups).
-5. **check_zombie_processes.sh**
+6. **check_zombie_processes.sh**
    Detects zombie processes (status 'Z') on the system.
 
-6. **multi_url_monitor.sh**
+### Health Checks & URL Monitoring
+7. **multi_url_monitor.sh**
    Health-checks multiple URLs and provides a status summary, with optional Slack alerting.
 
-### Process Management
-7. **kill_proc.sh**
-   Finds and kills a process by name or port.
-
-8. **proc_exist_script.sh**
-   Checks if a specific process is running.
-
-9. **check_port_listening.sh**
-   Verifies if a specific list of ports is listening on localhost.
-
-10. **monitor_process_resources.sh**
-   Monitors CPU and Memory usage of a specific PID over time.
-
-### Development & Automation
-8. **bump_version.sh / bump_version_nb.sh**
-   Automates version bumping in files (with or without backups).
-
-9. **validate_env_vars.sh**
-   Ensures required environment variables are set before proceeding with a task.
-
-10. **wait_for_url.sh**
-    Polls a URL until it returns a 200 OK status.
-
-11. **send_slack_notification.sh**
-    Sends custom messages to Slack via Webhooks.
-
-12. **url_health_summary.sh**
-    Reports status codes and latency for a list of URLs.
-
-13. **auto_completion.sh**
-    Configures bash auto-completion for common CLI tools.
-
-### Tools & Installation
-13. **hadolint_scan.sh**
-    Lints Dockerfiles using Hadolint via a temporary Docker container.
-
-14. **get_helm.sh / install_boost.sh**
-    Installation scripts for Helm and Boost libraries.
-
-15. **extract_cmake_project_name.sh**
-    Utility to extract the project name from a `CMakeLists.txt` file.
-
-8. **validate_env_vars.sh**
-   Ensures required environment variables are set before proceeding with a task.
-
-9. **wait_for_url.sh**
+8. **wait_for_url.sh**
    Polls a URL until it returns a 200 OK status.
 
-10. **send_slack_notification.sh**
+9. **url_health_summary.sh**
+   Reports status codes and latency for a list of URLs.
+
+10. **check_url_content.sh**
+    Verifies if a URL returns a specific string in its body.
+
+### Process Management
+11. **kill_proc.sh**
+    Finds and kills a process by name or port.
+
+12. **proc_exist_script.sh**
+    Checks if a specific process is running.
+
+13. **check_port_listening.sh**
+    Verifies if a specific list of ports is listening on localhost.
+
+14. **monitor_process_resources.sh**
+    Monitors CPU and Memory usage of a specific PID over time.
+
+### Development & Automation
+15. **bump_version.sh / bump_version_nb.sh**
+    Automates version bumping in files (with or without backups).
+
+16. **validate_env_vars.sh**
+    Ensures required environment variables are set before proceeding with a task.
+
+17. **send_slack_notification.sh**
     Sends custom messages to Slack via Webhooks.
 
-11. **auto_completion.sh**
+18. **auto_completion.sh**
     Configures bash auto-completion for common CLI tools.
 
 ### Tools & Installation
-12. **hadolint_scan.sh**
+19. **hadolint_scan.sh**
     Lints Dockerfiles using Hadolint via a temporary Docker container.
 
-13. **get_helm.sh / install_boost.sh**
+20. **get_helm.sh / install_boost.sh**
     Installation scripts for Helm and Boost libraries.
 
-14. **extract_cmake_project_name.sh**
+21. **extract_cmake_project_name.sh**
     Utility to extract the project name from a `CMakeLists.txt` file.
 
 ## 🚀 Usage
+
 ### Check System Info
 ```bash
 ./check_sys_info.sh
@@ -113,25 +85,15 @@ This directory contains general-purpose utility scripts for system monitoring, d
 ./multi_url_monitor.sh https://google.com https://github.com
 ```
 
-### Send Slack Notification
-```bash
-chmod +x <script_name>.sh
-./<script_name>.sh
-```
-
-✅ Prerequisites
-
-- Bash shell.
-- Specific tools as required by individual scripts (e.g., `curl`, `jq`, `docker`).
-
-📘 Notes
-export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
-./send_slack_notification.sh "Build successful!"
-```
-
-### Monitor Process
+### Monitor Process Resources
 ```bash
 ./monitor_process_resources.sh <pid> 60 5
+```
+
+### Send Slack Notification
+```bash
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
+./send_slack_notification.sh "Build successful!"
 ```
 
 ## ✅ Prerequisites
