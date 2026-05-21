@@ -345,4 +345,109 @@ else
     echo "  ⚠ Skipping entropy test (not on Linux or /proc not available)"
 fi
 
+# --- 16. Mock for aws_s3_public_access_audit.sh ---
+cat <<'EOF' > "$MOCK_BIN/aws"
+#!/bin/bash
+if [[ "$*" == *"s3api get-public-access-block"* ]]; then
+  echo '{"PublicAccessBlockConfiguration": {"BlockPublicAcls": true, "IgnorePublicAcls": true, "BlockPublicPolicy": true, "RestrictPublicBuckets": true}}'
+elif [[ "$*" == *"s3api list-buckets"* ]]; then
+  echo "test-bucket"
+elif [[ "$*" == *"s3api get-bucket-policy-status"* ]]; then
+  echo '{"PolicyStatus": {"IsPublic": false}}'
+fi
+EOF
+chmod +x "$MOCK_BIN/aws"
+
+echo "Testing aws_s3_public_access_audit.sh..."
+if ./aws_scripts/aws_s3_public_access_audit.sh 2>&1 | grep -q "Restricted"; then
+    echo "  ✔ Audited S3 public access"
+else
+    echo "  ✖ Failed S3 public access audit"
+    exit 1
+fi
+
+# --- 17. Mock for k8s_ingress_health_check.sh ---
+cat <<'EOF' > "$MOCK_BIN/kubectl"
+#!/bin/bash
+if [[ "$*" == *"get ingress"* ]]; then
+  echo '{"items": [{"spec": {"rules": [{"host": "example.com"}]}}]}'
+fi
+EOF
+chmod +x "$MOCK_BIN/kubectl"
+
+cat <<'EOF' > "$MOCK_BIN/curl"
+#!/bin/bash
+echo -n "200"
+EOF
+chmod +x "$MOCK_BIN/curl"
+
+echo "Testing k8s_ingress_health_check.sh..."
+if ./k8s_scripts/k8s_ingress_health_check.sh prod 2>&1 | grep -q "PASS"; then
+    echo "  ✔ Checked ingress health"
+else
+    echo "  ✖ Failed ingress health check"
+    exit 1
+fi
+
+# --- 18. Mock for docker_image_age_audit.sh ---
+cat <<'EOF' > "$MOCK_BIN/docker"
+#!/bin/bash
+if [[ "$*" == *"images"* ]]; then
+  echo "repo:tag|id1|2023-11-01 10:00:00 +0000 UTC"
+elif [[ "$*" == *"inspect"* ]]; then
+  # Returns a timestamp from about 10 days ago (roughly)
+  # But for simplicity, we mock a fixed old date
+  echo "2023-01-01T00:00:00Z"
+fi
+EOF
+chmod +x "$MOCK_BIN/docker"
+
+echo "Testing docker_image_age_audit.sh..."
+if ./docker_scripts/docker_image_age_audit.sh 0 2>&1 | grep -q "repo:tag"; then
+    echo "  ✔ Audited docker image age"
+else
+    echo "  ✖ Failed image age audit"
+    exit 1
+fi
+
+# --- 19. Mock for gh_stale_branches.sh ---
+cat <<'EOF' > "$MOCK_BIN/gh"
+#!/bin/bash
+if [[ "$*" == *"api"* ]] && [[ "$*" == *"/branches"* ]]; then
+  echo '[{"name": "stale-branch", "commit": {"url": "http://api.github.com/commit/1"}}]'
+elif [[ "$*" == *"api http://api.github.com/commit/1"* ]]; then
+  echo '{"commit": {"committer": {"date": "2023-01-01T00:00:00Z", "name": "Old Author"}}}'
+fi
+EOF
+chmod +x "$MOCK_BIN/gh"
+
+echo "Testing gh_stale_branches.sh..."
+if ./github_scripts/gh_stale_branches.sh owner/repo 30 2>&1 | grep -q "stale-branch"; then
+    echo "  ✔ Found stale branch"
+else
+    echo "  ✖ Failed to find stale branch"
+    exit 1
+fi
+
+# --- 20. Mock for tf_resource_stats.sh ---
+cat <<'EOF' > "test.tfstate"
+{
+  "resources": [
+    {"type": "aws_instance"},
+    {"type": "aws_instance"},
+    {"type": "aws_s3_bucket"}
+  ]
+}
+EOF
+
+echo "Testing tf_resource_stats.sh..."
+if ./terraform_scripts/tf_resource_stats.sh test.tfstate 2>&1 | grep -q "aws_instance"; then
+    echo "  ✔ Analyzed terraform state"
+else
+    echo "  ✖ Failed state analysis"
+    rm test.tfstate
+    exit 1
+fi
+rm test.tfstate
+
 echo "All logic verifications passed!"

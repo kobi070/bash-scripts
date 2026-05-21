@@ -31,6 +31,9 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 5. **aws_ebs_unencrypted_volumes.sh**
    Identifies all EBS volumes in the current region that are not encrypted.
 
+6. **aws_s3_public_access_audit.sh**
+   Audits S3 buckets for public access block settings and policy status.
+
 ## 🚀 Usage
 
 ### Sync local directory to S3
@@ -47,6 +50,11 @@ chmod +x aws_s3_sync.sh
 ### List IAM User Activity
 ```bash
 ./aws_list_iam_users_last_login.sh
+```
+
+### Audit S3 Public Access
+```bash
+./aws_s3_public_access_audit.sh
 ```
 
 ### Check Secret Rotation

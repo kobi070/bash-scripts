@@ -58,6 +58,9 @@ This directory contains scripts for automating **GitHub** workflows and interact
 16. **gh_repo_compliance_audit.sh**
     Audits GitHub repository settings (visibility, branch protection) against best practices.
 
+17. **gh_stale_branches.sh**
+    Identifies stale remote branches in a GitHub repository based on last commit date.
+
 ## 🚀 Usage
 ### Create a Release
 ```bash
@@ -84,6 +87,11 @@ export GITHUB_TOKEN="your_token"
 ### Pull Request Statistics
 ```bash
 ./gh_pr_stats.sh [repo] [limit]
+```
+
+### Stale Branches
+```bash
+./gh_stale_branches.sh [owner/repo] [days]
 ```
 
 ## ✅ Prerequisites

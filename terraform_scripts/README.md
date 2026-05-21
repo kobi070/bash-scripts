@@ -18,6 +18,9 @@ This directory contains scripts for setting up and managing **Terraform** enviro
 4. **tf_check_fmt.sh**
    Checks if all Terraform files in the project are properly formatted.
 
+5. **tf_resource_stats.sh**
+   Analyzes a Terraform state file to provide a summary of resource types and counts.
+
 ## 🚀 Usage
 
 ### Setup Environment
@@ -35,6 +38,11 @@ chmod +x <script_name>.sh
 ### Check Formatting
 ```bash
 ./tf_check_fmt.sh
+```
+
+### Resource Statistics
+```bash
+./tf_resource_stats.sh [state_file]
 ```
 
 ## ✅ Prerequisites
