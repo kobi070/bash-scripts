@@ -33,3 +33,7 @@
 ## 2026-05-20 - [O(N) to O(1) AWS IAM Auditing]
 **Learning:** Auditing IAM user activity using loops of `aws iam get-user` or `list-access-keys` is highly inefficient and prone to rate limiting as it scales with the number of users ($O(N)$ API calls). The AWS Credential Report provides a comprehensive snapshot of all users and their credential usage in a single CSV artifact, enabling $O(1)$ network complexity for account-wide audits.
 **Action:** Use `aws iam generate-credential-report` followed by `aws iam get-credential-report` and `awk` for high-performance IAM activity reporting.
+
+## 2026-05-21 - [O(N) to O(1 + N_stale) AWS IAM Key Age Audit]
+**Learning:** Transitioning from a per-user API call pattern ($O(N)$) to using the bulk AWS Credential Report for initial filtering significantly reduces network overhead and latency. By identifying only "candidate" users with potentially stale keys via local processing ($O(1)$), subsequent detailed API calls are minimized to $O(N_{stale})$.
+**Action:** Always leverage bulk reporting APIs (like AWS Credential Report or Azure Resource Graph) for account-wide inventory and audit tasks before falling back to individual resource queries.
