@@ -44,6 +44,9 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 12. **k8s_configmap_secret_sync_check.sh**
     Verifies that all ConfigMaps and Secrets referenced in Deployments and StatefulSets actually exist.
 
+13. **k8s_ingress_health_check.sh**
+    Verifies that all Ingress hosts in a namespace are resolvable and returning healthy status codes.
+
 ### Cleanup & Compliance
 13. **k8s_find_unused_pvcs.sh**
     Identifies PersistentVolumeClaims (PVCs) that are not currently used by any Pods.
@@ -103,6 +106,11 @@ chmod +x <script_name>.sh
 ### Copy Secret to another Namespace
 ```bash
 ./k8s_copy_secret.sh <secret_name> <source_namespace> <target_namespace>
+```
+
+### Check Ingress Health
+```bash
+./k8s_ingress_health_check.sh [namespace] [expected_status]
 ```
 
 ## ✅ Prerequisites

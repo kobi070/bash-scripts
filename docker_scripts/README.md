@@ -96,6 +96,9 @@ chmod +x <script_name>.sh
 16. **docker_image_history_audit.sh**
     Audits Docker image history for sensitive commands and identifies oversized layers.
 
+17. **docker_image_age_audit.sh**
+    Lists local Docker images with their age, identifying old or potentially vulnerable images.
+
 ## 🚀 Usage
 
 ### Build and Push Image
@@ -117,6 +120,11 @@ chmod +x <script_name>.sh
 ### Security Audit
 ```bash
 ./docker_audit_security.sh [container_name]
+```
+
+### Image Age Audit
+```bash
+./docker_image_age_audit.sh [threshold_days]
 ```
 
 ## ✅ Prerequisites

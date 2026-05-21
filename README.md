@@ -159,6 +159,7 @@ Many scripts prioritize environment variables for secure automation:
 - `k8s_secret_expiry_check.sh`: Identifies expiring TLS secrets.
 - `k8s_unused_secrets_finder.sh`: Identifies secrets not used by any Pod or ServiceAccount.
 - `k8s_configmap_secret_sync_check.sh`: Verifies referenced ConfigMaps and Secrets exist.
+- `k8s_ingress_health_check.sh`: Verifies health of all Ingress hosts in a namespace.
 </details>
 
 <details id="docker-scripts">
@@ -183,6 +184,7 @@ Many scripts prioritize environment variables for secure automation:
 - `docker_layer_analysis.sh` / `docker_layer_size_analyzer.sh`: Image layer inspection.
 - `docker_list_latest_images.sh`: Lists local images using the 'latest' tag.
 - `docker_image_history_audit.sh`: Audits image history for secrets and size.
+- `docker_image_age_audit.sh`: Lists local images by age for cleanup.
 </details>
 
 <details id="azure-devops-scripts">
@@ -232,6 +234,7 @@ Many scripts prioritize environment variables for secure automation:
 - `logs_script.sh`: Colorized and formatted Git log display.
 - `create_command_alias.sh` / `check_alias.sh`: Git alias management.
 - `git_cleanup_merged_branches.sh`: Deletes merged local branches.
+- `gh_stale_branches.sh`: Identifies stale remote branches.
 </details>
 
 <details id="terraform-scripts">
@@ -241,6 +244,7 @@ Many scripts prioritize environment variables for secure automation:
 - `tr_init.sh`: Environment readiness check for Terraform.
 - `tf_validate_all.sh`: Recursive module validation.
 - `tf_check_fmt.sh`: Canonical formatting enforcement.
+- `tf_resource_stats.sh`: Summarizes resource types and counts in state.
 </details>
 
 <details id="argocd-scripts">
@@ -264,6 +268,7 @@ Many scripts prioritize environment variables for secure automation:
 - `aws_secret_rotation_check.sh`: Identifies stale or unrotated Secrets Manager secrets.
 - `aws_sg_audit.sh`: Audits Security Groups for overly permissive rules.
 - `aws_ebs_unencrypted_volumes.sh`: Identifies unencrypted EBS volumes.
+- `aws_s3_public_access_audit.sh`: Audits S3 buckets for public access.
 </details>
 
 <details id="general-utilities">
