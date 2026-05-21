@@ -22,6 +22,12 @@
 **Vulnerability:** User-supplied inputs used in Bash arithmetic contexts (`$((...))`, `((...))`, or `[[ $val -gt 0 ]]`) allow arbitrary command execution if the input contains malicious payloads like `1+RANDOM[$(command)]0`.
 **Learning:** Bash evaluates variables within arithmetic expressions. If a variable contains a specially crafted string, it can trigger command substitution during evaluation, even if the variable is not explicitly preceded by `$`.
 **Prevention:** Always validate that inputs intended for numeric use contain only digits using a regex check `[[ "$VAR" =~ ^[0-9]+$ ]]` before they are used in any arithmetic comparison or expansion.
+
+## 2026-05-21 - Shell Arithmetic Injection via Double Brackets
+**Vulnerability:** Even with quoted variables, Bash's double brackets `[[ $VAR -gt 0 ]]` still perform arithmetic evaluation on the content of `$VAR`, allowing command execution via payloads like `a[$(touch file)]`.
+**Learning:** The behavior of `[[ ]]` for numeric comparisons is more permissive/dangerous than `[ ]` (test). While `[ "$VAR" -gt 0 ]` fails with an "integer expression expected" error for malicious strings, `[[ "$VAR" -gt 0 ]]` evaluates the expression within the brackets.
+**Prevention:** Always use a strict regex check `[[ "$VAR" =~ ^[0-9]+$ ]]` before using ANY variable in a numeric comparison, even when using `[[ ]]` or quoting variables.
+
 ## 2026-05-18 - Kubernetes Availability and Container Security Audits
 **Vulnerability:** Workloads running without PodDisruptionBudgets (PDB) are at risk of downtime during node maintenance. Running containers as root increases the blast radius of a container escape.
 **Learning:** Correlating Kubernetes resources (Deployments/PDBs) in shell scripts is most efficient when fetching both as JSON and using `jq` for label matching, rather than multiple `kubectl` calls.

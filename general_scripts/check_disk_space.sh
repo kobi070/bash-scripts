@@ -23,6 +23,12 @@ fi
 THRESHOLD=${1:-90}
 MOUNT_POINT=${2:-/}
 
+# Security check: Ensure THRESHOLD is a numeric integer to prevent shell arithmetic injection
+if [[ ! "$THRESHOLD" =~ ^[0-9]+$ ]]; then
+    echo "Error: THRESHOLD must be a positive numeric integer."
+    exit 1
+fi
+
 echo "Checking disk usage for $MOUNT_POINT (threshold: ${THRESHOLD}%)..."
 
 # Get usage percentage
