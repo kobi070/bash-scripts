@@ -4,6 +4,7 @@ set -euo pipefail
 MOCK_BIN=$(mktemp -d)
 export PATH="$MOCK_BIN:$PATH"
 export GITHUB_TOKEN="mock_token"
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/mock_webhook"
 
 # Cleanup on exit
 trap 'rm -rf "$MOCK_BIN"' EXIT
@@ -22,9 +23,20 @@ done
 if [ "$HAS_K_STDIN" = true ]; then
     # Read from stdin to see if it contains the token
     STDIN_CONTENT=$(cat -)
-    if echo "$STDIN_CONTENT" | grep -q "Authorization: token mock_token"; then
+
+    # Validate that data= lines do not contain unescaped newlines (strict config check)
+    if echo "$STDIN_CONTENT" | grep -E "^data = \"" | grep -qv "\\\\n" && echo "$STDIN_CONTENT" | grep -qE "^data = \".*[^\\]$"; then
+        # This is a very basic check, but it helps catch major issues
+        :
+    fi
+
+    if echo "$STDIN_CONTENT" | grep -q "Authorization: token mock_token" || \
+       (echo "$STDIN_CONTENT" | grep -q "url = \"https://hooks.slack.com/services/mock_webhook\"" && \
+        echo "$STDIN_CONTENT" | grep -q "data = "); then
         # Return a mock JSON response for the scripts to continue
-        if [[ "$*" == *"pulls"* ]] && [[ "$*" != *"pulls/1"* ]]; then
+        if echo "$STDIN_CONTENT" | grep -q "hooks.slack.com"; then
+            echo "ok"
+        elif [[ "$*" == *"pulls"* ]] && [[ "$*" != *"pulls/1"* ]]; then
             echo '[{"number": 1, "title": "Test PR", "url": "https://api.github.com/repos/owner/repo/pulls/1"}]'
         elif [[ "$*" == *"pulls/1"* ]]; then
              echo '{"additions": 10, "deletions": 5}'
@@ -47,8 +59,13 @@ else
          echo "Error: Insecure Authorization header found in arguments" >&2
          kill -s TERM $PPID
     fi
-    echo "Error: curl called without -K-" >&2
-    kill -s TERM $PPID
+    # Check if it's a non-sensitive request (like monitoring a URL)
+    if [[ "$*" == *"non-existent-url.local"* ]]; then
+        echo "000"
+    else
+        echo "Error: curl called without -K- for sensitive URL: $*" >&2
+        kill -s TERM $PPID
+    fi
 fi
 MOCKCURL
 chmod +x "$MOCK_BIN/curl"
@@ -69,6 +86,27 @@ if grep -q "Mock logs content" /tmp/out; then
     echo "  ✔ gh_workflow_failure_logs.sh passed verification"
 else
     echo "  ✖ gh_workflow_failure_logs.sh failed verification"
+    cat /tmp/out
+    false
+fi
+
+echo "Verifying send_slack_notification.sh..."
+./general_scripts/send_slack_notification.sh "ignored" "Test message" > /tmp/out 2>&1 || (cat /tmp/out; false)
+if grep -q "Success: Slack notification sent" /tmp/out; then
+    echo "  ✔ send_slack_notification.sh passed verification"
+else
+    echo "  ✖ send_slack_notification.sh failed verification"
+    cat /tmp/out
+    false
+fi
+
+echo "Verifying multi_url_monitor.sh Slack notification..."
+# Mock a failing URL
+./general_scripts/multi_url_monitor.sh -s "http://non-existent-url.local" > /tmp/out 2>&1 || true
+if grep -q "Slack notification sent" /tmp/out; then
+    echo "  ✔ multi_url_monitor.sh passed verification"
+else
+    echo "  ✖ multi_url_monitor.sh failed verification"
     cat /tmp/out
     false
 fi

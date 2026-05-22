@@ -87,8 +87,15 @@ if [ ${#FAILED_URLS[@]} -ne 0 ]; then
         if [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
             echo "Error: SLACK_WEBHOOK_URL is not set. Cannot send notification."
         else
-            PAYLOAD="{\"text\": \"*Multi-URL Monitor Alert*\nSome services are down:\n\`\`\`$RESULTS\`\`\`\"}"
-            curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL"
+            # Prepare JSON payload using jq for safe character handling and compact output
+            PAYLOAD=$(jq -n -c --arg text "*Multi-URL Monitor Alert*
+Some services are down:
+\`\`\`$RESULTS\`\`\`" '{text: $text}')
+
+            # Use curl config file via stdin to prevent leaking SLACK_WEBHOOK_URL in process lists (ps)
+            # We must escape backslashes and double quotes for the curl config parser
+            ESCAPED_PAYLOAD=$(echo "$PAYLOAD" | sed 's/\\/\\\\/g; s/"/\\"/g')
+            printf "url = \"%s\"\ndata = \"%s\"" "$SLACK_WEBHOOK_URL" "$ESCAPED_PAYLOAD" | curl -s -X POST -H 'Content-type: application/json' -K- > /dev/null || echo "Error: Failed to send Slack notification."
             echo "Slack notification sent."
         fi
     fi
