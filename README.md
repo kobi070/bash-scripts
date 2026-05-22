@@ -38,6 +38,7 @@ A high-performance, security-focused collection of specialized DevOps scripts an
 - [🏗️ Azure DevOps Templates](#azure-devops-templates)
 - [⚡ Performance (Bolt)](#performance-bolt)
 - [🛡️ Security (Sentinel)](#security-sentinel)
+- [🧪 Testing & Quality Assurance](#testing-quality-assurance)
 - [🤝 Contributing](#contributing)
 - [📜 License](#license)
 
@@ -45,14 +46,14 @@ A high-performance, security-focused collection of specialized DevOps scripts an
 
 <h2 id="tech-stack">🛠️ Tech Stack</h2>
 
-- **Scripting**: Bash (POSIX-compliant & 4.0+), Python 3
-- **Cloud**: AWS, Azure
-- **Containers**: Docker, Kubernetes, ArgoCD
-- **CI/CD**: Azure DevOps, GitHub Actions
-- **Security**: Trivy, Xray, Gitleaks, Hadolint, ShellCheck
-- **IaC**: Terraform
-- **Artifacts**: JFrog Artifactory
-- **Data Parsing**: jq
+| Category | Tools |
+| :--- | :--- |
+| **Core** | Bash (4.0+), Python 3, jq, curl |
+| **Cloud** | AWS CLI, Azure CLI (`azure-devops` extension) |
+| **Containerization** | Docker, Kubernetes (`kubectl`), ArgoCD CLI |
+| **CI/CD** | Azure DevOps YAML, GitHub Actions |
+| **IaC & Artifacts** | Terraform, JFrog CLI (`jf`) |
+| **Security & Linting** | Trivy, Gitleaks, Hadolint, ShellCheck, JFrog Xray |
 
 ---
 
@@ -70,19 +71,20 @@ A high-performance, security-focused collection of specialized DevOps scripts an
 
 ```text
 .
-├── argocd_scripts/      # ArgoCD installation and GitOps app management
-├── aws_scripts/         # AWS CLI automation and resource monitoring
-├── az_devops_templates/ # Reusable YAML templates for pipelines
-│   ├── common/          # Step-level templates (security, docker, etc.)
-│   ├── jobs/            # Parameterized job templates
-│   └── pipelines/       # E2E pipeline examples and utilities
-├── az_scripts/          # Azure CLI and Azure DevOps E2E automation
-├── docker_scripts/      # Environment setup, image optimization, and security
-├── general_scripts/     # System utilities, versioning, and monitoring tools
-├── github_scripts/      # GitHub API automation and Git workflow helpers
-├── jfrog_scripts/       # JFrog CLI management and Artifactory operations
-├── k8s_scripts/         # Cluster initialization and resource management
-└── terraform_scripts/   # Environment setup and recursive validation
+├── argocd_scripts/      # 🐙 ArgoCD installation and GitOps app management
+├── aws_scripts/         # ☁️ AWS CLI automation (IAM, S3, EC2) and resource monitoring
+├── az_devops_templates/ # 🏗️ Reusable YAML templates for Azure Pipelines
+│   ├── common/          #   └── Step-level templates (security, docker, gitflow)
+│   ├── jobs/            #   └── Parameterized job templates (build, deploy)
+│   └── pipelines/       #   └── E2E pipeline examples and maintenance utilities
+├── az_scripts/          # ☁️ Azure CLI and Azure DevOps CLI automation
+├── docker_scripts/      # 🐳 Docker environment setup, image optimization, and security
+├── general_scripts/     # 🛠️ System utilities, SSL monitoring, and URL health checks
+├── github_scripts/      # 🐙 GitHub API automation and advanced Git workflow helpers
+├── jfrog_scripts/       # 📦 JFrog CLI management and Artifactory operations
+├── k8s_scripts/         # ☸️ K8s cluster initialization and resource management
+├── terraform_scripts/   # 🏗️ Terraform environment setup and recursive validation
+└── tests/               # 🧪 Mock-based logic verification suites
 ```
 
 ---
@@ -91,16 +93,16 @@ A high-performance, security-focused collection of specialized DevOps scripts an
 
 Ensure the following tools are installed based on your requirements:
 
-| Tool | Purpose |
-|------|---------|
-| **Bash 4.0+** | Core execution environment (uses `mapfile`, `set -euo pipefail`). |
-| **jq** | Essential for JSON parsing across almost all scripts. |
-| **Docker** | For `docker_scripts`, Trivy scans, and Hadolint. |
-| **kubectl** | For `k8s_scripts` and `argocd_scripts`. |
-| **Azure CLI** | For `az_scripts` (requires `azure-devops` extension). |
-| **AWS CLI** | For `aws_scripts`. |
-| **JFrog CLI** | For `jfrog_scripts` (`jf` or `jfrog`). |
-| **Terraform** | For `terraform_scripts`. |
+| Tool | Minimum Version | Purpose |
+| :--- | :--- | :--- |
+| **Bash** | `4.0+` | Core execution environment (uses `mapfile`, `set -euo pipefail`). |
+| **jq** | `1.6+` | Essential for JSON parsing and complex data manipulation. |
+| **Docker** | `20.10+` | For container operations, Trivy scans, and Hadolint. |
+| **kubectl** | `1.24+` | For Kubernetes and ArgoCD resource management. |
+| **Azure CLI** | `2.40+` | For `az_scripts` (requires `azure-devops` extension). |
+| **AWS CLI** | `2.7+` | For `aws_scripts` and S3/IAM automation. |
+| **JFrog CLI** | `2.20+` | For `jfrog_scripts` (`jf` or `jfrog`). |
+| **Terraform** | `1.0+` | For `terraform_scripts` and IaC validation. |
 
 ---
 
@@ -121,21 +123,29 @@ Many scripts prioritize environment variables for secure automation:
 
 <h2 id="quick-start">⚡ Quick Start</h2>
 
-1. **Clone the repo**:
-   ```bash
-   git clone https://github.com/your-repo/devops-automation.git
-   cd devops-automation
-   ```
+### 1. Clone & Explore
+```bash
+git clone https://github.com/your-repo/devops-automation.git
+cd devops-automation
+```
 
-2. **Run a system health check**:
-   ```bash
-   ./general_scripts/check_sys_info.sh
-   ```
+### 2. Verify Environment
+Run the system health check to ensure your environment meets the basic requirements:
+```bash
+./general_scripts/check_sys_info.sh
+```
 
-3. **Initialize a Kubernetes environment**:
-   ```bash
-   ./k8s_scripts/init_k8s.sh
-   ```
+### 3. Run Logic Verification
+Ensure all scripts are functioning correctly in your environment (using mocks):
+```bash
+./tests/verify_all.sh
+```
+
+### 4. First Task: Initialize K8s (Optional)
+If you're setting up a new Kubernetes workstation:
+```bash
+./k8s_scripts/init_k8s.sh
+```
 
 ---
 
@@ -314,10 +324,11 @@ This repository adheres to the **Bolt** philosophy for high-performance automati
 
 - **Pipeline Consolidation**: Reducing process forks by combining shell operations. For example, using a single `awk` command to replace `grep | cut | sed` chains.
 - **Early Exit Logic**: Utilizing `sed -nE '/pattern/ { s/match/replace/p; q }'` to stop file processing immediately after a match.
-- **O(N+M) Set Operations**: Replacing O(N*M) nested loops with efficient set comparisons using `grep -xvFf`.
+- **O(N+M) Set Operations**: Replacing $O(N \cdot M)$ nested loops with efficient $O(N+M)$ set comparisons using `grep -xvFf`.
 - **Git Plumbing**: Using low-level Git commands (e.g., `git rev-parse --abbrev-ref HEAD`, `git diff --name-only --cached`) for ~25% faster execution.
 - **Native CLI Filtering**: Leveraging `az --query`, `docker inspect --format`, and `jq` for multi-field extraction.
 - **Resource Optimization**: Using `mapfile -t` for line processing and replacing `echo | sed` with Bash parameter expansion.
+- **Consolidated Arithmetic**: Performing date calculations and duration math within a single `jq` call using `fromdateiso8601` to eliminate per-loop `date` and `awk` forks.
 
 <h2 id="security-sentinel">🛡️ Security (Sentinel)</h2>
 
@@ -325,9 +336,36 @@ The **Sentinel** philosophy ensures all automation is "Secure by Default":
 
 - **Left-Shift Integration**: Security scanners (Gitleaks, Trivy, Xray) are embedded into the earliest stages of every pipeline.
 - **Risk Identification**: Scripts detect critical risks like pods without `PodDisruptionBudgets`, containers running as `root`, and stale IAM accounts.
-- **Credential Safety**: Prioritizing environment variables over positional arguments. Using `--password-stdin` and array-based `curl` arguments to prevent leakage.
-- **Stealth Logging & Redaction**: Automated check for interactive terminals (`[ -t 1 ]`) to redact sensitive output in CI/CD environments.
-- **Input Validation**: Robust validation of numeric inputs using `[[ "$VAR" =~ ^[0-9]+$ ]]` to prevent injection vulnerabilities.
+- **Credential Safety**: Using the `curl -K-` pattern to pass sensitive headers via standard input, preventing secret exposure in system process lists (`ps`).
+- **Stealth Logging & Redaction**: Automated check for interactive terminals (`[ -t 1 ]`) to redact sensitive output in CI/CD environments by default.
+- **Input Validation**: Robust validation of numeric inputs using `[[ "$VAR" =~ ^[0-9]+$ ]]` to prevent shell arithmetic injection vulnerabilities.
+
+---
+
+<h2 id="testing-quality-assurance">🧪 Testing & Quality Assurance</h2>
+
+This repository includes a comprehensive, mock-based verification suite to ensure script logic correctness in environments where actual CLI tools (AWS, Docker, K8s) are not present.
+
+### 🔍 Verification Suites
+
+| Suite | Purpose |
+| :--- | :--- |
+| `tests/verify_all.sh` | Main logic verification using mocked CLI binaries (aws, docker, gh, kubectl, etc.). |
+| `tests/verify_curl_scripts.sh` | Specifically validates `curl -K-` behavior and secure secret handling in API-driven scripts. |
+
+### 🛠️ Running Tests
+
+To run all logic verifications locally:
+
+```bash
+# Run general CLI mocks
+./tests/verify_all.sh
+
+# Run curl-based secret handling checks
+./tests/verify_curl_scripts.sh
+```
+
+> **Note**: These tests use `mktemp -d` to create isolated mock environments and do not require actual cloud credentials.
 
 ---
 
