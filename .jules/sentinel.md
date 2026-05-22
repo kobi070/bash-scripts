@@ -37,3 +37,8 @@
 **Vulnerability:** Using `curl -H "Authorization: token $GITHUB_TOKEN"` exposes the sensitive token in the system's process list (visible via `ps`), making it accessible to other users or logging tools on the same host.
 **Learning:** While environment variables are safer than positional arguments, passing them as command-line flags to external binaries still leaks them into the process table.
 **Prevention:** Use `curl`'s `--config -` (or `-K-`) flag to pass sensitive headers via standard input. By piping the header string directly to `curl`, the secret never appears in the command-line arguments.
+
+## 2026-05-22 - Slack Webhook URL Exposure and curl Config Escaping
+**Vulnerability:** Passing Slack Webhook URLs (which contain secrets) or sensitive JSON payloads as command-line arguments to `curl` exposes them in system process lists.
+**Learning:** Using `curl -K-` to pass the URL and data via stdin is effective, but requires careful handling of the `curl` config format. Specifically, the `data` parameter value must be a single line (unless escaped) and requires backslashes and double quotes to be escaped (e.g., `\\` and `\"`) to prevent the `curl` parser from misinterpreting them or failing on newlines.
+**Prevention:** Always use `jq -c` to generate compact, single-line JSON payloads and use `sed 's/\\/\\\\/g; s/"/\\"/g'` to robustly escape them before passing to `curl -K-` via stdin.

@@ -62,15 +62,18 @@ fi
 
 echo "Sending Slack notification..."
 
-# Prepare JSON payload
-PAYLOAD=$(jq -n \
+# Prepare JSON payload (compacted)
+PAYLOAD=$(jq -n -c \
     --arg text "$MESSAGE" \
     --arg channel "$CHANNEL" \
     --arg username "$USERNAME" \
-    '{text: $text, channel: $channel, username: $username}' | jq 'with_entries(select(.value != ""))')
+    '{text: $text, channel: $channel, username: $username}' | jq -c 'with_entries(select(.value != ""))')
 
 # Send POST request to Slack
-RESPONSE=$(curl -s -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$WEBHOOK_URL")
+# Use curl config file via stdin to prevent leaking WEBHOOK_URL in process lists (ps)
+# We must escape backslashes and double quotes for the curl config parser
+ESCAPED_PAYLOAD=$(echo "$PAYLOAD" | sed 's/\\/\\\\/g; s/"/\\"/g')
+RESPONSE=$(printf "url = \"%s\"\ndata = \"%s\"" "$WEBHOOK_URL" "$ESCAPED_PAYLOAD" | curl -s -X POST -H 'Content-type: application/json' -K- || echo "connection_error")
 
 if [ "$RESPONSE" == "ok" ]; then
     echo "Success: Slack notification sent."
