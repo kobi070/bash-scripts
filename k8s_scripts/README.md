@@ -67,6 +67,9 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 19. **k8s_node_drain_helper.sh**
     Assess the impact of draining a node (PDBs, local storage, etc.).
 
+20. **k8s_ingress_audit.sh**
+    Summarizes Ingress resources, including their hosts, paths, and TLS status.
+
 ## 🚀 Usage
 
 ### Check Cluster Usage
@@ -92,6 +95,11 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 ### Find Orphaned Resources
 ```bash
 ./k8s_orphaned_resources.sh [namespace]
+```
+
+### Audit Ingress Resources
+```bash
+./k8s_ingress_audit.sh [namespace]
 ```
 
 ### Copy Secret to another Namespace

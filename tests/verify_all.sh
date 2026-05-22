@@ -369,4 +369,98 @@ else
     echo "  ⚠ Skipping entropy test (not on Linux or /proc not available)"
 fi
 
+# --- 16. Mock for aws_resource_tag_audit.sh ---
+cat <<'EOF' > "$MOCK_BIN/aws"
+#!/bin/bash
+if [[ "$*" == *"ec2 describe-instances"* ]]; then
+  echo '[[{"InstanceId": "i-999", "Tags": [{"Key": "Name", "Value": "untagged-vm"}]}]]'
+elif [[ "$*" == *"s3api list-buckets"* ]]; then
+  echo '["missing-tags-bucket"]'
+elif [[ "$*" == *"s3api get-bucket-tagging"* ]]; then
+  exit 255 # Simulate no tags
+fi
+EOF
+chmod +x "$MOCK_BIN/aws"
+
+echo "Testing aws_resource_tag_audit.sh..."
+OUTPUT=$(./aws_scripts/aws_resource_tag_audit.sh 2>&1)
+if echo "$OUTPUT" | grep -q "i-999" && echo "$OUTPUT" | grep -q "missing-tags-bucket"; then
+    echo "  ✔ Detected missing tags for EC2 and S3"
+else
+    echo "  ✖ Failed to detect missing tags"
+    exit 1
+fi
+
+# --- 17. Mock for k8s_ingress_audit.sh ---
+cat <<'EOF' > "$MOCK_BIN/kubectl"
+#!/bin/bash
+if [[ "$*" == *"get ingress"* ]]; then
+  echo '{"items": [{"metadata": {"namespace": "prod", "name": "app-ingress"}, "spec": {"rules": [{"host": "app.example.com", "http": {"paths": [{"backend": {"service": {"name": "app-svc"}}}]}}], "tls": [{"hosts": ["app.example.com"]}]}}]}'
+fi
+EOF
+chmod +x "$MOCK_BIN/kubectl"
+
+echo "Testing k8s_ingress_audit.sh..."
+OUTPUT=$(./k8s_scripts/k8s_ingress_audit.sh 2>&1)
+if echo "$OUTPUT" | grep -q "app.example.com" && echo "$OUTPUT" | grep -q "YES"; then
+    echo "  ✔ Audited ingress correctly"
+else
+    echo "  ✖ Failed ingress audit"
+    exit 1
+fi
+
+# --- 18. Mock for gh_stale_branches.sh ---
+cat <<'EOF' > "$MOCK_BIN/gh"
+#!/bin/bash
+if [[ "$*" == *"api graphql"* ]]; then
+  STALE_DATE=$(date -u -d "100 days ago" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -v-100d +"%Y-%m-%dT%H:%M:%SZ")
+  # Mocking the output after --jq '.data.repository.refs.nodes[]'
+  echo "{\"name\": \"stale-feat\", \"target\": {\"committedDate\": \"$STALE_DATE\"}}"
+fi
+EOF
+chmod +x "$MOCK_BIN/gh"
+
+echo "Testing gh_stale_branches.sh..."
+if ./github_scripts/gh_stale_branches.sh owner/repo 30 2>&1 | grep -q "stale-feat"; then
+    echo "  ✔ Found stale branch"
+else
+    echo "  ✖ Failed to find stale branch"
+    exit 1
+fi
+
+# --- 19. Mock for docker_image_promoter.sh ---
+cat <<'EOF' > "$MOCK_BIN/docker"
+#!/bin/bash
+echo "Mock docker: $*"
+EOF
+chmod +x "$MOCK_BIN/docker"
+
+echo "Testing docker_image_promoter.sh..."
+OUTPUT=$(./docker_scripts/docker_image_promoter.sh src:1.0 dst:1.0 2>&1)
+if echo "$OUTPUT" | grep -q "Promotion successful"; then
+    echo "  ✔ Promoted image"
+else
+    echo "  ✖ Failed image promotion"
+    exit 1
+fi
+
+# --- 20. Mock for jf_list_empty_repos.sh ---
+cat <<'EOF' > "$MOCK_BIN/jf"
+#!/bin/bash
+if [[ "$*" == *"rt repo-list"* ]]; then
+  echo '[{"key": "empty-local", "type": "local"}]'
+elif [[ "$*" == *"rt s"* ]]; then
+  echo "0"
+fi
+EOF
+chmod +x "$MOCK_BIN/jf"
+
+echo "Testing jf_list_empty_repos.sh..."
+if ./jfrog_scripts/jf_list_empty_repos.sh local 2>&1 | grep -q "empty-local"; then
+    echo "  ✔ Found empty repository"
+else
+    echo "  ✖ Failed to find empty repository"
+    exit 1
+fi
+
 echo "All logic verifications passed!"
