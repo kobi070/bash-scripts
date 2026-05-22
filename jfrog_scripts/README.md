@@ -38,6 +38,9 @@ This directory contains scripts for automating interactions with **JFrog Artifac
 11. **jf_cleanup_old_artifacts.sh**
     Finds and optionally deletes artifacts in an Artifactory repository older than N days.
 
+12. **jf_list_empty_repos.sh**
+    Detects repositories in JFrog Artifactory that contain no artifacts.
+
 ## 🚀 Usage
 
 ### Configure CLI
@@ -53,6 +56,11 @@ This directory contains scripts for automating interactions with **JFrog Artifac
 ### Cleanup Old Artifacts
 ```bash
 ./jf_cleanup_old_artifacts.sh generic-local 30 --delete
+```
+
+### List Empty Repositories
+```bash
+./jf_list_empty_repos.sh local
 ```
 
 ## ✅ Prerequisites

@@ -35,6 +35,9 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 10. **aws_list_old_ebs_snapshots.sh**
     Lists EBS snapshots older than a specified number of days.
 
+11. **aws_resource_tag_audit.sh**
+    Audits EC2 instances and S3 buckets for missing mandatory tags (e.g., 'Owner', 'Environment').
+
 ## 🚀 Usage
 
 ### Sync local directory to S3
@@ -60,6 +63,11 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 ### Check EC2 Public IPs
 ```bash
 ./aws_ec2_public_ip_checker.sh
+```
+
+### Audit Resource Tags
+```bash
+./aws_resource_tag_audit.sh us-east-1
 ```
 
 ## ✅ Prerequisites

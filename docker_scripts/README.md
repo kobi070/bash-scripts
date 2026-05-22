@@ -72,6 +72,9 @@ This directory contains scripts for managing **Docker** environments, image work
 21. **docker_image_history_audit.sh**
     Audits Docker image history for sensitive commands and oversized layers.
 
+22. **docker_image_promoter.sh**
+    Streamlines the process of pulling, re-tagging, and pushing a Docker image between registries.
+
 ## 🚀 Usage
 
 ### Build and Push Image
@@ -97,6 +100,11 @@ This directory contains scripts for managing **Docker** environments, image work
 ### Security Audit
 ```bash
 ./docker_audit_security.sh [container_name]
+```
+
+### Promote Image
+```bash
+./docker_image_promoter.sh my-registry.com/app:1.0 prod-registry.com/app:1.0
 ```
 
 ## ✅ Prerequisites
