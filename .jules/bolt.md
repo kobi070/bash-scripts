@@ -37,3 +37,7 @@
 ## 2026-05-21 - [O(N) to O(1 + N_stale) AWS IAM Key Age Audit]
 **Learning:** Transitioning from a per-user API call pattern ($O(N)$) to using the bulk AWS Credential Report for initial filtering significantly reduces network overhead and latency. By identifying only "candidate" users with potentially stale keys via local processing ($O(1)$), subsequent detailed API calls are minimized to $O(N_{stale})$.
 **Action:** Always leverage bulk reporting APIs (like AWS Credential Report or Azure Resource Graph) for account-wide inventory and audit tasks before falling back to individual resource queries.
+
+## 2024-05-22 - [O(N*M) to O(N+M) set subtraction in Kubernetes audits]
+**Learning:** Shell scripts frequently use `while read` loops with internal `grep` to find differences between sets (e.g., finding unused resources). This pattern incurs $O(N)$ process forks and $O(N \times M)$ complexity. Standard utilities like `comm -23` (on sorted inputs) or `grep -xvFf` (with process substitution) achieve $O(N + M)$ complexity with constant process overhead.
+**Action:** Replace resource-intensive loops with set-based operations using `comm` or `grep -xvFf` for inventory and audit scripts.

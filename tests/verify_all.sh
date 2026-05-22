@@ -305,7 +305,31 @@ else
     exit 1
 fi
 
-# --- 15. Mock for check_system_entropy.sh ---
+# --- 15. Mock for k8s_unused_secrets_finder.sh ---
+cat <<'EOF' > "$MOCK_BIN/kubectl"
+#!/bin/bash
+if [[ "$*" == *"get secrets"* ]]; then
+  echo "unused-secret"
+  echo "used-secret"
+  echo "default-token-abc"
+elif [[ "$*" == *"get pods,serviceaccounts"* ]]; then
+  echo '{"items": [{"kind": "Pod", "spec": {"containers": [{"env": [{"valueFrom": {"secretKeyRef": {"name": "used-secret"}}}]}]}}]}'
+fi
+EOF
+chmod +x "$MOCK_BIN/kubectl"
+
+echo "Testing k8s_unused_secrets_finder.sh..."
+OUTPUT=$(./k8s_scripts/k8s_unused_secrets_finder.sh -n default 2>&1)
+if echo "$OUTPUT" | grep -q "unused-secret" && ! echo "$OUTPUT" | grep -qx "\- used-secret" && ! echo "$OUTPUT" | grep -q "default-token-abc"; then
+    echo "  ✔ Corrected identified unused secret and skipped used/token ones"
+else
+    echo "  ✖ Failed to identify unused secrets correctly"
+    echo "Output was:"
+    echo "$OUTPUT"
+    exit 1
+fi
+
+# --- 16. Mock for check_system_entropy.sh ---
 # Create a dummy entropy file and mock 'cat' to use it
 mkdir -p "$MOCK_BIN/proc/sys/kernel/random"
 echo "500" > "$MOCK_BIN/proc/sys/kernel/random/entropy_avail"
