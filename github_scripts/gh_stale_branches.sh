@@ -25,6 +25,13 @@ fi
 
 REPO=$1
 DAYS=${2:-$DEFAULT_DAYS}
+
+# Security check: Ensure DAYS is a numeric integer to prevent shell arithmetic injection
+if [[ ! "$DAYS" =~ ^[0-9]+$ ]]; then
+    echo "Error: days must be a positive numeric integer."
+    exit 1
+fi
+
 THRESHOLD_SEC=$((DAYS * 24 * 3600))
 NOW_SEC=$(date +%s)
 
