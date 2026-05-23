@@ -463,4 +463,101 @@ else
     exit 1
 fi
 
+# --- 21. Mock for aws_rds_snapshot_audit.sh ---
+cat <<'EOF' > "$MOCK_BIN/aws"
+#!/bin/bash
+if [[ "$*" == *"rds describe-db-snapshots"* ]]; then
+  OLD_DATE=$(date -u -d "100 days ago" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -v-100d +"%Y-%m-%dT%H:%M:%SZ")
+  echo "[{\"ID\": \"old-snap\", \"Time\": \"$OLD_DATE\", \"DB\": \"prod-db\", \"Type\": \"manual\"}]"
+fi
+EOF
+chmod +x "$MOCK_BIN/aws"
+
+echo "Testing aws_rds_snapshot_audit.sh..."
+if ./aws_scripts/aws_rds_snapshot_audit.sh 30 2>&1 | grep -q "old-snap"; then
+    echo "  ✔ Found old RDS snapshot"
+else
+    echo "  ✖ Failed to find old snapshot"
+    exit 1
+fi
+
+# --- 22. Mock for k8s_hpa_audit.sh ---
+cat <<'EOF' > "$MOCK_BIN/kubectl"
+#!/bin/bash
+if [[ "$*" == *"get hpa"* ]]; then
+  echo '{"items": [{"metadata": {"namespace": "prod", "name": "web-hpa"}, "spec": {"maxReplicas": 10, "minReplicas": 2, "metrics": [{"resource": {"target": {"averageUtilization": 80}}}]}, "status": {"currentReplicas": 10, "currentMetrics": [{"resource": {"current": {"averageUtilization": 95}}}]}}]}'
+fi
+EOF
+chmod +x "$MOCK_BIN/kubectl"
+
+echo "Testing k8s_hpa_audit.sh..."
+if ./k8s_scripts/k8s_hpa_audit.sh 2>&1 | grep -q "MAXED"; then
+    echo "  ✔ Detected maxed HPA"
+else
+    echo "  ✖ Failed to detect maxed HPA"
+    exit 1
+fi
+
+# --- 23. Mock for gh_branch_protection_audit.sh ---
+cat <<'EOF' > "$MOCK_BIN/gh"
+#!/bin/bash
+if [[ "$*" == *"repo view"* ]]; then
+  echo '{"defaultBranchRef": {"name": "main"}}'
+elif [[ "$*" == *"api repos/owner/repo/branches/main/protection"* ]]; then
+  echo '{"enforce_admins": {"enabled": true}, "required_pull_request_reviews": {"required_approving_review_count": 1}, "required_status_checks": {}, "required_linear_history": {"enabled": false}}'
+fi
+EOF
+chmod +x "$MOCK_BIN/gh"
+
+echo "Testing gh_branch_protection_audit.sh..."
+if ./github_scripts/gh_branch_protection_audit.sh owner/repo main 2>&1 | grep -q "Enforce Admins"; then
+    echo "  ✔ Audited branch protection"
+else
+    echo "  ✖ Failed branch protection audit"
+    exit 1
+fi
+
+# --- 24. Mock for tf_provider_version_check.sh ---
+mkdir -p "tf_test"
+cat <<'EOF' > "tf_test/providers.tf"
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+    google = {
+      source = "hashicorp/google"
+    }
+  }
+}
+EOF
+
+echo "Testing tf_provider_version_check.sh..."
+if ./terraform_scripts/tf_provider_version_check.sh tf_test 2>&1 | grep -q "google"; then
+    echo "  ✔ Found unpinned provider"
+else
+    echo "  ✖ Failed to find unpinned provider"
+    rm -rf tf_test
+    exit 1
+fi
+rm -rf tf_test
+
+# --- 25. Mock for docker_image_label_checker.sh ---
+cat <<'EOF' > "$MOCK_BIN/docker"
+#!/bin/bash
+if [[ "$*" == *"inspect"* ]]; then
+  echo '{"maintainer": "jules", "version": "1.0"}'
+fi
+EOF
+chmod +x "$MOCK_BIN/docker"
+
+echo "Testing docker_image_label_checker.sh..."
+if ./docker_scripts/docker_image_label_checker.sh my-image "maintainer,version" 2>&1 | grep -q "PASS"; then
+    echo "  ✔ Verified image labels"
+else
+    echo "  ✖ Failed image label check"
+    exit 1
+fi
+
 echo "All logic verifications passed!"

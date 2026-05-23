@@ -70,6 +70,9 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 20. **k8s_ingress_audit.sh**
     Summarizes Ingress resources, including their hosts, paths, and TLS status.
 
+21. **k8s_hpa_audit.sh**
+    Audits HorizontalPodAutoscalers (HPA) and highlights those at max replicas.
+
 ## 🚀 Usage
 
 ### Check Cluster Usage
@@ -100,6 +103,11 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 ### Audit Ingress Resources
 ```bash
 ./k8s_ingress_audit.sh [namespace]
+```
+
+### Audit HPA Utilization
+```bash
+./k8s_hpa_audit.sh [namespace]
 ```
 
 ### Copy Secret to another Namespace

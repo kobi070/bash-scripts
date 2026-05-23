@@ -38,6 +38,9 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 11. **aws_resource_tag_audit.sh**
     Audits EC2 instances and S3 buckets for missing mandatory tags (e.g., 'Owner', 'Environment').
 
+12. **aws_rds_snapshot_audit.sh**
+    Identifies RDS snapshots older than a specified number of days (default 30).
+
 ## 🚀 Usage
 
 ### Sync local directory to S3
@@ -68,6 +71,11 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 ### Audit Resource Tags
 ```bash
 ./aws_resource_tag_audit.sh us-east-1
+```
+
+### Audit RDS Snapshots
+```bash
+./aws_rds_snapshot_audit.sh 30
 ```
 
 ## ✅ Prerequisites

@@ -17,6 +17,9 @@ This directory contains scripts for setting up and managing **Terraform** enviro
 4. **tf_check_fmt.sh**
    Checks if all Terraform files in the project are properly formatted.
 
+5. **tf_provider_version_check.sh**
+   Detects unpinned provider versions in Terraform files.
+
 ## 🚀 Usage
 
 ### Setup Environment
@@ -32,6 +35,11 @@ This directory contains scripts for setting up and managing **Terraform** enviro
 ### Check Formatting
 ```bash
 ./tf_check_fmt.sh
+```
+
+### Check Provider Versions
+```bash
+./tf_provider_version_check.sh [path]
 ```
 
 ## ✅ Prerequisites
