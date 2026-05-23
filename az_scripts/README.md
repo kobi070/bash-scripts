@@ -37,7 +37,7 @@ This directory contains shell scripts for managing **Azure** resources and **Azu
 10. **az_script_with_user.sh**
     Interactive script for setting up Azure DevOps resources with user prompts.
 
-## 🚀 Usage
+## 🚀 Usage examples
 
 ### Configure CLI
 ```bash
@@ -60,7 +60,5 @@ export AZURE_DEVOPS_EXT_PAT="your_pat_here"
 - Azure CLI (`az`) installed.
 - Azure DevOps extension for Azure CLI (`az extension add --name azure-devops`).
 - Valid PAT with sufficient permissions.
-
-## 📘 Notes
 - Use `az login` to authenticate before running resource management scripts.
 - For non-interactive use, set `AZURE_DEVOPS_EXT_PAT` as an environment variable.

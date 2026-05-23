@@ -75,7 +75,7 @@ This directory contains scripts for managing **Docker** environments, image work
 22. **docker_image_promoter.sh**
     Streamlines the process of pulling, re-tagging, and pushing a Docker image between registries.
 
-## 🚀 Usage
+## 🚀 Usage examples
 
 ### Build and Push Image
 ```bash
@@ -111,6 +111,4 @@ This directory contains scripts for managing **Docker** environments, image work
 
 - Docker Engine installed and running.
 - `trivy` installed (for `trivyScans.sh`).
-
-## 📘 Notes
 - Always use the `--dry-run` flag where available before performing cleanup operations.

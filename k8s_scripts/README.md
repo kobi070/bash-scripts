@@ -70,7 +70,7 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 20. **k8s_ingress_audit.sh**
     Summarizes Ingress resources, including their hosts, paths, and TLS status.
 
-## 🚀 Usage
+## 🚀 Usage examples
 
 ### Check Cluster Usage
 ```bash
@@ -112,6 +112,4 @@ This directory contains scripts for managing **Kubernetes** resources and **Mini
 - `kubectl` installed and configured.
 - `minikube` installed (for minikube scripts).
 - `jq` installed for JSON parsing.
-
-## 📘 Notes
 - Ensure your `kubectl` context is correctly set before running these scripts.

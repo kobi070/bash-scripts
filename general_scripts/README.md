@@ -73,7 +73,7 @@ This directory contains general-purpose utility scripts for system monitoring, d
 21. **extract_cmake_project_name.sh**
     Utility to extract the project name from a `CMakeLists.txt` file.
 
-## 🚀 Usage
+## 🚀 Usage examples
 
 ### Check System Info
 ```bash
@@ -100,6 +100,4 @@ export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
 
 - Bash shell.
 - Specific tools as required by individual scripts (e.g., `curl`, `jq`, `docker`).
-
-## 📘 Notes
 - These scripts are designed to be portable and can be easily integrated into CI/CD pipelines.

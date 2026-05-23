@@ -60,7 +60,7 @@ This directory contains scripts for automating **GitHub** workflows and interact
 17. **gh_stale_branches.sh**
     Identifies branches in a repository that haven't had a commit in over 30 days.
 
-## 🚀 Usage
+## 🚀 Usage examples
 
 ### Create a Release
 ```bash
@@ -99,6 +99,4 @@ export GITHUB_TOKEN="your_token"
 - Git installed and configured.
 - `curl` and `jq` installed.
 - `GITHUB_TOKEN` environment variable for API-based scripts.
-
-## 📘 Notes
 - API scripts prefer `curl` and `jq` over the `gh` CLI for better portability in CI environments.
