@@ -41,3 +41,7 @@
 ## 2024-05-22 - [O(N*M) to O(N+M) set subtraction in Kubernetes audits]
 **Learning:** Shell scripts frequently use `while read` loops with internal `grep` to find differences between sets (e.g., finding unused resources). This pattern incurs $O(N)$ process forks and $O(N \times M)$ complexity. Standard utilities like `comm -23` (on sorted inputs) or `grep -xvFf` (with process substitution) achieve $O(N + M)$ complexity with constant process overhead.
 **Action:** Replace resource-intensive loops with set-based operations using `comm` or `grep -xvFf` for inventory and audit scripts.
+
+## 2026-05-23 - [O(N*M) to O(1) AWS Security Group Audit]
+**Learning:** Auditing AWS Security Groups by iterating over groups and then over rules in Bash, while calling `jq` for each rule, creates a massive performance bottleneck due to process fork overhead ($O(N \times M)$). Consolidating the entire filtering and formatting logic into a single `jq` pipeline reduces forks to $O(1)$ and provides a ~20x speedup in moderately sized environments.
+**Action:** Use `jq` to handle nested collection processing and formatting entirely, passing the results to Bash via a single `while read` loop with a tab-delimiter.

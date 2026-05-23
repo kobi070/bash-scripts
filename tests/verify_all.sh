@@ -369,7 +369,7 @@ else
     echo "  ⚠ Skipping entropy test (not on Linux or /proc not available)"
 fi
 
-# --- 16. Mock for aws_resource_tag_audit.sh ---
+# --- 17. Mock for aws_resource_tag_audit.sh ---
 cat <<'EOF' > "$MOCK_BIN/aws"
 #!/bin/bash
 if [[ "$*" == *"ec2 describe-instances"* ]]; then
@@ -391,7 +391,24 @@ else
     exit 1
 fi
 
-# --- 17. Mock for k8s_ingress_audit.sh ---
+# --- 18. Mock for aws_sg_audit.sh ---
+cat <<'EOF' > "$MOCK_BIN/aws"
+#!/bin/bash
+if [[ "$*" == *"ec2 describe-security-groups"* ]]; then
+  echo '[{"GroupId": "sg-123456", "GroupName": "web-sg", "IpPermissions": [{"IpProtocol": "tcp", "FromPort": 80, "ToPort": 80, "IpRanges": [{"CidrIp": "0.0.0.0/0"}]}]}]'
+fi
+EOF
+chmod +x "$MOCK_BIN/aws"
+
+echo "Testing aws_sg_audit.sh..."
+if ./aws_scripts/aws_sg_audit.sh 2>&1 | grep -q "sg-123456"; then
+    echo "  ✔ Found open security group rule"
+else
+    echo "  ✖ Failed to find open rule"
+    exit 1
+fi
+
+# --- 19. Mock for k8s_ingress_audit.sh ---
 cat <<'EOF' > "$MOCK_BIN/kubectl"
 #!/bin/bash
 if [[ "$*" == *"get ingress"* ]]; then
@@ -409,7 +426,7 @@ else
     exit 1
 fi
 
-# --- 18. Mock for gh_stale_branches.sh ---
+# --- 20. Mock for gh_stale_branches.sh ---
 cat <<'EOF' > "$MOCK_BIN/gh"
 #!/bin/bash
 if [[ "$*" == *"api graphql"* ]]; then
@@ -428,7 +445,7 @@ else
     exit 1
 fi
 
-# --- 19. Mock for docker_image_promoter.sh ---
+# --- 21. Mock for docker_image_promoter.sh ---
 cat <<'EOF' > "$MOCK_BIN/docker"
 #!/bin/bash
 echo "Mock docker: $*"
@@ -444,7 +461,7 @@ else
     exit 1
 fi
 
-# --- 20. Mock for jf_list_empty_repos.sh ---
+# --- 22. Mock for jf_list_empty_repos.sh ---
 cat <<'EOF' > "$MOCK_BIN/jf"
 #!/bin/bash
 if [[ "$*" == *"rt repo-list"* ]]; then
