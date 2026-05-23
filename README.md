@@ -174,6 +174,7 @@ If you're setting up a new Kubernetes workstation:
 - `k8s_unused_secrets_finder.sh`: Identifies secrets not used by any Pod or ServiceAccount.
 - `k8s_configmap_secret_sync_check.sh`: Verifies referenced ConfigMaps and Secrets exist.
 - `k8s_ingress_audit.sh`: Summarizes Ingress resources, hosts, and TLS status.
+- `k8s_hpa_audit.sh`: Audits HPA utilization and identifies those at max replicas.
 </details>
 
 <details id="docker-scripts">
@@ -200,6 +201,7 @@ If you're setting up a new Kubernetes workstation:
 - `docker_image_history_audit.sh`: Audits image history for secrets and size.
 - `docker_image_vulnerability_summary.sh`: Summarizes vulnerability counts from Trivy reports.
 - `docker_image_promoter.sh`: Pulls, re-tags, and pushes images between registries.
+- `docker_image_label_checker.sh`: Verifies presence of mandatory labels in Docker images.
 </details>
 
 <details id="azure-devops-scripts">
@@ -247,6 +249,7 @@ If you're setting up a new Kubernetes workstation:
 - `gh_pr_size_checker.sh`: Categorizes PRs by size (XS-XL).
 - `gh_repo_compliance_audit.sh`: Audits repository settings against best practices.
 - `gh_stale_branches.sh`: Identifies branches with no commits in over 30 days.
+- `gh_branch_protection_audit.sh`: Audits branch protection status for the default branch.
 - `init_repo.sh`: Initializes a new Git repository with best practices.
 - `commit_script.sh` / `commit_script_no_push.sh`: Streamlined commit workflows.
 - `logs_script.sh`: Colorized and formatted Git log display.
@@ -261,6 +264,7 @@ If you're setting up a new Kubernetes workstation:
 - `tr_init.sh`: Environment readiness check for Terraform.
 - `tf_validate_all.sh`: Recursive module validation.
 - `tf_check_fmt.sh`: Canonical formatting enforcement.
+- `tf_provider_version_check.sh`: Detects unpinned provider versions in Terraform files.
 </details>
 
 <details id="argocd-scripts">
@@ -286,6 +290,7 @@ If you're setting up a new Kubernetes workstation:
 - `aws_ebs_unencrypted_volumes.sh`: Identifies unencrypted EBS volumes.
 - `aws_ec2_public_ip_checker.sh`: Identifies EC2 instances with public IPs.
 - `aws_resource_tag_audit.sh`: Audits EC2 and S3 resources for missing mandatory tags.
+- `aws_rds_snapshot_audit.sh`: Identifies RDS snapshots older than X days.
 </details>
 
 <details id="general-utilities">

@@ -75,6 +75,9 @@ This directory contains scripts for managing **Docker** environments, image work
 22. **docker_image_promoter.sh**
     Streamlines the process of pulling, re-tagging, and pushing a Docker image between registries.
 
+23. **docker_image_label_checker.sh**
+    Verifies the presence of mandatory labels in a Docker image.
+
 ## 🚀 Usage
 
 ### Build and Push Image
@@ -105,6 +108,11 @@ This directory contains scripts for managing **Docker** environments, image work
 ### Promote Image
 ```bash
 ./docker_image_promoter.sh my-registry.com/app:1.0 prod-registry.com/app:1.0
+```
+
+### Check Image Labels
+```bash
+./docker_image_label_checker.sh my-app:latest "maintainer,version"
 ```
 
 ## ✅ Prerequisites

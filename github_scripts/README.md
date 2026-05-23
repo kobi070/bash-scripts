@@ -60,6 +60,9 @@ This directory contains scripts for automating **GitHub** workflows and interact
 17. **gh_stale_branches.sh**
     Identifies branches in a repository that haven't had a commit in over 30 days.
 
+18. **gh_branch_protection_audit.sh**
+    Audits branch protection settings for the default branch of a repository.
+
 ## 🚀 Usage
 
 ### Create a Release
@@ -92,6 +95,11 @@ export GITHUB_TOKEN="your_token"
 ### Identify Stale Branches
 ```bash
 ./gh_stale_branches.sh [repo] [days]
+```
+
+### Audit Branch Protection
+```bash
+./gh_branch_protection_audit.sh [repo] [branch]
 ```
 
 ## ✅ Prerequisites
