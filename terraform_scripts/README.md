@@ -17,7 +17,7 @@ This directory contains scripts for setting up and managing **Terraform** enviro
 4. **tf_check_fmt.sh**
    Checks if all Terraform files in the project are properly formatted.
 
-## 🚀 Usage
+## 🚀 Usage examples
 
 ### Setup Environment
 ```bash
@@ -38,6 +38,4 @@ This directory contains scripts for setting up and managing **Terraform** enviro
 
 - Terraform CLI installed.
 - Python 3 (if using auxiliary Python tools).
-
-## 📘 Notes
 - Always run `tf_check_fmt.sh` before committing changes to ensure code quality.

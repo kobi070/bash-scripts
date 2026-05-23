@@ -17,7 +17,7 @@ This directory contains shell scripts for setting up and managing **Argo CD**, a
 4. **argocd_app_diff.sh**
    Displays the diff between Git and Cluster state for a specified ArgoCD application.
 
-## 🚀 Usage
+## 🚀 Usage examples
 
 ### Install Argo CD
 ```bash
@@ -44,6 +44,4 @@ This directory contains shell scripts for setting up and managing **Argo CD**, a
 - A running Kubernetes cluster.
 - `kubectl` installed and configured.
 - `argocd` CLI installed for app management scripts.
-
-## 📘 Notes
 - After installation, use `kubectl port-forward` to access the Argo CD UI.

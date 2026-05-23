@@ -38,7 +38,7 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 11. **aws_resource_tag_audit.sh**
     Audits EC2 instances and S3 buckets for missing mandatory tags (e.g., 'Owner', 'Environment').
 
-## 🚀 Usage
+## 🚀 Usage examples
 
 ### Sync local directory to S3
 ```bash
@@ -74,6 +74,4 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 
 - AWS CLI installed and configured (`aws configure`).
 - Appropriate IAM permissions for the operations being performed.
-
-## 📘 Notes
 - Ensure your AWS region is correctly set in your environment or AWS config file.

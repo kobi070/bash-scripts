@@ -46,14 +46,14 @@ A high-performance, security-focused collection of specialized DevOps scripts an
 
 <h2 id="tech-stack">🛠️ Tech Stack</h2>
 
-| Category | Tools |
-| :--- | :--- |
-| **Core** | Bash (4.0+), Python 3, jq, curl |
-| **Cloud** | AWS CLI, Azure CLI (`azure-devops` extension) |
-| **Containerization** | Docker, Kubernetes (`kubectl`), ArgoCD CLI |
-| **CI/CD** | Azure DevOps YAML, GitHub Actions |
-| **IaC & Artifacts** | Terraform, JFrog CLI (`jf`) |
-| **Security & Linting** | Trivy, Gitleaks, Hadolint, ShellCheck, JFrog Xray |
+| Category | Tools | Version Check |
+| :--- | :--- | :--- |
+| **Core** | Bash (4.0+), Python 3, jq, curl | `bash --version`, `jq --version` |
+| **Cloud** | AWS CLI, Azure CLI, GitHub CLI | `aws --version`, `az --version`, `gh --version` |
+| **Containerization** | Docker, Kubernetes (`kubectl`), ArgoCD CLI | `docker --version`, `kubectl version`, `argocd version` |
+| **CI/CD** | Azure DevOps YAML, GitHub Actions | - |
+| **IaC & Artifacts** | Terraform, JFrog CLI (`jf`) | `terraform version`, `jf --version` |
+| **Security & Linting** | Trivy, Gitleaks, Hadolint, ShellCheck | `trivy --version`, `shellcheck --version` |
 
 ---
 
@@ -71,6 +71,7 @@ A high-performance, security-focused collection of specialized DevOps scripts an
 
 ```text
 .
+├── .jules/              # 🤖 Agent-specific memory and bolt journals
 ├── argocd_scripts/      # 🐙 ArgoCD installation and GitOps app management
 ├── aws_scripts/         # ☁️ AWS CLI automation (IAM, S3, EC2) and resource monitoring
 ├── az_devops_templates/ # 🏗️ Reusable YAML templates for Azure Pipelines
@@ -84,7 +85,12 @@ A high-performance, security-focused collection of specialized DevOps scripts an
 ├── jfrog_scripts/       # 📦 JFrog CLI management and Artifactory operations
 ├── k8s_scripts/         # ☸️ K8s cluster initialization and resource management
 ├── terraform_scripts/   # 🏗️ Terraform environment setup and recursive validation
-└── tests/               # 🧪 Mock-based logic verification suites
+├── tests/               # 🧪 Mock-based logic verification suites
+│   ├── verify_all.sh    #   └── Main CLI mock verification suite
+│   └── verify_curl_scripts.sh # └── Secret handling verification suite
+├── AGENTS.md            # 📝 AI Agent guidelines and principles
+├── LICENSE              # ⚖️ MIT License
+└── README.md            # 📖 This documentation
 ```
 
 ---
@@ -328,12 +334,13 @@ Located in `az_devops_templates/`, these follow a modular design:
 This repository adheres to the **Bolt** philosophy for high-performance automation:
 
 - **Pipeline Consolidation**: Reducing process forks by combining shell operations. For example, using a single `awk` command to replace `grep | cut | sed` chains.
-- **Early Exit Logic**: Utilizing `sed -nE '/pattern/ { s/match/replace/p; q }'` to stop file processing immediately after a match.
-- **O(N+M) Set Operations**: Replacing $O(N \cdot M)$ nested loops with efficient $O(N+M)$ set comparisons using `grep -xvFf`.
-- **Git Plumbing**: Using low-level Git commands (e.g., `git rev-parse --abbrev-ref HEAD`, `git diff --name-only --cached`) for ~25% faster execution.
-- **Native CLI Filtering**: Leveraging `az --query`, `docker inspect --format`, and `jq` for multi-field extraction.
+- **Native CLI Filtering**: Leveraging `az --query`, `jq`, and `docker inspect --format`.
+  - *Example*: [`docker_get_container_ip.sh`](./docker_scripts/docker_get_container_ip.sh) consolidates state checks and IP extraction into one `docker inspect` call, eliminating 5+ process forks.
+- **Early Exit Logic**: Utilizing `sed -nE '/pattern/ { s/match/replace/p; q }'` to stop file processing immediately.
+- **O(N+M) Set Operations**: Replacing $O(N \cdot M)$ nested loops with efficient set comparisons using `grep -xvFf`.
+- **Git Plumbing**: Using low-level commands like `git rev-parse` and `git diff --name-only` for faster execution.
 - **Resource Optimization**: Using `mapfile -t` for line processing and replacing `echo | sed` with Bash parameter expansion.
-- **Consolidated Arithmetic**: Performing date calculations and duration math within a single `jq` call using `fromdateiso8601` to eliminate per-loop `date` and `awk` forks.
+- **Consolidated Arithmetic**: Performing date calculations within a single `jq` call using `fromdateiso8601` to eliminate per-loop `date` and `awk` forks (see [`gh_pr_stats.sh`](./github_scripts/gh_pr_stats.sh)).
 
 <h2 id="security-sentinel">🛡️ Security (Sentinel)</h2>
 
@@ -342,8 +349,9 @@ The **Sentinel** philosophy ensures all automation is "Secure by Default":
 - **Left-Shift Integration**: Security scanners (Gitleaks, Trivy, Xray) are embedded into the earliest stages of every pipeline.
 - **Risk Identification**: Scripts detect critical risks like pods without `PodDisruptionBudgets`, containers running as `root`, and stale IAM accounts.
 - **Credential Safety**: Using the `curl -K-` pattern to pass sensitive headers via standard input, preventing secret exposure in system process lists (`ps`).
-- **Stealth Logging & Redaction**: Automated check for interactive terminals (`[ -t 1 ]`) to redact sensitive output in CI/CD environments by default.
-- **Input Validation**: Robust validation of numeric inputs using `[[ "$VAR" =~ ^[0-9]+$ ]]` to prevent shell arithmetic injection vulnerabilities.
+  - *Example*: [`upload_generic.sh`](./jfrog_scripts/upload_generic.sh) and [`gh_workflow_failure_logs.sh`](./github_scripts/gh_workflow_failure_logs.sh) utilize this pattern for tokens and API keys.
+- **Stealth Logging & Redaction**: Automated check for interactive terminals (`[ -t 1 ]`) to redact sensitive output in CI/CD environments by default (see [`k8s_decode_secret.sh`](./k8s_scripts/k8s_decode_secret.sh)).
+- **Input Validation**: Robust validation of numeric inputs using `[[ "$VAR" =~ ^[0-9]+$ ]]` to prevent shell arithmetic injection (see [`kill_proc.sh`](./general_scripts/kill_proc.sh)).
 
 ---
 

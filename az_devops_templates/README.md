@@ -29,7 +29,7 @@ Ready-to-use pipeline examples for different stacks:
 - **utils/agent_maintenance.yml**: Self-hosted agent cleanup and maintenance.
 - **utils/compliance_scan.yml**: Periodic compliance and security audit pipeline.
 
-## 🚀 Usage
+## 🚀 Usage examples
 
 Reference these templates in your `azure-pipelines.yml` file:
 
@@ -42,22 +42,10 @@ jobs:
       - script: npm install && npm run build
 ```
 
-## 🛡️ Security Features
-
-These templates implement a **Left-Shift** security approach:
-- **Secret Scanning**: Gitleaks runs on every PR.
-- **Container Scanning**: Trivy scans images before they are pushed to registries.
-- **Artifact Scanning**: JFrog Xray ensures artifacts are free from vulnerabilities.
-
 ## ✅ Prerequisites
 
 - An Azure DevOps organization and project.
 - Appropriate Service Connections (Docker Registry, Kubernetes, ARM, JFrog).
 - Python 3 (for template validation).
-
-## ✅ Verification
-
-To validate changes to these templates:
-```bash
-python3 -c "import yaml; yaml.safe_load(open('your_template.yml'))"
-```
+- These templates implement a **Left-Shift** security approach (Gitleaks, Trivy, JFrog Xray).
+- To validate changes to these templates: `python3 -c "import yaml; yaml.safe_load(open('your_template.yml'))"`

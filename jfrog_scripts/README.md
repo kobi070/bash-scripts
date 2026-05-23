@@ -41,7 +41,7 @@ This directory contains scripts for automating interactions with **JFrog Artifac
 12. **jf_list_empty_repos.sh**
     Detects repositories in JFrog Artifactory that contain no artifacts.
 
-## 🚀 Usage
+## 🚀 Usage examples
 
 ### Configure CLI
 ```bash
@@ -68,6 +68,4 @@ This directory contains scripts for automating interactions with **JFrog Artifac
 - JFrog CLI (`jf` or `jfrog`) installed.
 - Valid Artifactory credentials or Access Token.
 - `curl` installed for generic scripts.
-
-## 📘 Notes
 - It is recommended to set `JF_AUTH_TOKEN` or `JFROG_API_KEY` as environment variables instead of passing them as arguments.
