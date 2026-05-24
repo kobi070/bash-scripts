@@ -33,28 +33,18 @@ echo "Auditing Ingress resources..."
 printf "%-20s %-30s %-30s %-10s %-20s\n" "NAMESPACE" "NAME" "HOSTS" "TLS" "BACKENDS"
 echo "------------------------------------------------------------------------------------------------------------------------------------"
 
-# Fetch Ingress data
-INGRESS_DATA=$(kubectl get ingress $NS_ARG -o json)
-
-echo "$INGRESS_DATA" | jq -c '.items[]' | while read -r ingress; do
-    NAMESPACE=$(echo "$ingress" | jq -r '.metadata.namespace')
-    NAME=$(echo "$ingress" | jq -r '.metadata.name')
-
-    # Extract Hosts
-    HOSTS=$(echo "$ingress" | jq -r '.spec.rules[]?.host // "None"' | paste -sd "," -)
-    [ -z "$HOSTS" ] && HOSTS="None"
-
-    # Check TLS
-    TLS_COUNT=$(echo "$ingress" | jq -r '.spec.tls | length')
-    TLS_STATUS=$( [ "$TLS_COUNT" -gt 0 ] && echo "YES" || echo "NO" )
-
-    # Extract Backends (Services)
-    # Different versions of ingress (v1beta1 vs v1) have slightly different structures.
-    # This attempt covers v1 primarily.
-    BACKENDS=$(echo "$ingress" | jq -r '.spec.rules[]?.http.paths[]?.backend.service.name // .spec.backend.service.name // "N/A"' | sort -u | paste -sd "," -)
-    [ -z "$BACKENDS" ] && BACKENDS="N/A"
-
-    printf "%-20s %-30s %-30s %-10s %-20s\n" "$NAMESPACE" "$NAME" "$HOSTS" "$TLS_STATUS" "$BACKENDS"
+# Bolt optimization: Consolidate Ingress auditing into a single jq pipeline.
+# This reduces process forks from O(N*M) to O(1), where N is Ingress resources and M is rules/paths.
+kubectl get ingress $NS_ARG -o json | jq -r '
+  .items[] |
+  .metadata.namespace as $ns |
+  .metadata.name as $name |
+  ([.spec.rules[]?.host // "None"] | if length > 0 then join(",") else "None" end) as $hosts |
+  (if (.spec.tls | length) > 0 then "YES" else "NO" end) as $tls |
+  ([.spec.rules[]?.http.paths[]?.backend.service.name // .spec.backend.service.name // "N/A"] | unique | if length > 0 then join(",") else "N/A" end) as $backends |
+  "\($ns)\t\($name)\t\($hosts)\t\($tls)\t\($backends)"
+' | while IFS=$'\t' read -r ns name hosts tls backends; do
+    printf "%-20s %-30s %-30s %-10s %-20s\n" "$ns" "$name" "$hosts" "$tls" "$backends"
 done
 
 echo "------------------------------------------------------------------------------------------------------------------------------------"

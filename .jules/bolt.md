@@ -45,3 +45,7 @@
 ## 2026-05-23 - [O(N*M) to O(1) AWS Security Group Audit]
 **Learning:** Auditing AWS Security Groups by iterating over groups and then over rules in Bash, while calling `jq` for each rule, creates a massive performance bottleneck due to process fork overhead ($O(N \times M)$). Consolidating the entire filtering and formatting logic into a single `jq` pipeline reduces forks to $O(1)$ and provides a ~20x speedup in moderately sized environments.
 **Action:** Use `jq` to handle nested collection processing and formatting entirely, passing the results to Bash via a single `while read` loop with a tab-delimiter.
+
+## 2026-05-24 - [O(N) to O(1) Kubernetes Ingress Audit]
+**Learning:** Auditing Ingress resources by calling `jq`, `paste`, and `sort` for each item in a shell loop creates significant process overhead ($O(N)$ forks). Consolidating the extraction of hosts, TLS status, and unique backends into a single `jq` pipeline reduces forks to $O(1)$ and eliminates the need for `paste` and `sort` within the loop.
+**Action:** Consolidate multi-field extraction and list manipulation (joining, sorting, uniqueness) into a single `jq` pass for resource-heavy audit scripts.
