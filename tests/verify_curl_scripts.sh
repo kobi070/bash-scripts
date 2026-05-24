@@ -70,6 +70,16 @@ fi
 MOCKCURL
 chmod +x "$MOCK_BIN/curl"
 
+echo "Verifying gh_list_pull_requests.sh..."
+./github_scripts/gh_list_pull_requests.sh owner/repo > /tmp/out 2>&1 || (cat /tmp/out; false)
+if grep -q "1" /tmp/out; then
+    echo "  ✔ gh_list_pull_requests.sh passed verification"
+else
+    echo "  ✖ gh_list_pull_requests.sh failed verification"
+    cat /tmp/out
+    false
+fi
+
 echo "Verifying gh_pr_size_checker.sh..."
 ./github_scripts/gh_pr_size_checker.sh owner/repo > /tmp/out 2>&1 || (cat /tmp/out; false)
 if grep -q "#1" /tmp/out; then
