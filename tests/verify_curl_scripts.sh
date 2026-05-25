@@ -30,14 +30,14 @@ if [ "$HAS_K_STDIN" = true ]; then
         :
     fi
 
-    if echo "$STDIN_CONTENT" | grep -q "Authorization: token mock_token" || \
+    if echo "$STDIN_CONTENT" | grep -qE "Authorization: (token|Bearer) mock_token" || \
        (echo "$STDIN_CONTENT" | grep -q "url = \"https://hooks.slack.com/services/mock_webhook\"" && \
         echo "$STDIN_CONTENT" | grep -q "data = "); then
         # Return a mock JSON response for the scripts to continue
         if echo "$STDIN_CONTENT" | grep -q "hooks.slack.com"; then
             echo "ok"
         elif [[ "$*" == *"pulls"* ]] && [[ "$*" != *"pulls/1"* ]]; then
-            echo '[{"number": 1, "title": "Test PR", "url": "https://api.github.com/repos/owner/repo/pulls/1"}]'
+            echo '[{"number": 1, "user": {"login": "testuser"}, "title": "Test PR", "url": "https://api.github.com/repos/owner/repo/pulls/1"}]'
         elif [[ "$*" == *"pulls/1"* ]]; then
              echo '{"additions": 10, "deletions": 5}'
         elif [[ "$*" == *"runs?status=failure"* ]]; then
@@ -86,6 +86,16 @@ if grep -q "Mock logs content" /tmp/out; then
     echo "  ✔ gh_workflow_failure_logs.sh passed verification"
 else
     echo "  ✖ gh_workflow_failure_logs.sh failed verification"
+    cat /tmp/out
+    false
+fi
+
+echo "Verifying gh_list_pull_requests.sh..."
+./github_scripts/gh_list_pull_requests.sh owner/repo > /tmp/out 2>&1 || (cat /tmp/out; false)
+if grep -q "testuser" /tmp/out; then
+    echo "  ✔ gh_list_pull_requests.sh passed verification"
+else
+    echo "  ✖ gh_list_pull_requests.sh failed verification"
     cat /tmp/out
     false
 fi
