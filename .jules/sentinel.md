@@ -42,3 +42,8 @@
 **Vulnerability:** Passing Slack Webhook URLs (which contain secrets) or sensitive JSON payloads as command-line arguments to `curl` exposes them in system process lists.
 **Learning:** Using `curl -K-` to pass the URL and data via stdin is effective, but requires careful handling of the `curl` config format. Specifically, the `data` parameter value must be a single line (unless escaped) and requires backslashes and double quotes to be escaped (e.g., `\\` and `\"`) to prevent the `curl` parser from misinterpreting them or failing on newlines.
 **Prevention:** Always use `jq -c` to generate compact, single-line JSON payloads and use `sed 's/\\/\\\\/g; s/"/\\"/g'` to robustly escape them before passing to `curl -K-` via stdin.
+
+## 2026-05-23 - Robust API Error Handling with jq
+**Vulnerability:** Fragile error handling when parsing API responses can lead to script failures or bypassed security checks if the JSON structure changes between success (e.g., an array) and error (an object).
+**Learning:** GitHub list APIs return an array on success. Attempting to check for an error field like `.message` using `jq` on an array results in a fatal error: `Cannot index array with string "message"`.
+**Prevention:** Use the optional indexing operator `?` in `jq` (e.g., `jq -e '.message?'`) to safely probe for error fields. This allows the same check to work whether the response is an error object or a successful array of items, ensuring consistent error detection.
