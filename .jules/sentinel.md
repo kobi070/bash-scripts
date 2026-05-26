@@ -47,3 +47,8 @@
 **Vulnerability:** Fragile error handling when parsing API responses can lead to script failures or bypassed security checks if the JSON structure changes between success (e.g., an array) and error (an object).
 **Learning:** GitHub list APIs return an array on success. Attempting to check for an error field like `.message` using `jq` on an array results in a fatal error: `Cannot index array with string "message"`.
 **Prevention:** Use the optional indexing operator `?` in `jq` (e.g., `jq -e '.message?'`) to safely probe for error fields. This allows the same check to work whether the response is an error object or a successful array of items, ensuring consistent error detection.
+
+## 2026-05-24 - GitHub Assets API and Octet-Stream for Authenticated Downloads
+**Vulnerability:** Attempting to download release assets using the `browser_download_url` with an Authorization header fails for private repositories or restricted assets because the redirect logic may not preserve credentials or expects a different auth flow.
+**Learning:** For authenticated downloads of GitHub release assets, the specific asset API endpoint (`https://api.github.com/repos/.../releases/assets/...`) must be used with the `Accept: application/octet-stream` header to correctly receive the binary data.
+**Prevention:** Always prioritize the API-based asset URL when `GITHUB_TOKEN` is available, and ensure the `Accept` header is set to `application/octet-stream` for binary asset retrieval.

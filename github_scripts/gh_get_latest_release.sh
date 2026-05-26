@@ -4,6 +4,7 @@
 # Useful for CI/CD pipelines to determine the version of a dependency to download.
 # Usage: ./gh_get_latest_release.sh <owner/repo>
 # Example: ./gh_get_latest_release.sh kubernetes/kubernetes
+# Note: GITHUB_TOKEN environment variable can be used for authentication (helps with rate limiting).
 
 set -euo pipefail
 
@@ -11,6 +12,7 @@ set -euo pipefail
 usage() {
     echo "Usage: $0 <owner/repo>"
     echo "  owner/repo: The GitHub repository (e.g., argoproj/argo-cd)"
+    echo "  Note: GITHUB_TOKEN environment variable can be used for authentication."
     exit 1
 }
 
@@ -38,7 +40,21 @@ fi
 REPO=$1
 
 # Fetch latest release from GitHub API
-LATEST_RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | jq -r '.tag_name')
+# Use curl config file via stdin to prevent leaking GITHUB_TOKEN in process lists (ps)
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+    RESPONSE=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | curl -s -K- -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/$REPO/releases/latest")
+else
+    RESPONSE=$(curl -s -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/$REPO/releases/latest")
+fi
+
+# Check for errors in response
+if echo "$RESPONSE" | jq -e '.message?' > /dev/null; then
+    MESSAGE=$(echo "$RESPONSE" | jq -r '.message')
+    echo "Error from GitHub API: $MESSAGE"
+    exit 1
+fi
+
+LATEST_RELEASE=$(echo "$RESPONSE" | jq -r '.tag_name')
 
 if [ "$LATEST_RELEASE" == "null" ] || [ -z "$LATEST_RELEASE" ]; then
     echo "Error: Could not find the latest release for $REPO. Ensure the repo exists and has a release."
