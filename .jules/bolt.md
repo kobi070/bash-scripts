@@ -49,3 +49,7 @@
 ## 2026-05-24 - [O(N) to O(1) Kubernetes Ingress Audit]
 **Learning:** Auditing Ingress resources by calling `jq`, `paste`, and `sort` for each item in a shell loop creates significant process overhead ($O(N)$ forks). Consolidating the extraction of hosts, TLS status, and unique backends into a single `jq` pipeline reduces forks to $O(1)$ and eliminates the need for `paste` and `sort` within the loop.
 **Action:** Consolidate multi-field extraction and list manipulation (joining, sorting, uniqueness) into a single `jq` pass for resource-heavy audit scripts.
+
+## 2026-05-27 - [O(N*M) to O(1) AWS Resource Tag Audit]
+**Learning:** Auditing mandatory tags on cloud resources by iterating over each resource and then each tag in Bash with internal `jq` calls is extremely inefficient ($O(N \times M)$ process forks). Consolidating the tag presence check into a single `jq` pipeline by pre-calculating the target JSON array once and passing it via `--argjson` and the `any()` function reduces the overhead to $O(1)$ process forks for the entire resource set.
+**Action:** Use `jq` with `--argjson` to pass mandatory requirements (like tags or labels) and perform bulk validation within a single JSON processing stream.
