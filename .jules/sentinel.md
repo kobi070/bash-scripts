@@ -48,6 +48,10 @@
 **Learning:** GitHub list APIs return an array on success. Attempting to check for an error field like `.message` using `jq` on an array results in a fatal error: `Cannot index array with string "message"`.
 **Prevention:** Use the optional indexing operator `?` in `jq` (e.g., `jq -e '.message?'`) to safely probe for error fields. This allows the same check to work whether the response is an error object or a successful array of items, ensuring consistent error detection.
 
+## 2025-05-24 - Secret Exposure in Process Lists via JFrog CLI Flags
+**Vulnerability:** Passing passwords or tokens to the JFrog CLI using the `--password` flag (e.g., `jf c add ... --password=$PASS`) makes them visible to all users on the system via process monitoring tools like `ps`.
+**Learning:** Many CLI tools provide command-line flags for authentication for convenience, but these are insecure for non-interactive use in shared environments or CI/CD runners.
+**Prevention:** Always prioritize using environment variables supported by the CLI (e.g., `JFROG_CLI_PASSWORD`) for sensitive information. Explicitly unset or avoid passing these secrets as command-line arguments.
 ## 2026-05-28 - JFrog CLI Password Exposure in Process List
 **Vulnerability:** Passing the Artifactory password or token using the `--password` flag to the JFrog CLI (`jf c add`) exposes it in the system's process list (visible via `ps`).
 **Learning:** Unlike `curl`, the JFrog CLI does not support a "config file via stdin" pattern for all its commands. However, it respects specific environment variables like `JFROG_CLI_PASSWORD` for authentication during configuration.

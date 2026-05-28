@@ -480,6 +480,16 @@ elif [[ "$*" == *"rt repo-list"* ]]; then
   echo '[{"key": "empty-local", "type": "local"}]'
 elif [[ "$*" == *"rt s"* ]]; then
   echo "0"
+elif [[ "$*" == *"c add"* ]]; then
+  if [[ "$*" == *"--password"* ]]; then
+    echo "Error: Password passed as command-line argument!" >&2
+    exit 1
+  fi
+  if [[ -z "${JFROG_CLI_PASSWORD:-}" ]]; then
+    echo "Error: JFROG_CLI_PASSWORD environment variable not set!" >&2
+    exit 1
+  fi
+  echo "Success: Server configured securely"
 fi
 EOF
 chmod +x "$MOCK_BIN/jf"
@@ -492,11 +502,11 @@ else
     exit 1
 fi
 
-echo "Testing jfrog_config.sh (Security Hardening)..."
-if JFROG_PASSWORD="mock_password" ./jfrog_scripts/jfrog_config.sh my-server http://jfrog.example.com admin 2>&1 | grep -q "Success: JFrog CLI configured"; then
-    echo "  ✔ Hardened JFrog configuration successful"
+echo "Testing jfrog_config.sh security..."
+if ./jfrog_scripts/jfrog_config.sh my-server http://localhost admin my-secret 2>&1 | grep -q "Success: Server configured securely"; then
+    echo "  ✔ jfrog_config.sh passed security verification"
 else
-    echo "  ✖ Failed hardened JFrog configuration check"
+    echo "  ✖ jfrog_config.sh failed security verification"
     exit 1
 fi
 
