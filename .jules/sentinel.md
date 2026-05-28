@@ -47,3 +47,8 @@
 **Vulnerability:** Fragile error handling when parsing API responses can lead to script failures or bypassed security checks if the JSON structure changes between success (e.g., an array) and error (an object).
 **Learning:** GitHub list APIs return an array on success. Attempting to check for an error field like `.message` using `jq` on an array results in a fatal error: `Cannot index array with string "message"`.
 **Prevention:** Use the optional indexing operator `?` in `jq` (e.g., `jq -e '.message?'`) to safely probe for error fields. This allows the same check to work whether the response is an error object or a successful array of items, ensuring consistent error detection.
+
+## 2026-05-28 - JFrog CLI Password Exposure in Process List
+**Vulnerability:** Passing the Artifactory password or token using the `--password` flag to the JFrog CLI (`jf c add`) exposes it in the system's process list (visible via `ps`).
+**Learning:** Unlike `curl`, the JFrog CLI does not support a "config file via stdin" pattern for all its commands. However, it respects specific environment variables like `JFROG_CLI_PASSWORD` for authentication during configuration.
+**Prevention:** Prioritize using the `JFROG_CLI_PASSWORD` environment variable when configuring the JFrog CLI. Avoid passing secrets via the `--password` flag to prevent leakage into the process table.

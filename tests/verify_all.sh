@@ -431,8 +431,8 @@ cat <<'EOF' > "$MOCK_BIN/gh"
 #!/bin/bash
 if [[ "$*" == *"api graphql"* ]]; then
   STALE_DATE=$(date -u -d "100 days ago" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -v-100d +"%Y-%m-%dT%H:%M:%SZ")
-  # Mocking the output after --jq '.data.repository.refs.nodes[]'
-  echo "{\"name\": \"stale-feat\", \"target\": {\"committedDate\": \"$STALE_DATE\"}}"
+  # Return full GraphQL response structure
+  echo "{\"data\": {\"repository\": {\"refs\": {\"nodes\": [{\"name\": \"stale-feat\", \"target\": {\"committedDate\": \"$STALE_DATE\"}}]}}}}"
 fi
 EOF
 chmod +x "$MOCK_BIN/gh"
@@ -461,10 +461,22 @@ else
     exit 1
 fi
 
-# --- 22. Mock for jf_list_empty_repos.sh ---
+# --- 22. Mock for jf_list_empty_repos.sh and jfrog_config.sh ---
 cat <<'EOF' > "$MOCK_BIN/jf"
 #!/bin/bash
-if [[ "$*" == *"rt repo-list"* ]]; then
+if [[ "$*" == *"c add"* ]]; then
+  if [[ "$*" == *"--password"* ]]; then
+    echo "SECURITY ERROR: --password flag detected in process arguments!"
+    exit 1
+  fi
+  if [ -z "$JFROG_CLI_PASSWORD" ]; then
+    echo "ERROR: JFROG_CLI_PASSWORD environment variable not set!"
+    exit 1
+  fi
+  echo "Mock jf: Configured $3"
+elif [[ "$*" == *"c use"* ]]; then
+  echo "Mock jf: Using $3"
+elif [[ "$*" == *"rt repo-list"* ]]; then
   echo '[{"key": "empty-local", "type": "local"}]'
 elif [[ "$*" == *"rt s"* ]]; then
   echo "0"
@@ -477,6 +489,14 @@ if ./jfrog_scripts/jf_list_empty_repos.sh local 2>&1 | grep -q "empty-local"; th
     echo "  ✔ Found empty repository"
 else
     echo "  ✖ Failed to find empty repository"
+    exit 1
+fi
+
+echo "Testing jfrog_config.sh (Security Hardening)..."
+if JFROG_PASSWORD="mock_password" ./jfrog_scripts/jfrog_config.sh my-server http://jfrog.example.com admin 2>&1 | grep -q "Success: JFrog CLI configured"; then
+    echo "  ✔ Hardened JFrog configuration successful"
+else
+    echo "  ✖ Failed hardened JFrog configuration check"
     exit 1
 fi
 
