@@ -60,13 +60,15 @@ echo "Configuring JFrog CLI for server: $SERVER_ID..."
 
 # Configure the server
 # Use --overwrite to ensure we update if it already exists
+# Use JFROG_CLI_PASSWORD env var to avoid leaking secrets in the process list
+export JFROG_CLI_PASSWORD="$PASSWORD"
 $JF_BIN c add "$SERVER_ID" \
     --url="$URL" \
     --user="$USER" \
-    --password="$PASSWORD" \
     --interactive=false \
     --overwrite
 
+unset JFROG_CLI_PASSWORD
 echo "Success: JFrog CLI configured for $SERVER_ID."
 
 # Set as default
