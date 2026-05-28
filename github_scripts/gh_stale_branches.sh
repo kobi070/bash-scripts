@@ -33,7 +33,6 @@ if [[ ! "$DAYS" =~ ^[0-9]+$ ]]; then
 fi
 
 THRESHOLD_SEC=$((DAYS * 24 * 3600))
-NOW_SEC=$(date +%s)
 
 # Verify dependencies
 for tool in gh jq; do
@@ -68,18 +67,21 @@ query($owner: String!, $name: String!) {
 OWNER="${REPO%/*}"
 NAME="${REPO#*/}"
 
-gh api graphql -f query="$QUERY" -f owner="$OWNER" -f name="$NAME" --jq '.data.repository.refs.nodes[]' | while read -r branch_json; do
-    BRANCH_NAME=$(echo "$branch_json" | jq -r '.name')
-    COMMIT_DATE=$(echo "$branch_json" | jq -r '.target.committedDate')
-
-    # Calculate age
-    COMMIT_SEC=$(date -d "$COMMIT_DATE" +%s 2>/dev/null || date -jf "%Y-%m-%dT%H:%M:%SZ" "$COMMIT_DATE" +%s)
-    AGE_SEC=$((NOW_SEC - COMMIT_SEC))
-    AGE_DAYS=$((AGE_SEC / 86400))
-
-    if [ "$AGE_SEC" -gt "$THRESHOLD_SEC" ]; then
-        printf "%-30s %-25s %-10s\n" "$BRANCH_NAME" "$COMMIT_DATE" "$AGE_DAYS"
-    fi
+# Bolt optimization: Consolidate date parsing and staleness check into a single jq pipeline.
+# This reduces process forks from O(N) to O(1) and uses portable jq date functions.
+# We pipe the full JSON to jq instead of using gh --jq to allow complex processing in one pass.
+gh api graphql -f query="$QUERY" -f owner="$OWNER" -f name="$NAME" | \
+jq -r --argjson threshold "$THRESHOLD_SEC" '
+  .data.repository.refs.nodes[] |
+  .name as $name |
+  .target.committedDate as $date |
+  ($date | fromdateiso8601) as $commit_sec |
+  (now - $commit_sec) as $age_sec |
+  ($age_sec / 86400 | floor) as $age_days |
+  select($age_sec > $threshold) |
+  "\($name)\t\($date)\t\($age_days)"
+' | while IFS=$'\t' read -r branch_name commit_date age_days; do
+    printf "%-30s %-25s %-10s\n" "$branch_name" "$commit_date" "$age_days"
 done
 
 echo "--------------------------------------------------------------------------------"

@@ -431,8 +431,8 @@ cat <<'EOF' > "$MOCK_BIN/gh"
 #!/bin/bash
 if [[ "$*" == *"api graphql"* ]]; then
   STALE_DATE=$(date -u -d "100 days ago" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -v-100d +"%Y-%m-%dT%H:%M:%SZ")
-  # Mocking the output after --jq '.data.repository.refs.nodes[]'
-  echo "{\"name\": \"stale-feat\", \"target\": {\"committedDate\": \"$STALE_DATE\"}}"
+  # Return full GraphQL response structure
+  echo "{\"data\": {\"repository\": {\"refs\": {\"nodes\": [{\"name\": \"stale-feat\", \"target\": {\"committedDate\": \"$STALE_DATE\"}}]}}}}"
 fi
 EOF
 chmod +x "$MOCK_BIN/gh"
