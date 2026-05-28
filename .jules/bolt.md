@@ -49,3 +49,7 @@
 ## 2026-05-24 - [O(N) to O(1) Kubernetes Ingress Audit]
 **Learning:** Auditing Ingress resources by calling `jq`, `paste`, and `sort` for each item in a shell loop creates significant process overhead ($O(N)$ forks). Consolidating the extraction of hosts, TLS status, and unique backends into a single `jq` pipeline reduces forks to $O(1)$ and eliminates the need for `paste` and `sort` within the loop.
 **Action:** Consolidate multi-field extraction and list manipulation (joining, sorting, uniqueness) into a single `jq` pass for resource-heavy audit scripts.
+
+## 2026-05-25 - [O(N) to O(1) GitHub Stale Branch Audit]
+**Learning:** Consolidating GraphQL response processing, date parsing (`fromdateiso8601`), and staleness calculations into a single `jq` pipeline significantly improves performance by eliminating $O(N)$ process forks of `jq` and `date`.
+**Action:** Use `jq`'s built-in date functions (`now`, `fromdateiso8601`) to perform time-based filtering on API results in a single pass.
