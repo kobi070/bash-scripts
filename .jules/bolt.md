@@ -53,3 +53,7 @@
 ## 2026-05-25 - [O(N) to O(1) GitHub Stale Branch Audit]
 **Learning:** Consolidating GraphQL response processing, date parsing (`fromdateiso8601`), and staleness calculations into a single `jq` pipeline significantly improves performance by eliminating $O(N)$ process forks of `jq` and `date`.
 **Action:** Use `jq`'s built-in date functions (`now`, `fromdateiso8601`) to perform time-based filtering on API results in a single pass.
+
+## 2026-05-27 - [O(N*M) to O(1) AWS Resource Tag Audit]
+**Learning:** Auditing mandatory tags on cloud resources by iterating over each resource and then each tag in Bash with internal `jq` calls is extremely inefficient ($O(N \times M)$ process forks). Consolidating the tag presence check into a single `jq` pipeline by pre-calculating the target JSON array once and passing it via `--argjson` and the `any()` function reduces the overhead to $O(1)$ process forks for the entire resource set.
+**Action:** Use `jq` with `--argjson` to pass mandatory requirements (like tags or labels) and perform bulk validation within a single JSON processing stream.
