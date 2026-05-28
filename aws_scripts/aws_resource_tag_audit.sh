@@ -38,50 +38,38 @@ echo "==========================================================================
 echo "Auditing EC2 Instances..."
 echo "--------------------------------------------------------------------------------"
 
-# Fetch EC2 data
-EC2_DATA=$(aws ec2 describe-instances $REGION_ARG --query 'Reservations[*].Instances[*].{InstanceId:InstanceId, Tags:Tags}' --output json)
-
-echo "$EC2_DATA" | jq -c '.[][]' | while read -r instance; do
-    ID=$(echo "$instance" | jq -r '.InstanceId')
-    MISSING=()
-    for tag in "${MANDATORY_TAGS[@]}"; do
-        # Use jq to check if the tag exists
-        EXISTS=$(echo "$instance" | jq -r --arg TAG "$tag" '.Tags // [] | any(.Key == $TAG)')
-        if [ "$EXISTS" == "false" ]; then
-            MISSING+=("$tag")
-        fi
+# Bolt optimization: Consolidate EC2 tag auditing into a single jq pipeline.
+# This reduces process forks from O(N*M) to O(1), where N is instances and M is mandatory tags.
+# We pre-calculate the JSON array of targets to avoid redundant forks.
+TARGETS_JSON=$(printf '%s\n' "${MANDATORY_TAGS[@]}" | jq -R . | jq -s -c .)
+aws ec2 describe-instances $REGION_ARG --query 'Reservations[*].Instances[*].{InstanceId:InstanceId, Tags:Tags}' --output json | \
+    jq -r --argjson targets "$TARGETS_JSON" '
+      .[][] | .InstanceId as $id | (.Tags // []) as $tags |
+      ($targets - [ $tags[].Key ]) as $missing |
+      select(($missing | length) > 0) |
+      "\($id)\t\($missing | join(" "))"
+    ' | while IFS=$'\t' read -r id missing; do
+        echo "EC2 [$id] is missing tags: $missing"
     done
-
-    if [ ${#MISSING[@]} -gt 0 ]; then
-        echo "EC2 [$ID] is missing tags: ${MISSING[*]}"
-    fi
-done
 
 echo -e "\nAuditing S3 Buckets..."
 echo "--------------------------------------------------------------------------------"
 
-# List all buckets
-BUCKETS=$(aws s3api list-buckets --query 'Buckets[*].Name' --output json)
-
-echo "$BUCKETS" | jq -r '.[]' | while read -r bucket; do
+# Bolt optimization: Consolidate S3 tag auditing into a single jq call per bucket.
+# This reduces process forks from O(M) to O(1) per bucket.
+# Re-use TARGETS_JSON to eliminate forks inside the loop.
+aws s3api list-buckets --query 'Buckets[*].Name' --output json | jq -r '.[]' | while read -r bucket; do
     # get-bucket-tagging returns an error if no tags exist
-    TAG_OUTPUT=$(aws s3api get-bucket-tagging --bucket "$bucket" $REGION_ARG 2>/dev/null || true)
+    TAG_OUTPUT=$(aws s3api get-bucket-tagging --bucket "$bucket" $REGION_ARG 2>/dev/null || echo '{"TagSet": []}')
 
-    MISSING=()
-    if [ -z "$TAG_OUTPUT" ]; then
-        # No tags at all
-        MISSING=("${MANDATORY_TAGS[@]}")
-    else
-        for tag in "${MANDATORY_TAGS[@]}"; do
-            EXISTS=$(echo "$TAG_OUTPUT" | jq -r --arg TAG "$tag" '.TagSet // [] | any(.Key == $TAG)')
-            if [ "$EXISTS" == "false" ]; then
-                MISSING+=("$tag")
-            fi
-        done
-    fi
+    MISSING=$(echo "$TAG_OUTPUT" | jq -r --argjson targets "$TARGETS_JSON" '
+      (.TagSet // []) as $tags |
+      ($targets - [ $tags[].Key ]) |
+      join(" ")
+    ')
 
-    if [ ${#MISSING[@]} -gt 0 ]; then
-        echo "S3 [$bucket] is missing tags: ${MISSING[*]}"
+    if [ -n "$MISSING" ]; then
+        echo "S3 [$bucket] is missing tags: $MISSING"
     fi
 done
 

@@ -52,3 +52,7 @@
 **Vulnerability:** Passing passwords or tokens to the JFrog CLI using the `--password` flag (e.g., `jf c add ... --password=$PASS`) makes them visible to all users on the system via process monitoring tools like `ps`.
 **Learning:** Many CLI tools provide command-line flags for authentication for convenience, but these are insecure for non-interactive use in shared environments or CI/CD runners.
 **Prevention:** Always prioritize using environment variables supported by the CLI (e.g., `JFROG_CLI_PASSWORD`) for sensitive information. Explicitly unset or avoid passing these secrets as command-line arguments.
+## 2026-05-28 - JFrog CLI Password Exposure in Process List
+**Vulnerability:** Passing the Artifactory password or token using the `--password` flag to the JFrog CLI (`jf c add`) exposes it in the system's process list (visible via `ps`).
+**Learning:** Unlike `curl`, the JFrog CLI does not support a "config file via stdin" pattern for all its commands. However, it respects specific environment variables like `JFROG_CLI_PASSWORD` for authentication during configuration.
+**Prevention:** Prioritize using the `JFROG_CLI_PASSWORD` environment variable when configuring the JFrog CLI. Avoid passing secrets via the `--password` flag to prevent leakage into the process table.
