@@ -44,7 +44,19 @@ OUTPUT_PATH=${3:-$(basename "$PATTERN")}
 echo "Searching for latest release asset matching '$PATTERN' in $REPO..."
 
 # Get latest release JSON
-RELEASE_JSON=$(curl -s "https://api.github.com/repos/$REPO/releases/latest")
+# Use curl config file via stdin to prevent leaking GITHUB_TOKEN in process lists (ps)
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+    RELEASE_JSON=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | curl -s -K- "https://api.github.com/repos/$REPO/releases/latest")
+else
+    RELEASE_JSON=$(curl -s "https://api.github.com/repos/$REPO/releases/latest")
+fi
+
+# Check for errors in response
+if echo "$RELEASE_JSON" | jq -e '.message?' > /dev/null; then
+    MESSAGE=$(echo "$RELEASE_JSON" | jq -r '.message')
+    echo "Error from GitHub API: $MESSAGE"
+    exit 1
+fi
 
 # Extract asset download URL
 DOWNLOAD_URL=$(echo "$RELEASE_JSON" | jq -r --arg pattern "$PATTERN" '.assets[] | select(.name | contains($pattern)) | .browser_download_url' | head -n 1)
@@ -59,7 +71,11 @@ fi
 echo "Downloading asset from: $DOWNLOAD_URL"
 echo "Saving to: $OUTPUT_PATH"
 
-curl -L -o "$OUTPUT_PATH" "$DOWNLOAD_URL"
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+    printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | curl -L -s -K- -o "$OUTPUT_PATH" "$DOWNLOAD_URL"
+else
+    curl -L -s -o "$OUTPUT_PATH" "$DOWNLOAD_URL"
+fi
 
 echo "Download completed successfully."
 chmod +x "$OUTPUT_PATH" 2>/dev/null || true

@@ -14,9 +14,14 @@ cat <<'MOCKCURL' > "$MOCK_BIN/curl"
 #!/bin/bash
 # Check if -K- is used
 HAS_K_STDIN=false
-for arg in "$@"; do
+OUT_FILE=""
+for i in $(seq 1 $#); do
+    arg="${!i}"
     if [[ "$arg" == "-K-" ]]; then
         HAS_K_STDIN=true
+    elif [[ "$arg" == "-o" ]]; then
+        next=$((i+1))
+        OUT_FILE="${!next}"
     fi
 done
 
@@ -30,12 +35,20 @@ if [ "$HAS_K_STDIN" = true ]; then
         :
     fi
 
-    if echo "$STDIN_CONTENT" | grep -q "Authorization: token mock_token" || \
+    if echo "$STDIN_CONTENT" | grep -qE "Authorization: (token|Bearer) mock_token" || \
        (echo "$STDIN_CONTENT" | grep -q "url = \"https://hooks.slack.com/services/mock_webhook\"" && \
         echo "$STDIN_CONTENT" | grep -q "data = "); then
         # Return a mock JSON response for the scripts to continue
         if echo "$STDIN_CONTENT" | grep -q "hooks.slack.com"; then
             echo "ok"
+        elif [[ "$*" == *"releases/latest"* ]]; then
+            echo '{"tag_name": "v1.0.0", "assets": [{"name": "asset.zip", "browser_download_url": "https://example.com/asset.zip"}]}'
+        elif [[ "$*" == *"example.com/asset.zip"* ]]; then
+            if [ -n "$OUT_FILE" ]; then
+                echo "Mock asset content" > "$OUT_FILE"
+            else
+                echo "Mock asset content"
+            fi
         elif [[ "$*" == *"pulls"* ]] && [[ "$*" != *"pulls/1"* ]]; then
             echo '[{"number": 1, "title": "Test PR", "url": "https://api.github.com/repos/owner/repo/pulls/1"}]'
         elif [[ "$*" == *"pulls/1"* ]]; then
@@ -99,6 +112,27 @@ else
     cat /tmp/out
     false
 fi
+
+echo "Verifying gh_get_latest_release.sh..."
+./github_scripts/gh_get_latest_release.sh owner/repo > /tmp/out 2>&1 || (cat /tmp/out; false)
+if grep -q "v1.0.0" /tmp/out; then
+    echo "  ✔ gh_get_latest_release.sh passed verification"
+else
+    echo "  ✖ gh_get_latest_release.sh failed verification"
+    cat /tmp/out
+    false
+fi
+
+echo "Verifying gh_download_release_asset.sh..."
+./github_scripts/gh_download_release_asset.sh owner/repo "asset.zip" /tmp/mock_asset > /tmp/out 2>&1 || (cat /tmp/out; false)
+if grep -q "Download completed successfully" /tmp/out && [ -f /tmp/mock_asset ]; then
+    echo "  ✔ gh_download_release_asset.sh passed verification"
+else
+    echo "  ✖ gh_download_release_asset.sh failed verification"
+    cat /tmp/out
+    false
+fi
+rm -f /tmp/mock_asset
 
 echo "Verifying send_slack_notification.sh..."
 ./general_scripts/send_slack_notification.sh "ignored" "Test message" > /tmp/out 2>&1 || (cat /tmp/out; false)

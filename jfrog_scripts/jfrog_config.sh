@@ -69,6 +69,7 @@ $JF_BIN c add "$SERVER_ID" \
     --overwrite
 
 unset JFROG_CLI_PASSWORD
+echo "Success: Server configured securely"
 echo "Success: JFrog CLI configured for $SERVER_ID."
 
 # Set as default
