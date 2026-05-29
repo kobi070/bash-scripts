@@ -29,15 +29,32 @@ else
     exit 1
 fi
 
-# --- 2. Mock for docker_root_check.sh ---
+# --- 2. Mock for docker_root_check.sh and docker_audit_security.sh ---
 cat <<'EOF' > "$MOCK_BIN/docker"
 #!/bin/bash
-if [[ "$*" == "ps -q" ]]; then
+if [[ "$*" == "ps -q" ]] || [[ "$*" == "ps --format {{.ID}}" ]]; then
   echo "id1"
   echo "id2"
 elif [[ "$*" == *"inspect"* ]]; then
-  echo "/root-box|root"
-  echo "/user-box|1000"
+  if [[ "$*" == *"--format"* ]]; then
+    echo "/root-box|root"
+    echo "/user-box|1000"
+  else
+    echo '[
+      {
+        "Id": "id1",
+        "Name": "/root-box",
+        "Config": { "User": "root", "Env": ["DB_PASSWORD=secret"] },
+        "HostConfig": { "Privileged": true, "NetworkMode": "host", "PidMode": "host" }
+      },
+      {
+        "Id": "id2",
+        "Name": "/user-box",
+        "Config": { "User": "1000", "Env": ["FOO=bar"] },
+        "HostConfig": { "Privileged": false, "NetworkMode": "bridge", "PidMode": "" }
+      }
+    ]'
+  fi
 fi
 EOF
 chmod +x "$MOCK_BIN/docker"
@@ -47,6 +64,20 @@ if ./docker_scripts/docker_root_check.sh 2>&1 | grep -q "root-box"; then
     echo "  ✔ Found root container"
 else
     echo "  ✖ Failed to find root container"
+    exit 1
+fi
+
+echo "Testing docker_audit_security.sh..."
+OUTPUT=$(./docker_scripts/docker_audit_security.sh 2>&1)
+if echo "$OUTPUT" | grep -q "FAIL] Running as ROOT user" && \
+   echo "$OUTPUT" | grep -q "FAIL] Privileged mode is ENABLED" && \
+   echo "$OUTPUT" | grep -q "WARN] Potential secrets found" && \
+   echo "$OUTPUT" | grep -q "DB_PASSWORD"; then
+    echo "  ✔ Detected multiple security issues in audit"
+else
+    echo "  ✖ Failed security audit check"
+    echo "Output was:"
+    echo "$OUTPUT"
     exit 1
 fi
 
@@ -466,22 +497,6 @@ cat <<'EOF' > "$MOCK_BIN/jf"
 #!/bin/bash
 if [[ "$*" == *"c add"* ]]; then
   if [[ "$*" == *"--password"* ]]; then
-    echo "SECURITY ERROR: --password flag detected in process arguments!"
-    exit 1
-  fi
-  if [ -z "$JFROG_CLI_PASSWORD" ]; then
-    echo "ERROR: JFROG_CLI_PASSWORD environment variable not set!"
-    exit 1
-  fi
-  echo "Mock jf: Configured $3"
-elif [[ "$*" == *"c use"* ]]; then
-  echo "Mock jf: Using $3"
-elif [[ "$*" == *"rt repo-list"* ]]; then
-  echo '[{"key": "empty-local", "type": "local"}]'
-elif [[ "$*" == *"rt s"* ]]; then
-  echo "0"
-elif [[ "$*" == *"c add"* ]]; then
-  if [[ "$*" == *"--password"* ]]; then
     echo "Error: Password passed as command-line argument!" >&2
     exit 1
   fi
@@ -490,6 +505,12 @@ elif [[ "$*" == *"c add"* ]]; then
     exit 1
   fi
   echo "Success: Server configured securely"
+elif [[ "$*" == *"c use"* ]]; then
+  echo "Mock jf: Using $3"
+elif [[ "$*" == *"rt repo-list"* ]]; then
+  echo '[{"key": "empty-local", "type": "local"}]'
+elif [[ "$*" == *"rt s"* ]]; then
+  echo "0"
 fi
 EOF
 chmod +x "$MOCK_BIN/jf"
