@@ -6,6 +6,7 @@
 # 2. Privileged mode enabled
 # 3. Host network/IPC/PID namespace sharing
 # 4. Insecure environment variables (potential secrets)
+# Optimized with Bolt principles: Consolidate metadata extraction into a single jq pipeline (O(1) process forks).
 # Usage: ./docker_audit_security.sh [container_id_or_name]
 
 set -euo pipefail
@@ -28,6 +29,11 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
+if ! command -v jq &> /dev/null; then
+    echo "Error: jq is not installed or not in PATH."
+    exit 1
+fi
+
 CONTAINERS=$(docker ps --format "{{.ID}}")
 if [ "$#" -ge 1 ]; then
     CONTAINERS=$1
@@ -41,47 +47,50 @@ fi
 echo "Starting Docker Security Audit..."
 echo "--------------------------------------------------------------------------------"
 
-for CID in $CONTAINERS; do
-    NAME=$(docker inspect --format '{{.Name}}' "$CID" | sed 's/^\///')
-    echo "Auditing Container: $NAME ($CID)"
+# Bolt optimization: Consolidate metadata extraction into a single docker inspect and jq pipeline.
+# This reduces process forks from O(N) to O(1) for the entire set of containers.
+# We extract ID, Name, User, Privileged, NetworkMode, PidMode, and scan Env for secrets in one pass.
+docker inspect $CONTAINERS | jq -r '
+  .[] |
+  .Id as $id |
+  (.Name | sub("^/"; "")) as $name |
+  (.Config.User | if . == null or . == "" then "root" else . end) as $user |
+  (.HostConfig.Privileged | if . == true then "true" else "false" end) as $privileged |
+  (.HostConfig.NetworkMode // "default") as $network |
+  (.HostConfig.PidMode // "default") as $pid |
+  ([.Config.Env[]? | select(test("(?i)pass|token|key|secret|auth|pwd")) | split("=")[0]] | join(",")) as $secrets |
+  "\($id)\t\($name)\t\($user)\t\($privileged)\t\($network)\t\($pid)\t\($secrets)"
+' | while IFS=$'\t' read -r cid name user privileged network pid secrets; do
+    echo "Auditing Container: $name ($cid)"
 
     # 1. Check for Root User
-    USER=$(docker inspect --format '{{.Config.User}}' "$CID")
-    if [ -z "$USER" ] || [ "$USER" == "root" ] || [ "$USER" == "0" ]; then
+    if [ "$user" == "root" ] || [ "$user" == "0" ]; then
         echo "  [FAIL] Running as ROOT user"
     else
-        echo "  [PASS] Running as non-root user: $USER"
+        echo "  [PASS] Running as non-root user: $user"
     fi
 
     # 2. Check for Privileged Mode
-    PRIVILEGED=$(docker inspect --format '{{.HostConfig.Privileged}}' "$CID")
-    if [ "$PRIVILEGED" == "true" ]; then
+    if [ "$privileged" == "true" ]; then
         echo "  [FAIL] Privileged mode is ENABLED"
     else
         echo "  [PASS] Privileged mode is DISABLED"
     fi
 
     # 3. Check for Host Namespace Sharing
-    NETWORK=$(docker inspect --format '{{.HostConfig.NetworkMode}}' "$CID")
-    if [ "$NETWORK" == "host" ]; then
+    if [ "$network" == "host" ]; then
         echo "  [WARN] Host network namespace is SHARED"
     fi
 
-    PID_MODE=$(docker inspect --format '{{.HostConfig.PidMode}}' "$CID")
-    if [ "$PID_MODE" == "host" ]; then
+    if [ "$pid" == "host" ]; then
         echo "  [FAIL] Host PID namespace is SHARED"
     fi
 
     # 4. Check for potential secrets in Environment Variables
-    # Sentinel philosophy: Identifying secret leakage risks
-    # Regex for sensitive words
-    SECRETS_FOUND=$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$CID" | \
-        grep -Ei "pass|token|key|secret|auth|pwd" || true)
-
-    if [ -n "$SECRETS_FOUND" ]; then
+    if [ -n "$secrets" ]; then
         echo "  [WARN] Potential secrets found in environment variables:"
         # Only show the key, not the value to prevent leakage in logs
-        echo "$SECRETS_FOUND" | awk -F= '{print "    - " $1}'
+        echo "$secrets" | tr ',' '\n' | sed 's/^/    - /'
     fi
 
     echo "--------------------------------------------------------------------------------"
