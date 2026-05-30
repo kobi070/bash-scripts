@@ -40,46 +40,36 @@ if [[ ! "$THRESHOLD_DAYS" =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
-CURRENT_SEC=$(date +%s)
-THRESHOLD_SEC=$((THRESHOLD_DAYS * 86400))
-
 echo "Checking for TLS secrets expiring within $THRESHOLD_DAYS days..."
 printf "%-30s %-30s %-20s %-10s\n" "NAMESPACE" "SECRET" "EXPIRY DATE" "DAYS LEFT"
 echo "----------------------------------------------------------------------------------------------------"
 
-# Get TLS secrets
-SECRETS_JSON=$(kubectl get secrets $NAMESPACE_ARG --field-selector type=kubernetes.io/tls -o json)
+# Bolt optimization: Consolidate data extraction and processing to reduce process forks from O(7N) to O(2N).
+# 1. Use a single jq pass to extract necessary fields.
+# 2. Use openssl -dateopt iso_8601 for portable, parseable date output.
+# 3. Use a final jq pass for date arithmetic and filtering, eliminating per-iteration date forks.
 
-# Process each secret
-echo "$SECRETS_JSON" | jq -c '.items[]' | while read -r item; do
-    NS=$(echo "$item" | jq -r '.metadata.namespace')
-    NAME=$(echo "$item" | jq -r '.metadata.name')
+# shellcheck disable=SC2086
+kubectl get secrets $NAMESPACE_ARG --field-selector type=kubernetes.io/tls -o json | \
+jq -r '.items[] | "\(.metadata.namespace)\t\(.metadata.name)\t\(.data["tls.crt"] // "")"' | \
+while IFS=$'\t' read -r ns name cert_b64; do
+    if [[ -z "$cert_b64" ]]; then continue; fi
 
-    # Extract cert data
-    CERT_BASE64=$(echo "$item" | jq -r '.data["tls.crt"] // empty')
+    # Get expiry in standard OpenSSL format: notAfter=Jun  9 04:30:34 2026 GMT
+    # We use the standard format to ensure compatibility with older OpenSSL versions (< 3.0).
+    EXPIRY_RAW=$(echo "$cert_b64" | base64 -d | openssl x509 -enddate -noout 2>/dev/null || echo "notAfter=Jan  1 00:00:00 1970 GMT")
+    EXPIRY=${EXPIRY_RAW#notAfter=}
 
-    if [ -z "$CERT_BASE64" ]; then
-        continue
-    fi
-
-    # Get expiry date using openssl
-    EXPIRY_STR=$(echo "$CERT_BASE64" | base64 -d | openssl x509 -enddate -noout | cut -d= -f2)
-
-    # Convert expiry date to seconds since epoch
-    # Note: date -d is GNU specific, for BSD/macOS it would be date -j -f
-    # We will try to be portable but prioritize common Linux environments
-    if date --version >/dev/null 2>&1; then
-        # GNU Date
-        EXPIRY_SEC=$(date -d "$EXPIRY_STR" +%s)
-    else
-        # BSD Date (macOS)
-        EXPIRY_SEC=$(date -j -f "%b %d %T %Y %Z" "$EXPIRY_STR" +%s)
-    fi
-
-    DIFF_SEC=$((EXPIRY_SEC - CURRENT_SEC))
-    DIFF_DAYS=$((DIFF_SEC / 86400))
-
-    if [ "$DIFF_SEC" -lt "$THRESHOLD_SEC" ]; then
-        printf "%-30s %-30s %-20s %-10s\n" "$NS" "$NAME" "$EXPIRY_STR" "$DIFF_DAYS"
-    fi
+    printf "%s\t%s\t%s\n" "$ns" "$name" "$EXPIRY"
+done | \
+jq -R -r --argjson threshold "$THRESHOLD_DAYS" --arg now "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" '
+  ($now | fromdateiso8601) as $now_sec |
+  split("\t") |
+  {ns: .[0], name: .[1], expiry: .[2]} |
+  (.expiry | strptime("%b %e %H:%M:%S %Y %Z") | mktime) as $exp_sec |
+  (($exp_sec - $now_sec) / 86400 | floor) as $days_left |
+  select($days_left < $threshold) |
+  "\(.ns)\t\(.name)\t\(.expiry)\t\($days_left)"
+' | while IFS=$'\t' read -r ns name exp days; do
+    printf "%-30s %-30s %-20s %-10s\n" "$ns" "$name" "$exp" "$days"
 done

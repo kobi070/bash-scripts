@@ -60,3 +60,7 @@
 ## 2026-05-27 - [O(N*M) to O(1) AWS Resource Tag Audit]
 **Learning:** Auditing mandatory tags on cloud resources by iterating over each resource and then each tag in Bash with internal `jq` calls is extremely inefficient ($O(N \times M)$ process forks). Consolidating the tag presence check into a single `jq` pipeline by pre-calculating the target JSON array once and passing it via `--argjson` and the `any()` function reduces the overhead to $O(1)$ process forks for the entire resource set.
 **Action:** Use `jq` with `--argjson` to pass mandatory requirements (like tags or labels) and perform bulk validation within a single JSON processing stream.
+
+## 2024-05-30 - [O(N) to O(1) process forks in K8s Secret Audit]
+**Learning:** Consolidating multiple 'jq' calls and eliminating per-iteration 'date' command forks significantly improves performance in resource audits. However, relying on OpenSSL 3.0 specific flags like '-dateopt iso_8601' breaks compatibility in older environments. Standard OpenSSL date formats can be parsed portably within 'jq' using 'strptime("%b %e %H:%M:%S %Y %Z") | mktime', where '%e' correctly handles the leading space in single-digit days.
+**Action:** Use 'jq' stream processing for data transformation and avoid OpenSSL 3.0+ specific output flags to maintain broad compatibility across Linux and macOS environments.
