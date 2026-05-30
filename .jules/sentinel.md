@@ -56,3 +56,8 @@
 **Vulnerability:** Passing the Artifactory password or token using the `--password` flag to the JFrog CLI (`jf c add`) exposes it in the system's process list (visible via `ps`).
 **Learning:** Unlike `curl`, the JFrog CLI does not support a "config file via stdin" pattern for all its commands. However, it respects specific environment variables like `JFROG_CLI_PASSWORD` for authentication during configuration.
 **Prevention:** Prioritize using the `JFROG_CLI_PASSWORD` environment variable when configuring the JFrog CLI. Avoid passing secrets via the `--password` flag to prevent leakage into the process table.
+
+## 2026-05-30 - Command Substitution via Variable-Named Functions
+**Vulnerability:** Using $(var) in a script where 'var' is a variable containing a string (e.g., a version number) triggers command substitution. If a function or command exists with the same name as the variable's content, it will be executed.
+**Learning:** Bash interprets $(...) as a request to execute a command. If 'var' contains "1.2.3", $(var) attempts to execute a command named "1.2.3". This is both a logic bug and a security risk if the variable content can be influenced by an attacker.
+**Prevention:** Always use $var or ${var} to expand variable content. Only use $(...) when you explicitly intend to execute a command and capture its output.
