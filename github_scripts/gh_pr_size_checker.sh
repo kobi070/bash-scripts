@@ -46,7 +46,7 @@ REPO=$1
 echo "Fetching open PRs for $REPO..."
 
 # Fetch open PRs (first 100)
-PRS=$(printf "header = \"Authorization: token %s\"\n" "$GITHUB_TOKEN" | \
+PRS=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
     curl -s -K- -H "Accept: application/vnd.github.v3+json" \
     "https://api.github.com/repos/$REPO/pulls?state=open&per_page=100")
 
@@ -71,20 +71,21 @@ echo "--------------------------------------------------------------------------
 
 echo "$PRS" | jq -r '.[] | [.number, .title, .url] | @tsv' | while IFS=$'\t' read -r NUM TITLE URL; do
     # Fetch PR details for additions/deletions
-    DETAILS=$(printf "header = \"Authorization: token %s\"\n" "$GITHUB_TOKEN" | \
+    DETAILS=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
         curl -s -K- -H "Accept: application/vnd.github.v3+json" \
         "$URL")
 
-    ADDITIONS=$(echo "$DETAILS" | jq -r '.additions // 0')
-    DELETIONS=$(echo "$DETAILS" | jq -r '.deletions // 0')
-    TOTAL=$((ADDITIONS + DELETIONS))
-
-    SIZE="XS"
-    if [ "$TOTAL" -ge 500 ]; then SIZE="XL";
-    elif [ "$TOTAL" -ge 200 ]; then SIZE="L";
-    elif [ "$TOTAL" -ge 50 ]; then SIZE="M";
-    elif [ "$TOTAL" -ge 10 ]; then SIZE="S";
-    fi
+    # Bolt optimization: Perform arithmetic and categorization within jq to prevent shell injection
+    SIZE_INFO=$(echo "$DETAILS" | jq -r '
+      ((.additions // 0) + (.deletions // 0)) as $total |
+      (if $total >= 500 then "XL"
+       elif $total >= 200 then "L"
+       elif $total >= 50 then "M"
+       elif $total >= 10 then "S"
+       else "XS" end) as $size |
+      "\($total)\t\($size)"
+    ')
+    IFS=$'\t' read -r TOTAL SIZE <<< "$SIZE_INFO"
 
     # Truncate title if too long
     TRUNC_TITLE="${TITLE:0:47}"

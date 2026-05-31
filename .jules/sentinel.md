@@ -56,3 +56,8 @@
 **Vulnerability:** Passing the Artifactory password or token using the `--password` flag to the JFrog CLI (`jf c add`) exposes it in the system's process list (visible via `ps`).
 **Learning:** Unlike `curl`, the JFrog CLI does not support a "config file via stdin" pattern for all its commands. However, it respects specific environment variables like `JFROG_CLI_PASSWORD` for authentication during configuration.
 **Prevention:** Prioritize using the `JFROG_CLI_PASSWORD` environment variable when configuring the JFrog CLI. Avoid passing secrets via the `--password` flag to prevent leakage into the process table.
+
+## 2025-05-31 - GitHub Bearer Tokens and Safe API Arithmetic
+**Vulnerability:** Use of deprecated `token` keyword in Authorization headers and potential shell arithmetic injection when processing numeric fields from API responses.
+**Learning:** GitHub's API has standardized on `Bearer` for authentication tokens. Additionally, processing numbers from JSON in shell arithmetic `$(($VAR))` is risky if the variable is unvalidated. Performing calculations within `jq` ensures data is treated as JSON numbers, providing defense-in-depth.
+**Prevention:** Always use `Bearer` for GitHub Authorization headers. Prioritize performing arithmetic and conditional logic (categorization) within `jq` rather than the shell when processing API data.
