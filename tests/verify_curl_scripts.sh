@@ -26,8 +26,18 @@ for i in $(seq 1 $#); do
 done
 
 if [ "$HAS_K_STDIN" = true ]; then
-    # Read from stdin to see if it contains the token
+    # Read from stdin
     STDIN_CONTENT=$(cat -)
+
+    # Verifying url_health_summary.sh use case (non-sensitive URLs in -K-)
+    if echo "$STDIN_CONTENT" | grep -q "google.com"; then
+        echo -e "https://google.com/\t301\t0.05"
+        # If there are multiple URLs in STDIN_CONTENT, we might need to output for all of them
+        if echo "$STDIN_CONTENT" | grep -q "non-existent-url.local"; then
+            echo -e "http://non-existent-url.local/\t000\t0.01"
+        fi
+        exit 0
+    fi
 
     # Validate that data= lines do not contain unescaped newlines (strict config check)
     if echo "$STDIN_CONTENT" | grep -E "^data = \"" | grep -qv "\\\\n" && echo "$STDIN_CONTENT" | grep -qE "^data = \".*[^\\]$"; then
@@ -63,7 +73,8 @@ if [ "$HAS_K_STDIN" = true ]; then
             echo "{}"
         fi
     else
-        echo "Error: Authorization header not found in stdin" >&2
+        echo "Error: Authorization header or valid non-sensitive URL not found in stdin" >&2
+        echo "Stdin was: $STDIN_CONTENT" >&2
         kill -s TERM $PPID
     fi
 else
@@ -151,6 +162,16 @@ if grep -q "Slack notification sent" /tmp/out; then
     echo "  ✔ multi_url_monitor.sh passed verification"
 else
     echo "  ✖ multi_url_monitor.sh failed verification"
+    cat /tmp/out
+    false
+fi
+
+echo "Verifying url_health_summary.sh..."
+./general_scripts/url_health_summary.sh "https://google.com" "http://non-existent-url.local" > /tmp/out 2>&1 || true
+if grep -q "301" /tmp/out && grep -q "FAILED" /tmp/out; then
+    echo "  ✔ url_health_summary.sh passed verification"
+else
+    echo "  ✖ url_health_summary.sh failed verification"
     cat /tmp/out
     false
 fi

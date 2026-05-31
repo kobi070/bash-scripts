@@ -35,18 +35,20 @@ echo "--------------------------------------------------------------------------
 printf "%-40s %-15s %-15s\n" "URL" "STATUS CODE" "LATENCY (s)"
 echo "--------------------------------------------------------------------------------"
 
-for url in "$@"; do
-    # Use curl to get status code and latency
-    # -o /dev/null: don't output the body
-    # -s: silent mode
-    # -w: custom output format
-    RESPONSE=$(curl -s -o /dev/null -w "%{http_code}\t%{time_total}" "$url" || echo "ERROR")
-
-    if [ "$RESPONSE" == "ERROR" ]; then
+# Bolt optimization: Consolidate curl calls into a single parallel invocation.
+# This reduces process forks from O(N) to O(1) and enables concurrent health checks.
+# We use curl -K- to read configurations from stdin and --parallel for concurrency.
+{
+    for url in "$@"; do
+        printf "url = \"%s\"\noutput = /dev/null\nsilent\n" "$url"
+    done
+} | curl -K- --parallel -w "%{url_effective}\t%{http_code}\t%{time_total}\n" 2>/dev/null | while IFS=$'\t' read -r url status latency; do
+    # curl returns 000 if the request failed (e.g., DNS error, connection refused)
+    if [ "$status" == "000" ]; then
         printf "%-40s %-15s %-15s\n" "$url" "FAILED" "N/A"
     else
-        STATUS_CODE=$(echo "$RESPONSE" | cut -f1)
-        LATENCY=$(echo "$RESPONSE" | cut -f2)
-        printf "%-40s %-15s %-15s\n" "$url" "$STATUS_CODE" "$LATENCY"
+        printf "%-40s %-15s %-15s\n" "$url" "$status" "$latency"
     fi
 done
+
+echo "--------------------------------------------------------------------------------"

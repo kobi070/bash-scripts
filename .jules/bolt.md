@@ -60,3 +60,7 @@
 ## 2026-05-27 - [O(N*M) to O(1) AWS Resource Tag Audit]
 **Learning:** Auditing mandatory tags on cloud resources by iterating over each resource and then each tag in Bash with internal `jq` calls is extremely inefficient ($O(N \times M)$ process forks). Consolidating the tag presence check into a single `jq` pipeline by pre-calculating the target JSON array once and passing it via `--argjson` and the `any()` function reduces the overhead to $O(1)$ process forks for the entire resource set.
 **Action:** Use `jq` with `--argjson` to pass mandatory requirements (like tags or labels) and perform bulk validation within a single JSON processing stream.
+
+## 2024-05-30 - [Parallelizing curl with -K- and --parallel]
+**Learning:** Checking multiple URLs sequentially in a loop results in $O(N)$ process forks and linear execution time. `curl` supports reading multiple configurations from stdin using `-K-` and executing them concurrently with the `--parallel` flag. Using `%{url_effective}` in the write-out format ensures that results can be correctly associated with their respective URLs even when they arrive out of order.
+**Action:** Use `curl -K- --parallel` to consolidate multi-URL health checks or downloads into a single process with concurrent execution.
