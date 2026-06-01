@@ -35,18 +35,15 @@ echo "--------------------------------------------------------------------------
 printf "%-40s %-15s %-15s\n" "URL" "STATUS CODE" "LATENCY (s)"
 echo "--------------------------------------------------------------------------------"
 
+# Use curl --parallel to check all URLs concurrently.
+# This reduces the total execution time from O(N) to O(1) in terms of latency bottlenecks
+# and reduces process forks from O(N) to O(1).
 for url in "$@"; do
-    # Use curl to get status code and latency
-    # -o /dev/null: don't output the body
-    # -s: silent mode
-    # -w: custom output format
-    RESPONSE=$(curl -s -o /dev/null -w "%{http_code}\t%{time_total}" "$url" || echo "ERROR")
-
-    if [ "$RESPONSE" == "ERROR" ]; then
+    printf "url = \"%s\"\n" "$url"
+done | curl -s --parallel -o /dev/null -K- -w "%{url_effective}\t%{http_code}\t%{time_total}\n" | while IFS=$'\t' read -r url code latency; do
+    if [ "$code" == "000" ]; then
         printf "%-40s %-15s %-15s\n" "$url" "FAILED" "N/A"
     else
-        STATUS_CODE=$(echo "$RESPONSE" | cut -f1)
-        LATENCY=$(echo "$RESPONSE" | cut -f2)
-        printf "%-40s %-15s %-15s\n" "$url" "$STATUS_CODE" "$LATENCY"
+        printf "%-40s %-15s %-15s\n" "$url" "$code" "$latency"
     fi
 done

@@ -13,7 +13,7 @@
 **Action:** Prefer native CLI querying parameters (like `az --query` or `docker inspect --format`) over multiple shell pipes for extracting multiple data points from the same command.
 
 ## 2026-05-15 - [Bash built-ins for string manipulation]
-**Learning:** External processes like `sed`, `cut`, and `tr` are often used for simple string sanitization and transformation, but they incur process fork overhead. Bash parameter expansion (`${VAR//search/replace}`, `${VAR#prefix}`, `${VAR%suffix}`) is executed directly by the shell and is significantly faster for these tasks.
+**Learning:** External processes like `sed`, `cut`, and `tr` are often used for simple string sanitization and transformation, but they incur process fork overhead. Bash parameter expansion (${VAR//search/replace}, ${VAR#prefix}, ${VAR%suffix}) is executed directly by the shell and is significantly faster for these tasks.
 **Action:** Use Bash parameter expansion instead of piping to `sed` or `cut` for basic string manipulation in performance-critical or frequently executed scripts.
 
 ## 2026-05-16 - [Set difference with grep -xvFf]
@@ -60,3 +60,7 @@
 ## 2026-05-27 - [O(N*M) to O(1) AWS Resource Tag Audit]
 **Learning:** Auditing mandatory tags on cloud resources by iterating over each resource and then each tag in Bash with internal `jq` calls is extremely inefficient ($O(N \times M)$ process forks). Consolidating the tag presence check into a single `jq` pipeline by pre-calculating the target JSON array once and passing it via `--argjson` and the `any()` function reduces the overhead to $O(1)$ process forks for the entire resource set.
 **Action:** Use `jq` with `--argjson` to pass mandatory requirements (like tags or labels) and perform bulk validation within a single JSON processing stream.
+
+## 2024-05-28 - [O(N) to O(1) Concurrent Health Checks]
+**Learning:** Performing sequential network requests in a loop (e.g., `curl` in a `for` loop) creates a performance bottleneck that scales linearly with the number of targets ($O(N)$). Modern versions of `curl` (7.66.0+) support `--parallel`, which, when combined with a configuration passed via `-K-`, allows for concurrent transfers and reduces process forks to $O(1)$. This shifts the script's latency from the sum of all response times to the maximum individual response time.
+**Action:** Use `curl --parallel` with a generated configuration on stdin for all multi-endpoint health checks and monitoring scripts.
