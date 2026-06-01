@@ -20,7 +20,7 @@ version=$(grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' "$file")
 # IFS - split the major.minor.patch to not havve "." 
 IFS='.' read -r major minor patch <<<"$version"
 
-echo "$(IFS)"
+echo "$IFS"
 
 # Switch case for each of the parts based on the user choice
 case "$part" in

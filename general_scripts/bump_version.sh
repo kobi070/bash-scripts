@@ -44,6 +44,6 @@ new_version="${major}.${minor}.${patch}"
 # Replace in file
 sed -i.bak "s/$version/$new_version/" "$file"
 
-echo "Old version: v$(version)"
-echo "New version: v$(new_version)"
+echo "Old version: v$version"
+echo "New version: v$new_version"
 echo "🔁 Bumped $part version: $version → $new_version"

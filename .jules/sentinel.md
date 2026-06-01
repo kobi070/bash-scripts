@@ -52,7 +52,13 @@
 **Vulnerability:** Passing passwords or tokens to the JFrog CLI using the `--password` flag (e.g., `jf c add ... --password=$PASS`) makes them visible to all users on the system via process monitoring tools like `ps`.
 **Learning:** Many CLI tools provide command-line flags for authentication for convenience, but these are insecure for non-interactive use in shared environments or CI/CD runners.
 **Prevention:** Always prioritize using environment variables supported by the CLI (e.g., `JFROG_CLI_PASSWORD`) for sensitive information. Explicitly unset or avoid passing these secrets as command-line arguments.
+
 ## 2026-05-28 - JFrog CLI Password Exposure in Process List
 **Vulnerability:** Passing the Artifactory password or token using the `--password` flag to the JFrog CLI (`jf c add`) exposes it in the system's process list (visible via `ps`).
 **Learning:** Unlike `curl`, the JFrog CLI does not support a "config file via stdin" pattern for all its commands. However, it respects specific environment variables like `JFROG_CLI_PASSWORD` for authentication during configuration.
 **Prevention:** Prioritize using the `JFROG_CLI_PASSWORD` environment variable when configuring the JFrog CLI. Avoid passing secrets via the `--password` flag to prevent leakage into the process table.
+
+## 2026-05-29 - Arbitrary Code Execution via Insecure Command Substitution
+**Vulnerability:** Insecure command substitution `$(version)` and `$(IFS)` in `bump_version.sh` and `bump_version_nb.sh` allowed arbitrary code execution.
+**Learning:** Using `$(variable)` in Bash triggers command substitution, not variable expansion. If an attacker can place an executable with the same name as the variable in the `PATH`, Bash will execute it during script execution.
+**Prevention:** Always use `$VARIABLE` or `${VARIABLE}` for variable expansion. Reserve `$(...)` strictly for intended command execution. Validate all script outputs to ensure they don't accidentally use command substitution syntax for variables.
