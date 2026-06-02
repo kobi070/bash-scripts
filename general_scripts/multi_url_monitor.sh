@@ -58,25 +58,79 @@ if [ ${#URLS[@]} -eq 0 ]; then
 fi
 
 FAILED_URLS=()
-RESULTS=""
+RESULTS_STR=""
 
 echo "Monitoring ${#URLS[@]} URLs..."
 echo "---------------------------------------------------------"
 
-for URL in "${URLS[@]}"; do
-    STATUS_CODE=$(curl -o /dev/null -s -w "%{http_code}" --max-time 10 "$URL" || echo "000")
+# BOLT Optimization: Use curl --parallel to check all URLs concurrently if supported.
+# This reduces the total execution time from O(N) to O(1) in terms of network round-trips.
+PARALLEL_SUPPORTED=false
+if curl --help all 2>/dev/null | grep -q -- "--parallel"; then
+    PARALLEL_SUPPORTED=true
+fi
 
-    if [[ "$STATUS_CODE" -ge 200 && "$STATUS_CODE" -lt 300 ]]; then
-        MSG="[OK]   $STATUS_CODE - $URL"
-        echo "$MSG"
-        RESULTS+="$MSG\n"
+if [ "$PARALLEL_SUPPORTED" = "true" ] && [ "${#URLS[@]}" -gt 1 ]; then
+    CONFIG=""
+    for i in "${!URLS[@]}"; do
+        URL="${URLS[$i]}"
+        # Escape double quotes and backslashes for curl config to prevent injection
+        ESCAPED_URL=$(echo "$URL" | sed 's/\\/\\\\/g; s/"/\\"/g')
+        if [ "$i" -gt 0 ]; then
+            CONFIG+="next
+"
+        fi
+        CONFIG+="url = \"$ESCAPED_URL\"
+output = /dev/null
+silent
+max-time = 10
+write-out = \"$i\t%{http_code}\n\"
+"
+    done
+
+    # Run curl in parallel and sort by index to preserve original order
+    PARALLEL_RESULTS=$(echo "$CONFIG" | curl -K- --parallel 2>/dev/null | sort -n || true)
+
+    if [ -n "$PARALLEL_RESULTS" ]; then
+        while IFS=$'\t' read -r index status_code; do
+            URL="${URLS[$index]}"
+            if [[ "$status_code" -ge 200 && "$status_code" -lt 300 ]]; then
+                MSG="[OK]   $status_code - $URL"
+                echo "$MSG"
+                RESULTS_STR+="$MSG\n"
+            else
+                MSG="[FAIL] $status_code - $URL"
+                echo "$MSG"
+                RESULTS_STR+="$MSG\n"
+                FAILED_URLS+=("$URL")
+            fi
+        done <<< "$PARALLEL_RESULTS"
     else
-        MSG="[FAIL] $STATUS_CODE - $URL"
-        echo "$MSG"
-        RESULTS+="$MSG\n"
-        FAILED_URLS+=("$URL")
+        # Fallback if PARALLEL_RESULTS is empty
+        for URL in "${URLS[@]}"; do
+            MSG="[FAIL] 000 - $URL"
+            echo "$MSG"
+            RESULTS_STR+="$MSG\n"
+            FAILED_URLS+=("$URL")
+        done
     fi
-done
+else
+    # Sequential execution for compatibility with older curl versions or single URL
+    for URL in "${URLS[@]}"; do
+        STATUS_CODE=$(curl -o /dev/null -s -w "%{http_code}" --max-time 10 "$URL" || echo "000")
+
+        if [[ "$STATUS_CODE" -ge 200 && "$STATUS_CODE" -lt 300 ]]; then
+            MSG="[OK]   $STATUS_CODE - $URL"
+            echo "$MSG"
+            RESULTS_STR+="$MSG\n"
+        else
+            MSG="[FAIL] $STATUS_CODE - $URL"
+            echo "$MSG"
+            RESULTS_STR+="$MSG\n"
+            FAILED_URLS+=("$URL")
+        fi
+    done
+fi
 
 echo "---------------------------------------------------------"
 
@@ -90,7 +144,7 @@ if [ ${#FAILED_URLS[@]} -ne 0 ]; then
             # Prepare JSON payload using jq for safe character handling and compact output
             PAYLOAD=$(jq -n -c --arg text "*Multi-URL Monitor Alert*
 Some services are down:
-\`\`\`$RESULTS\`\`\`" '{text: $text}')
+\`\`\`$RESULTS_STR\`\`\`" '{text: $text}')
 
             # Use curl config file via stdin to prevent leaking SLACK_WEBHOOK_URL in process lists (ps)
             # We must escape backslashes and double quotes for the curl config parser
