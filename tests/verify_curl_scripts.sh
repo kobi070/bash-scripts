@@ -68,7 +68,7 @@ if [ "$HAS_K_STDIN" = true ]; then
     fi
 else
     # Check if it was passed as -H (old insecure way)
-    if [[ "$*" == *"Authorization: token"* ]]; then
+    if [[ "$*" == *"Authorization: token"* ]] || [[ "$*" == *"Authorization: Bearer"* ]]; then
          echo "Error: Insecure Authorization header found in arguments" >&2
          kill -s TERM $PPID
     fi
