@@ -34,6 +34,12 @@ fi
 APP_NAME=$1
 TIMEOUT=${2:-300}
 
+# Security check: Ensure TIMEOUT is a numeric integer to prevent shell arithmetic injection
+if [[ ! "$TIMEOUT" =~ ^[0-9]+$ ]]; then
+    echo "Error: TIMEOUT must be a positive numeric integer."
+    exit 1
+fi
+
 echo "Syncing ArgoCD application: $APP_NAME..."
 
 # Trigger sync
