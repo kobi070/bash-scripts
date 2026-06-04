@@ -48,7 +48,7 @@ API_URL="https://api.github.com/repos/$OWNER/$REPO/collaborators?per_page=100"
 
 # Use curl config file via stdin to prevent leaking GITHUB_TOKEN in process lists (ps)
 if [ -n "${GITHUB_TOKEN:-}" ]; then
-    RESPONSE=$(printf "header = \"Authorization: token %s\"\n" "$GITHUB_TOKEN" | curl -s -K- -H "Accept: application/vnd.github+json" "$API_URL")
+    RESPONSE=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | curl -s -K- -H "Accept: application/vnd.github+json" "$API_URL")
 else
     RESPONSE=$(curl -s -H "Accept: application/vnd.github+json" "$API_URL")
 fi

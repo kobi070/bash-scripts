@@ -56,3 +56,8 @@
 **Vulnerability:** Passing the Artifactory password or token using the `--password` flag to the JFrog CLI (`jf c add`) exposes it in the system's process list (visible via `ps`).
 **Learning:** Unlike `curl`, the JFrog CLI does not support a "config file via stdin" pattern for all its commands. However, it respects specific environment variables like `JFROG_CLI_PASSWORD` for authentication during configuration.
 **Prevention:** Prioritize using the `JFROG_CLI_PASSWORD` environment variable when configuring the JFrog CLI. Avoid passing secrets via the `--password` flag to prevent leakage into the process table.
+
+## 2026-05-30 - Command Execution via Unintended Subshell Syntax
+**Vulnerability:** Using `$(variable)` instead of `${variable}` in `echo` or other commands causes Bash to attempt to execute the value of the variable as a command.
+**Learning:** This is a common typo that results in an unintended subshell. If the variable's value (e.g., a version string parsed from a file) can be influenced by an untrusted source, it leads to arbitrary command execution.
+**Prevention:** Strictly use `${variable}` or `$variable` for variable expansion. Avoid the `$(...)` syntax unless command substitution is explicitly intended. Regularly audit scripts for this pattern, especially in log/echo statements.
