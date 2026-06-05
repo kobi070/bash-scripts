@@ -20,8 +20,6 @@ version=$(grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' "$file")
 # IFS - split the major.minor.patch to not havve "." 
 IFS='.' read -r major minor patch <<<"$version"
 
-echo "$(IFS)"
-
 # Switch case for each of the parts based on the user choice
 case "$part" in
 major)
@@ -46,4 +44,6 @@ new_version="${major}.${minor}.${patch}"
 # Replace in file
 sed -i "s/$version/$new_version/" "$file"
 
+echo "Old version: v${version}"
+echo "New version: v${new_version}"
 echo "🔁 Bumped $part version: $version → $new_version"
