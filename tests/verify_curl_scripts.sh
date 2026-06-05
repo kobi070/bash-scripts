@@ -15,19 +15,47 @@ cat <<'MOCKCURL' > "$MOCK_BIN/curl"
 # Check if -K- is used
 HAS_K_STDIN=false
 OUT_FILE=""
+PARALLEL=false
 for i in $(seq 1 $#); do
     arg="${!i}"
     if [[ "$arg" == "-K-" ]]; then
         HAS_K_STDIN=true
+    elif [[ "$arg" == "--parallel" ]]; then
+        PARALLEL=true
     elif [[ "$arg" == "-o" ]]; then
         next=$((i+1))
         OUT_FILE="${!next}"
+    elif [[ "$arg" == "--help" ]]; then
+        echo " --parallel   Parallelize transfers"
+        exit 0
     fi
 done
 
 if [ "$HAS_K_STDIN" = true ]; then
     # Read from stdin to see if it contains the token
     STDIN_CONTENT=$(cat -)
+
+    # BOLT/SENTINEL: Support multiple url = lines for parallel checks
+    if [ "$PARALLEL" = true ]; then
+        # Extract all URLs and indices from config
+        while read -r line; do
+            if [[ "$line" =~ ^url\ =\ \"(.*)\" ]]; then
+                url="${BASH_REMATCH[1]}"
+            elif [[ "$line" =~ ^write-out\ =\ \"([0-9]+)\\t ]]; then
+                index="${BASH_REMATCH[1]}"
+                if [[ "$url" == *"google.com"* ]]; then
+                    echo -e "${index}\t301\t0.1"
+                elif [[ "$url" == *"github.com"* ]]; then
+                    echo -e "${index}\t200\t0.2"
+                elif [[ "$url" == *"non-existent-url.local"* ]]; then
+                    echo -e "${index}\t000\t0.0"
+                else
+                    echo -e "${index}\t200\t0.05"
+                fi
+            fi
+        done <<< "$STDIN_CONTENT"
+        exit 0
+    fi
 
     # Validate that data= lines do not contain unescaped newlines (strict config check)
     if echo "$STDIN_CONTENT" | grep -E "^data = \"" | grep -qv "\\\\n" && echo "$STDIN_CONTENT" | grep -qE "^data = \".*[^\\]$"; then
@@ -64,6 +92,7 @@ if [ "$HAS_K_STDIN" = true ]; then
         fi
     else
         echo "Error: Authorization header not found in stdin" >&2
+        # echo "DEBUG: STDIN_CONTENT is: $STDIN_CONTENT" >&2
         kill -s TERM $PPID
     fi
 else
@@ -74,7 +103,13 @@ else
     fi
     # Check if it's a non-sensitive request (like monitoring a URL)
     if [[ "$*" == *"non-existent-url.local"* ]]; then
-        echo "000"
+        if [[ "$*" == *"-w %{http_code}"* ]]; then
+            echo "000"
+        elif [[ "$*" == *"-w %{http_code}\t%{time_total}"* ]]; then
+            echo -e "000\t0.0"
+        else
+            echo "000"
+        fi
     else
         echo "Error: curl called without -K- for sensitive URL: $*" >&2
         kill -s TERM $PPID
