@@ -38,6 +38,12 @@ fi
 
 THRESHOLD=${2:-1}
 
+# Security check: Ensure THRESHOLD is a numeric integer to prevent shell arithmetic injection
+if [[ ! "$THRESHOLD" =~ ^[0-9]+$ ]]; then
+    echo "Error: THRESHOLD must be a positive numeric integer."
+    exit 1
+fi
+
 echo "Scanning for pods with at least $THRESHOLD restarts..."
 
 # Get pod restart counts using kubectl and jq
