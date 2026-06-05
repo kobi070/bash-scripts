@@ -46,7 +46,7 @@ REPO=$1
 echo "Fetching open PRs for $REPO..."
 
 # Fetch open PRs (first 100)
-PRS=$(printf "header = \"Authorization: token %s\"\n" "$GITHUB_TOKEN" | \
+PRS=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
     curl -s -K- -H "Accept: application/vnd.github.v3+json" \
     "https://api.github.com/repos/$REPO/pulls?state=open&per_page=100")
 
@@ -71,7 +71,7 @@ echo "--------------------------------------------------------------------------
 
 echo "$PRS" | jq -r '.[] | [.number, .title, .url] | @tsv' | while IFS=$'\t' read -r NUM TITLE URL; do
     # Fetch PR details for additions/deletions
-    DETAILS=$(printf "header = \"Authorization: token %s\"\n" "$GITHUB_TOKEN" | \
+    DETAILS=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
         curl -s -K- -H "Accept: application/vnd.github.v3+json" \
         "$URL")
 
