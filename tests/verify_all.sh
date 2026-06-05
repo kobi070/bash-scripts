@@ -531,4 +531,33 @@ else
     exit 1
 fi
 
+# --- 23. Mock for k8s_secret_expiry_check.sh ---
+cat <<'EOF' > "$MOCK_BIN/kubectl"
+#!/bin/bash
+if [[ "$*" == *"get secrets"* ]]; then
+  # Use a fixed date for stability in tests
+  # We provide a base64 encoded cert that expires in the future
+  # Since we cant easily generate a cert in the mock, we will use a pre-calculated one or just mock openssl too
+  echo '{"items": [{"metadata": {"namespace": "prod", "name": "expiring-cert"}, "data": {"tls.crt": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCg=="}}]}'
+fi
+EOF
+chmod +x "$MOCK_BIN/kubectl"
+
+cat <<'EOF' > "$MOCK_BIN/openssl"
+#!/bin/bash
+if [[ "$*" == *"x509 -enddate"* ]]; then
+  echo "notAfter=Jan  1 00:00:00 2099 GMT"
+fi
+EOF
+chmod +x "$MOCK_BIN/openssl"
+
+echo "Testing k8s_secret_expiry_check.sh..."
+# We use a very large threshold to ensure our "2099" cert is caught
+if ./k8s_scripts/k8s_secret_expiry_check.sh prod 50000 2>&1 | grep -q "expiring-cert"; then
+    echo "  ✔ Detected expiring secret"
+else
+    echo "  ✖ Failed to detect expiring secret"
+    exit 1
+fi
+
 echo "All logic verifications passed!"
