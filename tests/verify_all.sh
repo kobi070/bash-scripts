@@ -531,4 +531,29 @@ else
     exit 1
 fi
 
+# --- 23. Mock for k8s_node_drain_helper.sh ---
+cat <<'EOF' > "$MOCK_BIN/kubectl"
+#!/bin/bash
+if [[ "$*" == "get node my-node" ]]; then
+  echo "NAME STATUS ROLES AGE VERSION"
+  echo "my-node Ready <none> 1d v1.25.0"
+elif [[ "$*" == *"get pods --all-namespaces --field-selector spec.nodeName=my-node"* ]]; then
+  echo '{"items": [{"metadata": {"namespace": "prod", "name": "web", "labels": {"app": "web"}}, "spec": {"volumes": [{"emptyDir": {}}]}, "status": {"phase": "Running"}}]}'
+elif [[ "$*" == *"get pdb --all-namespaces"* ]]; then
+  echo '{"items": [{"metadata": {"namespace": "prod", "name": "web-pdb"}, "spec": {"selector": {"matchLabels": {"app": "web"}}}}]}'
+fi
+EOF
+chmod +x "$MOCK_BIN/kubectl"
+
+echo "Testing k8s_node_drain_helper.sh..."
+OUTPUT=$(./k8s_scripts/k8s_node_drain_helper.sh my-node 2>&1)
+if echo "$OUTPUT" | grep -q "OK (1)" && echo "$OUTPUT" | grep -q "YES"; then
+    echo "  ✔ Correctly identified PDB and local storage"
+else
+    echo "  ✖ Failed to identify PDB or local storage"
+    echo "Output was:"
+    echo "$OUTPUT"
+    exit 1
+fi
+
 echo "All logic verifications passed!"
