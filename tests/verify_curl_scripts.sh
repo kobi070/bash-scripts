@@ -77,6 +77,8 @@ if [ "$HAS_K_STDIN" = true ]; then
             else
                 echo "Mock asset content"
             fi
+        elif [[ "$*" == *"graphql"* ]]; then
+            echo '{"data": {"repository": {"pullRequests": {"nodes": [{"number": 1, "title": "Test PR", "additions": 10, "deletions": 5}]}}}}'
         elif [[ "$*" == *"pulls"* ]] && [[ "$*" != *"pulls/1"* ]]; then
             echo '[{"number": 1, "title": "Test PR", "url": "https://api.github.com/repos/owner/repo/pulls/1"}]'
         elif [[ "$*" == *"pulls/1"* ]]; then
