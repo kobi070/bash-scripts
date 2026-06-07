@@ -1,5 +1,9 @@
 # Bolt's Journal - Performance Learnings
 
+## 2024-06-03 - [O(N) to O(1) GitHub PR size auditing]
+**Learning:** Sequential REST API calls for resource metadata (like additions/deletions for each PR) create an $O(N)$ network bottleneck. GitHub's GraphQL API allows fetching all required fields for a collection in a single round-trip ($O(1)$). Consolidating arithmetic and string truncation into a single `jq` pipeline further eliminates process fork overhead and prevents shell arithmetic injection.
+**Action:** Replace loops containing `curl` and `jq` with a single GraphQL query and a consolidated `jq` stream processor for repository-wide audits.
+
 ## 2025-05-15 - [Process reduction in shell scripts]
 **Learning:** Pipelines like `grep | head | sed` incur significant overhead due to multiple process forks. A single `sed` command with the `q` (quit) instruction can achieve the same result more efficiently by reducing forking and stopping file processing immediately after a match is found.
 **Action:** Use single-tool solutions (like `sed` or `awk`) instead of multi-process pipelines for simple text extraction tasks.

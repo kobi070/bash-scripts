@@ -45,19 +45,31 @@ REPO=$1
 
 echo "Fetching open PRs for $REPO..."
 
-# Fetch open PRs (first 100)
-PRS=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
-    curl -s -K- -H "Accept: application/vnd.github.v3+json" \
-    "https://api.github.com/repos/$REPO/pulls?state=open&per_page=100")
+OWNER="${REPO%/*}"
+NAME="${REPO#*/}"
 
-# Check if PRS is an array
-if ! echo "$PRS" | jq -e 'if type == "array" then . else error("Not an array") end' > /dev/null 2>&1; then
-    echo "Error: Failed to fetch PRs or repository not found."
-    echo "$PRS" | jq -c .
+# GraphQL query to fetch PRs and their size metrics in a single O(1) call
+QUERY='query($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
+    pullRequests(states: OPEN, first: 100, orderBy: {field: CREATED_AT, direction: DESC}) {
+      nodes { number title additions deletions }
+    }
+  }
+}'
+PAYLOAD=$(jq -n -c --arg q "$QUERY" --arg o "$OWNER" --arg n "$NAME" '{query: $q, variables: {owner: $o, name: $n}}')
+ESCAPED_PAYLOAD=$(echo "$PAYLOAD" | sed 's/\\/\\\\/g; s/"/\\"/g')
+
+# Bolt optimization: consolidated O(N) REST calls into a single O(1) GraphQL request
+RESPONSE=$(printf "header = \"Authorization: Bearer %s\"\ndata = \"%s\"" "$GITHUB_TOKEN" "$ESCAPED_PAYLOAD" | \
+    curl -s -K- -H "Content-Type: application/json" "https://api.github.com/graphql")
+
+if echo "$RESPONSE" | jq -e '.errors' > /dev/null 2>&1; then
+    echo "Error from GitHub GraphQL API: $(echo "$RESPONSE" | jq -r '.errors[0].message')"
     exit 1
 fi
 
-PR_COUNT=$(echo "$PRS" | jq '. | length')
+PRS=$(echo "$RESPONSE" | jq '.data.repository.pullRequests.nodes')
+PR_COUNT=$(echo "$PRS" | jq 'length')
 
 if [ "$PR_COUNT" -eq 0 ]; then
     echo "No open PRs found for $REPO."
@@ -69,28 +81,18 @@ echo "--------------------------------------------------------------------------
 printf "%-10s %-50s %-10s %-10s\n" "PR #" "TITLE" "CHANGES" "SIZE"
 echo "--------------------------------------------------------------------------------"
 
-echo "$PRS" | jq -r '.[] | [.number, .title, .url] | @tsv' | while IFS=$'\t' read -r NUM TITLE URL; do
-    # Fetch PR details for additions/deletions
-    DETAILS=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
-        curl -s -K- -H "Accept: application/vnd.github.v3+json" \
-        "$URL")
-
-    ADDITIONS=$(echo "$DETAILS" | jq -r '.additions // 0')
-    DELETIONS=$(echo "$DETAILS" | jq -r '.deletions // 0')
-    TOTAL=$((ADDITIONS + DELETIONS))
-
-    SIZE="XS"
-    if [ "$TOTAL" -ge 500 ]; then SIZE="XL";
-    elif [ "$TOTAL" -ge 200 ]; then SIZE="L";
-    elif [ "$TOTAL" -ge 50 ]; then SIZE="M";
-    elif [ "$TOTAL" -ge 10 ]; then SIZE="S";
-    fi
-
-    # Truncate title if too long
-    TRUNC_TITLE="${TITLE:0:47}"
-    if [ "${#TITLE}" -gt 47 ]; then TRUNC_TITLE="${TRUNC_TITLE}..."; fi
-
-    printf "%-10s %-50s %-10s %-10s\n" "#$NUM" "$TRUNC_TITLE" "$TOTAL" "$SIZE"
+# Bolt optimization: Consolidate arithmetic and categorization into a single jq pipeline
+# This improves performance and prevents shell arithmetic injection.
+echo "$PRS" | jq -r '
+  .[] |
+  .number as $num |
+  (.title | gsub("\n"; " ")) as $title |
+  (.additions + .deletions) as $tot |
+  (if $tot >= 500 then "XL" elif $tot >= 200 then "L" elif $tot >= 50 then "M" elif $tot >= 10 then "S" else "XS" end) as $sz |
+  ($title | if length > 47 then .[0:47] + "..." else . end) as $trunc |
+  "#\($num)\t\($trunc)\t\($tot)\t\($sz)"
+' | while IFS=$'\t' read -r num title total size; do
+    printf "%-10s %-50s %-10s %-10s\n" "$num" "$title" "$total" "$size"
 done
 
 echo "--------------------------------------------------------------------------------"

@@ -77,10 +77,10 @@ if [ "$HAS_K_STDIN" = true ]; then
             else
                 echo "Mock asset content"
             fi
+        elif [[ "$*" == *"graphql"* ]]; then
+             echo '{"data": {"repository": {"pullRequests": {"nodes": [{"number": 1, "title": "Test PR", "additions": 10, "deletions": 5}]}}}}'
         elif [[ "$*" == *"pulls"* ]] && [[ "$*" != *"pulls/1"* ]]; then
             echo '[{"number": 1, "title": "Test PR", "url": "https://api.github.com/repos/owner/repo/pulls/1"}]'
-        elif [[ "$*" == *"pulls/1"* ]]; then
-             echo '{"additions": 10, "deletions": 5}'
         elif [[ "$*" == *"runs?status=failure"* ]]; then
             echo '{"workflow_runs": [{"id": 123}]}'
         elif [[ "$*" == *"runs/123/jobs"* ]]; then
