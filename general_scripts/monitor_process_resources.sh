@@ -30,6 +30,22 @@ PID=$1
 DURATION=${2:-60}
 INTERVAL=${3:-5}
 
+# Security check: Ensure PID, DURATION and INTERVAL are numeric integers to prevent shell arithmetic injection
+if [[ ! "$PID" =~ ^[0-9]+$ ]]; then
+    echo "Error: PID must be a numeric integer."
+    exit 1
+fi
+
+if [[ ! "$DURATION" =~ ^[0-9]+$ ]]; then
+    echo "Error: DURATION must be a positive numeric integer."
+    exit 1
+fi
+
+if [[ ! "$INTERVAL" =~ ^[0-9]+$ ]]; then
+    echo "Error: INTERVAL must be a positive numeric integer."
+    exit 1
+fi
+
 # Verify PID exists
 if ! ps -p "$PID" > /dev/null; then
     echo "Error: Process with PID $PID does not exist."
@@ -69,11 +85,11 @@ while [ "$SECONDS" -lt "$DURATION" ]; do
     TIME_STR=$(date +"%H:%M:%S")
     printf "%-10s | %-10s | %-10s\n" "$TIME_STR" "$CPU" "$MEM"
 
-    # Update stats
-    MAX_CPU=$(awk "BEGIN {if ($CPU > $MAX_CPU) print $CPU; else print $MAX_CPU}")
-    MAX_MEM=$(awk "BEGIN {if ($MEM > $MAX_MEM) print $MEM; else print $MAX_MEM}")
-    SUM_CPU=$(awk "BEGIN {print $SUM_CPU + $CPU}")
-    SUM_MEM=$(awk "BEGIN {print $SUM_MEM + $MEM}")
+    # Update stats safely by passing variables to awk
+    MAX_CPU=$(awk -v cpu="$CPU" -v max_cpu="$MAX_CPU" 'BEGIN {if (cpu > max_cpu) print cpu; else print max_cpu}')
+    MAX_MEM=$(awk -v mem="$MEM" -v max_mem="$MAX_MEM" 'BEGIN {if (mem > max_mem) print mem; else print max_mem}')
+    SUM_CPU=$(awk -v sum_cpu="$SUM_CPU" -v cpu="$CPU" 'BEGIN {print sum_cpu + cpu}')
+    SUM_MEM=$(awk -v sum_mem="$SUM_MEM" -v mem="$MEM" 'BEGIN {print sum_mem + mem}')
     COUNT=$((COUNT + 1))
 
     sleep "$INTERVAL"
@@ -82,8 +98,8 @@ done
 echo "--------------------------------------------------------------------------------"
 echo "SUMMARY for $COMMAND (PID: $PID):"
 if [ "$COUNT" -gt 0 ]; then
-    AVG_CPU=$(awk "BEGIN {printf \"%.2f\", $SUM_CPU / $COUNT}")
-    AVG_MEM=$(awk "BEGIN {printf \"%.2f\", $SUM_MEM / $COUNT}")
+    AVG_CPU=$(awk -v sum="$SUM_CPU" -v count="$COUNT" 'BEGIN {printf "%.2f", sum / count}')
+    AVG_MEM=$(awk -v sum="$SUM_MEM" -v count="$COUNT" 'BEGIN {printf "%.2f", sum / count}')
     echo "Average CPU: $AVG_CPU%"
     echo "Peak CPU:    $MAX_CPU%"
     echo "Average MEM: $AVG_MEM%"

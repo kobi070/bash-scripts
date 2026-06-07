@@ -61,3 +61,8 @@
 **Vulnerability:** Using `$(variable)` instead of `${variable}` in `echo` or other commands causes Bash to attempt to execute the value of the variable as a command.
 **Learning:** This is a common typo that results in an unintended subshell. If the variable's value (e.g., a version string parsed from a file) can be influenced by an untrusted source, it leads to arbitrary command execution.
 **Prevention:** Strictly use `${variable}` or `$variable` for variable expansion. Avoid the `$(...)` syntax unless command substitution is explicitly intended. Regularly audit scripts for this pattern, especially in log/echo statements.
+
+## 2026-06-07 - awk Command Injection via String Interpolation
+**Vulnerability:** Passing shell variables directly into an `awk` command string (e.g., `awk "BEGIN { print $VAR }"`) allows arbitrary `awk` code execution if `$VAR` contains malicious content.
+**Learning:** `awk` evaluates the string passed as its program. If shell interpolation is used, the shell expands the variable before `awk` sees it, effectively injecting the variable's content into the `awk` source code.
+**Prevention:** Always use `awk`'s `-v` flag to pass shell variables as `awk` variables (e.g., `awk -v var="$VAR" 'BEGIN { print var }'`). This ensures the content is treated as data, not as executable code.
