@@ -35,6 +35,10 @@ fi
 echo "Checking listening ports..."
 echo "---------------------------------------------------------"
 
+# BOLT Optimization: Run the check command once and store the output.
+# This reduces process forks from O(N) to O(1) by avoiding repetitive calls to 'ss' or 'netstat'.
+LISTENING_DATA=$($CHECK_CMD)
+
 ALL_PASSED=true
 
 for PORT in "$@"; do
@@ -45,9 +49,9 @@ for PORT in "$@"; do
         continue
     fi
 
-    # Check if the port is listening
+    # Check if the port is listening in the cached data
     # Using grep with boundaries to avoid partial matches (e.g., 80 matching 8080)
-    if $CHECK_CMD | grep -Eq ":$PORT\s"; then
+    if echo "$LISTENING_DATA" | grep -Eq ":$PORT\s"; then
         echo "  [PASS] Port $PORT is LISTENING"
     else
         echo "  [FAIL] Port $PORT is NOT listening"

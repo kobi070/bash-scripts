@@ -64,3 +64,7 @@
 ## 2024-05-30 - [O(N) to O(1) process forks in K8s Secret Audit]
 **Learning:** Consolidating multiple 'jq' calls and eliminating per-iteration 'date' command forks significantly improves performance in resource audits. However, relying on OpenSSL 3.0 specific flags like '-dateopt iso_8601' breaks compatibility in older environments. Standard OpenSSL date formats can be parsed portably within 'jq' using 'strptime("%b %e %H:%M:%S %Y %Z") | mktime', where '%e' correctly handles the leading space in single-digit days.
 **Action:** Use 'jq' stream processing for data transformation and avoid OpenSSL 3.0+ specific output flags to maintain broad compatibility across Linux and macOS environments.
+
+## 2026-06-01 - [O(N) to O(1) process forks in port monitoring]
+**Learning:** Repetitively executing system-querying commands like `ss` or `netstat` within a loop to check multiple resources (e.g., ports) creates significant overhead ($O(N)$ process forks). Caching the full output of the querying command once and then using light, in-memory searches (like `grep` on a variable) reduces the heavy fork overhead to $O(1)$.
+**Action:** Consolidate data-fetching commands outside of loops and perform searches/filtering against the cached data to minimize system call overhead.
