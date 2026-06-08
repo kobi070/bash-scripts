@@ -61,3 +61,8 @@
 **Vulnerability:** Using `$(variable)` instead of `${variable}` in `echo` or other commands causes Bash to attempt to execute the value of the variable as a command.
 **Learning:** This is a common typo that results in an unintended subshell. If the variable's value (e.g., a version string parsed from a file) can be influenced by an untrusted source, it leads to arbitrary command execution.
 **Prevention:** Strictly use `${variable}` or `$variable` for variable expansion. Avoid the `$(...)` syntax unless command substitution is explicitly intended. Regularly audit scripts for this pattern, especially in log/echo statements.
+
+## 2026-06-01 - PAT Exposure in Process List for Azure DevOps Config
+**Vulnerability:** Accepting Personal Access Tokens (PAT) as positional command-line arguments in `az_devops_config.sh` exposes them in the system's process list and shell history.
+**Learning:** Positional arguments for secrets are insecure in shared environments. Even if an environment variable fallback is provided, allowing the positional argument encourages insecure usage.
+**Prevention:** Strictly enforce the use of environment variables for all secrets. Remove fallback to positional arguments for sensitive information to align with "Secure by Default" principles.

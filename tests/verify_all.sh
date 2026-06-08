@@ -531,7 +531,53 @@ else
     exit 1
 fi
 
-# --- 23. Mock for k8s_secret_expiry_check.sh ---
+# --- 23. Mock for az_devops_config.sh ---
+cat <<'EOF' > "$MOCK_BIN/az"
+#!/bin/bash
+if [[ "$*" == *"extension show --name azure-devops"* ]]; then
+  exit 0
+elif [[ "$*" == *"devops login --organization"* ]]; then
+  # Read from stdin to see if it contains the PAT
+  PAT_CONTENT=$(cat -)
+  if [[ "$PAT_CONTENT" == "mock_pat" ]]; then
+    echo "Logged in successfully"
+    exit 0
+  else
+    echo "Error: PAT not found in stdin" >&2
+    exit 1
+  fi
+elif [[ "$*" == *"devops configure --defaults organization="* ]]; then
+  exit 0
+fi
+EOF
+chmod +x "$MOCK_BIN/az"
+
+echo "Testing az_devops_config.sh..."
+# Test case 1: Missing environment variable
+if AZ_DEVOPS_PAT="" ./az_scripts/az_devops_config.sh https://dev.azure.com/org 2>&1 | grep -q "Error: AZ_DEVOPS_PAT environment variable is not set"; then
+    echo "  ✔ Corrected handled missing environment variable"
+else
+    echo "  ✖ Failed to handle missing environment variable"
+    exit 1
+fi
+
+# Test case 2: Successful configuration
+if AZ_DEVOPS_PAT="mock_pat" ./az_scripts/az_devops_config.sh https://dev.azure.com/org 2>&1 | grep -q "Success: Azure DevOps CLI configured"; then
+    echo "  ✔ Successfully configured az devops"
+else
+    echo "  ✖ Failed to configure az devops"
+    exit 1
+fi
+
+# Test case 3: Rejection of positional argument
+if AZ_DEVOPS_PAT="mock_pat" ./az_scripts/az_devops_config.sh https://dev.azure.com/org insecure_pat 2>&1 | grep -q "Usage:"; then
+    echo "  ✔ Rejected insecure positional argument"
+else
+    echo "  ✖ Failed to reject insecure positional argument"
+    exit 1
+fi
+
+# --- 24. Mock for k8s_secret_expiry_check.sh ---
 cat <<'EOF' > "$MOCK_BIN/kubectl"
 #!/bin/bash
 if [[ "$*" == *"get secrets"* ]]; then
