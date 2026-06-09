@@ -265,6 +265,8 @@ cat <<'EOF' > "$MOCK_BIN/kubectl"
 #!/bin/bash
 if [[ "$*" == *"get deployment,statefulset"* ]]; then
   echo '{"items": [{"kind": "Deployment", "metadata": {"namespace": "prod", "name": "web"}, "spec": {"template": {"spec": {"containers": [{"env": [{"name": "FOO", "valueFrom": {"configMapKeyRef": {"name": "missing-cm", "key": "foo"}}}]}]}}}}]}'
+elif [[ "$*" == *"get configmap,secret"* ]]; then
+  echo '{"items": []}'
 elif [[ "$*" == *"get configmap"* ]]; then
   echo '{"items": []}'
 elif [[ "$*" == *"get secret"* ]]; then

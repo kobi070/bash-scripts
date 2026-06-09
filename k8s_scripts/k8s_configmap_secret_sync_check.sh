@@ -34,51 +34,51 @@ fi
 
 echo "Auditing referenced ConfigMaps and Secrets..."
 
-# Fetch resources in bulk to minimize process forks (Bolt)
+# Bolt optimization: Consolidate API calls and existence checks into a single pipeline.
+# This reduces process forks from O(N) to O(1) and uses O(1) lookups for resource verification.
 WORKLOADS=$(kubectl get deployment,statefulset $NAMESPACE_ARG -o json)
-CMS=$(kubectl get configmap $NAMESPACE_ARG -o json | jq -r '.items[] | "\(.metadata.namespace)/\(.metadata.name)"')
-SECRETS=$(kubectl get secret $NAMESPACE_ARG -o json | jq -r '.items[] | "\(.metadata.namespace)/\(.metadata.name)"')
 
-# Combine existing resources into a lookup list
-EXISTING_RESOURCES=$(printf "%s\n%s" "$CMS" "$SECRETS")
+# Fetch all potential existing resources in one go
+EXISTING_RESOURCES_JSON=$(kubectl get configmap,secret $NAMESPACE_ARG -o json | jq -c '
+  [.items[] | "\(.metadata.namespace)/\(.metadata.name)"] | reduce .[] as $item ({}; .[$item] = true)
+')
 
-MISSING_FOUND=0
+echo "Checking references..."
 
-# Extract references and check existence
+# Extract references and check existence in a single pass using the lookup map
 # References can be in envFrom (configMapRef, secretRef) or env (valueFrom) or volumes (configMap, secret)
-REFERENCES=$(echo "$WORKLOADS" | jq -r '
+MISSING_DATA=$(echo "$WORKLOADS" | jq -r --argjson existing "$EXISTING_RESOURCES_JSON" '
   .items[] | . as $w |
   $w.metadata.namespace as $ns |
   $w.kind as $kind |
   $w.metadata.name as $name |
-  $w.spec.template.spec.containers[], ($w.spec.template.spec.initContainers // [])[] |
+  ($w.spec.template.spec.containers + ($w.spec.template.spec.initContainers // []))[] |
   (
-    (.envFrom[]? | select(.configMapRef) | "ConfigMap\t\($ns)\t\($ns)/\(.configMapRef.name)\t\($kind)/\($name)"),
-    (.envFrom[]? | select(.secretRef) | "Secret\t\($ns)\t\($ns)/\(.secretRef.name)\t\($kind)/\($name)"),
-    (.env[]? | select(.valueFrom.configMapKeyRef) | "ConfigMap\t\($ns)\t\($ns)/\(.valueFrom.configMapKeyRef.name)\t\($kind)/\($name)"),
-    (.env[]? | select(.valueFrom.secretKeyRef) | "Secret\t\($ns)\t\($ns)/\(.valueFrom.secretKeyRef.name)\t\($kind)/\($name)")
+    (.envFrom[]? | select(.configMapRef) | {type: "ConfigMap", ns: $ns, ref: "\($ns)/\(.configMapRef.name)", workload: "\($kind)/\($name)"}),
+    (.envFrom[]? | select(.secretRef) | {type: "Secret", ns: $ns, ref: "\($ns)/\(.secretRef.name)", workload: "\($kind)/\($name)"}),
+    (.env[]? | select(.valueFrom.configMapKeyRef) | {type: "ConfigMap", ns: $ns, ref: "\($ns)/\(.valueFrom.configMapKeyRef.name)", workload: "\($kind)/\($name)"}),
+    (.env[]? | select(.valueFrom.secretKeyRef) | {type: "Secret", ns: $ns, ref: "\($ns)/\(.valueFrom.secretKeyRef.name)", workload: "\($kind)/\($name)"})
   ),
   ($w.spec.template.spec.volumes[]? |
-    (select(.configMap) | "ConfigMap\t\($ns)\t\($ns)/\(.configMap.name)\t\($kind)/\($name)"),
-    (select(.secret) | "Secret\t\($ns)\t\($ns)/\(.secret.secretName)\t\($kind)/\($name)")
+    (select(.configMap) | {type: "ConfigMap", ns: $ns, ref: "\($ns)/\(.configMap.name)", workload: "\($kind)/\($name)"}),
+    (select(.secret) | {type: "Secret", ns: $ns, ref: "\($ns)/\(.secret.secretName)", workload: "\($kind)/\($name)"})
   )
+  | select(.ref != null and ($existing[.ref] | not))
+  | "\(.type)\t\(.ns)\t\(.ref)\t\(.workload)"
 ' | sort -u)
 
-if [ -z "$REFERENCES" ]; then
-    echo "OK: No ConfigMap or Secret references found."
+if [ -z "$MISSING_DATA" ]; then
+    echo "OK: All referenced ConfigMaps and Secrets exist."
     exit 0
 fi
 
-echo "Checking references..."
+MISSING_FOUND=1
 printf "%-15s %-20s %-40s %-30s\n" "TYPE" "NAMESPACE" "REFERENCED RESOURCE" "USED BY"
 echo "------------------------------------------------------------------------------------------------------------------------"
 
 while IFS=$'\t' read -r type ns ref workload; do
-    if ! echo "$EXISTING_RESOURCES" | grep -qx "$ref"; then
-        printf "%-15s %-20s %-40s %-30s\n" "$type" "$ns" "${ref#*/}" "$workload"
-        MISSING_FOUND=1
-    fi
-done <<< "$REFERENCES"
+    printf "%-15s %-20s %-40s %-30s\n" "$type" "$ns" "${ref#*/}" "$workload"
+done <<< "$MISSING_DATA"
 
 if [ "$MISSING_FOUND" -eq 1 ]; then
     echo "------------------------------------------------------------------------------------------------------------------------"
