@@ -62,26 +62,36 @@ echo "--------------------------------------------------------------------------
 # Get all PDBs once to avoid repeated calls
 PDBS_JSON=$(kubectl get pdb --all-namespaces -o json)
 
-echo "$PODS_JSON" | jq -r '.items[] | [.metadata.namespace, .metadata.name, (.metadata.ownerReferences[0].kind // "None"), .status.phase] | @tsv' | while IFS=$'\t' read -r NS NAME OWNER PHASE; do
+# Bolt optimization: Consolidate pod impact analysis into a single jq pipeline.
+# This reduces process forks from O(N) to O(1) by performing PDB matching and
+# local storage checks within jq for the entire pod set.
+# It also improves accuracy by implementing proper label selector matching for PDBs.
+echo "$PODS_JSON" | jq -r --argjson pdbs "$PDBS_JSON" '
+  .items[] | . as $pod |
+  $pod.metadata.namespace as $ns |
+  $pod.metadata.name as $name |
+  ($pod.metadata.ownerReferences? | .[0].kind // "None") as $owner |
+  $pod.status.phase as $phase |
+  ($pod.metadata.labels // {}) as $labels |
 
-    # Check for PDB
-    # A pod is covered by a PDB if the PDB's selector matches the pod's labels.
-    # For simplicity in this script, we'll check if any PDB in the same namespace exists.
-    # A more robust check would involve matching selectors.
-    PDB_EXISTS=$(echo "$PDBS_JSON" | jq --arg ns "$NS" -r '.items[] | select(.metadata.namespace == $ns) | .metadata.name' | wc -l | xargs)
-    PDB_STATUS="MISSING"
-    if [ "$PDB_EXISTS" -gt 0 ]; then
-        PDB_STATUS="OK ($PDB_EXISTS)"
-    fi
+  # Check for PDB
+  # A pod is covered by a PDB if its labels match the PDBs selector
+  # We use all(generator; condition) for compatibility with jq < 1.7
+  [
+    $pdbs.items[] |
+    select(.metadata.namespace == $ns) |
+    (.spec.selector.matchLabels // {}) as $s |
+    select($s != {} and all($s | to_entries | .[]; $labels[.key] == .value))
+  ] as $matching_pdbs |
+  ($matching_pdbs | length) as $pdb_count |
+  (if $pdb_count > 0 then "OK (\($pdb_count))" else "MISSING" end) as $pdb_status |
 
-    # Check for local storage (emptyDir)
-    HAS_LOCAL_STORAGE=$(echo "$PODS_JSON" | jq --arg ns "$NS" --arg name "$NAME" -r '.items[] | select(.metadata.namespace == $ns and .metadata.name == $name) | .spec.volumes[]?.emptyDir' | grep -v "null" | wc -l | xargs)
-    LOCAL_VOL="NO"
-    if [ "$HAS_LOCAL_STORAGE" -gt 0 ]; then
-        LOCAL_VOL="YES"
-    fi
+  # Check for local storage (emptyDir)
+  (if ([ $pod.spec.volumes[]?.emptyDir | select(. != null) ] | length > 0) then "YES" else "NO" end) as $local_vol |
 
-    printf "%-30s %-20s %-10s %-10s %-10s\n" "$NS/$NAME" "$OWNER" "$PDB_STATUS" "$LOCAL_VOL" "$PHASE"
+  "\($ns)/\($name)\t\($owner)\t\($pdb_status)\t\($local_vol)\t\($phase)"
+' | while IFS=$'\t' read -r pod_full_name owner pdb_status local_vol phase; do
+    printf "%-30s %-20s %-10s %-10s %-10s\n" "$pod_full_name" "$owner" "$pdb_status" "$local_vol" "$phase"
 done
 
 echo "--------------------------------------------------------------------------------"

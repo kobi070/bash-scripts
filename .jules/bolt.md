@@ -64,3 +64,7 @@
 ## 2024-05-30 - [O(N) to O(1) process forks in K8s Secret Audit]
 **Learning:** Consolidating multiple 'jq' calls and eliminating per-iteration 'date' command forks significantly improves performance in resource audits. However, relying on OpenSSL 3.0 specific flags like '-dateopt iso_8601' breaks compatibility in older environments. Standard OpenSSL date formats can be parsed portably within 'jq' using 'strptime("%b %e %H:%M:%S %Y %Z") | mktime', where '%e' correctly handles the leading space in single-digit days.
 **Action:** Use 'jq' stream processing for data transformation and avoid OpenSSL 3.0+ specific output flags to maintain broad compatibility across Linux and macOS environments.
+
+## 2024-06-05 - [jq compatibility and null indexing safety]
+**Learning:** The `all(condition)` syntax in `jq` requires version 1.7+. For compatibility with older environments (like `jq` 1.6 or 1.5), the `all(generator; condition)` form must be used. Additionally, indexing a null field with a number (e.g., `.[0]`) can lead to fatal errors in some `jq` versions or configurations; using the optional chaining operator `?` (e.g., `ownerReferences? | .[0]`) ensures robustness when fields are missing.
+**Action:** Use `all(generator; condition)` and optional chaining `?` for robust and compatible JSON processing in Kubernetes scripts.

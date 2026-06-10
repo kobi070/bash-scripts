@@ -560,4 +560,65 @@ else
     exit 1
 fi
 
+# --- 24. Mock for k8s_node_drain_helper.sh ---
+cat <<'EOF' > "$MOCK_BIN/kubectl"
+#!/bin/bash
+if [[ "$*" == *"get node"* ]]; then
+  echo "node1"
+elif [[ "$*" == *"get pods"* ]]; then
+  echo '{
+    "items": [
+      {
+        "metadata": {
+          "namespace": "prod",
+          "name": "web-pod",
+          "labels": {"app": "web"},
+          "ownerReferences": [{"kind": "Deployment"}]
+        },
+        "spec": {
+          "volumes": [{"name": "cache", "emptyDir": {}}]
+        },
+        "status": {"phase": "Running"}
+      },
+      {
+        "metadata": {
+          "namespace": "prod",
+          "name": "db-pod",
+          "labels": {"app": "db"}
+        },
+        "spec": {
+          "volumes": [{"name": "data", "persistentVolumeClaim": {"claimName": "pvc-1"}}]
+        },
+        "status": {"phase": "Running"}
+      }
+    ]
+  }'
+elif [[ "$*" == *"get pdb"* ]]; then
+  echo '{
+    "items": [
+      {
+        "metadata": {"namespace": "prod", "name": "web-pdb"},
+        "spec": {"selector": {"matchLabels": {"app": "web"}}}
+      }
+    ]
+  }'
+fi
+EOF
+chmod +x "$MOCK_BIN/kubectl"
+
+echo "Testing k8s_node_drain_helper.sh..."
+OUTPUT=$(./k8s_scripts/k8s_node_drain_helper.sh node1 2>&1)
+if echo "$OUTPUT" | grep -q "web-pod" && \
+   echo "$OUTPUT" | grep -q "db-pod" && \
+   echo "$OUTPUT" | grep -q "YES" && \
+   echo "$OUTPUT" | grep -q "OK (1)" && \
+   echo "$OUTPUT" | grep -q "MISSING"; then
+    echo "  ✔ Corrected identified pod issues on node"
+else
+    echo "  ✖ Failed node drain impact analysis"
+    echo "Output was:"
+    echo "$OUTPUT"
+    exit 1
+fi
+
 echo "All logic verifications passed!"
