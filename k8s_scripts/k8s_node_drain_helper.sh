@@ -2,6 +2,8 @@
 
 # Script to assess the impact of draining a Kubernetes node.
 # Identifies pods that might cause issues during a drain.
+# BOLT Optimization: Consolidate pod analysis into a single jq pipeline using --argjson for PDB data.
+# This reduces process forks from O(N) to O(1) and improves PDB matching accuracy using label selectors.
 # Usage: ./k8s_node_drain_helper.sh <node_name>
 # Example: ./k8s_node_drain_helper.sh gke-cluster-default-pool-1234
 
@@ -45,43 +47,48 @@ fi
 
 echo "Analyzing impact of draining node: $NODE_NAME..."
 
-# Get all pods on the node
+# Fetch pods and PDBs in parallel or sequentially but once
 PODS_JSON=$(kubectl get pods --all-namespaces --field-selector spec.nodeName="$NODE_NAME" -o json)
-POD_COUNT=$(echo "$PODS_JSON" | jq '.items | length')
+PDBS_JSON=$(kubectl get pdb --all-namespaces -o json)
 
-if [ "$POD_COUNT" -eq 0 ]; then
+# BOLT Optimization: Process all data in a single jq pipeline
+# This replaces the shell loop and reduces ~7*N process forks to O(1)
+RESULT=$(echo "$PODS_JSON" | jq -r --argjson pdbs "$PDBS_JSON" '
+  .items[] |
+  .metadata.namespace as $ns |
+  .metadata.name as $name |
+  (.metadata.labels // {}) as $labels |
+  (.metadata.ownerReferences[0].kind // "None") as $owner |
+  .status.phase as $phase |
+
+  # Check for matching PDBs using label selectors (more accurate than just namespace)
+  ([
+    $pdbs.items[] |
+    select(.metadata.namespace == $ns) |
+    (.spec.selector.matchLabels // {}) as $s |
+    select($s != {} and ($s | to_entries | all($labels[.key] == .value)))
+  ] | length) as $pdb_count |
+
+  (if $pdb_count > 0 then "OK (\($pdb_count))" else "MISSING" end) as $pdb_status |
+
+  # Check for local storage (emptyDir)
+  (if ([.spec.volumes[]? | select(.emptyDir)] | length) > 0 then "YES" else "NO" end) as $local_vol |
+
+  "\($ns)/\($name)\t\($owner)\t\($pdb_status)\t\($local_vol)\t\($phase)"
+')
+
+if [ -z "$RESULT" ]; then
     echo "No pods found on node $NODE_NAME."
     exit 0
 fi
 
-echo "Found $POD_COUNT pods. Checking for potential issues..."
+echo "Found $(echo "$PODS_JSON" | jq '.items | length') pods. Checking for potential issues..."
 echo "--------------------------------------------------------------------------------"
 printf "%-30s %-20s %-10s %-10s %-10s\n" "NAMESPACE/POD" "CONTROLLER" "PDB" "LOCAL-VOL" "READY"
 echo "--------------------------------------------------------------------------------"
 
-# Get all PDBs once to avoid repeated calls
-PDBS_JSON=$(kubectl get pdb --all-namespaces -o json)
-
-echo "$PODS_JSON" | jq -r '.items[] | [.metadata.namespace, .metadata.name, (.metadata.ownerReferences[0].kind // "None"), .status.phase] | @tsv' | while IFS=$'\t' read -r NS NAME OWNER PHASE; do
-
-    # Check for PDB
-    # A pod is covered by a PDB if the PDB's selector matches the pod's labels.
-    # For simplicity in this script, we'll check if any PDB in the same namespace exists.
-    # A more robust check would involve matching selectors.
-    PDB_EXISTS=$(echo "$PDBS_JSON" | jq --arg ns "$NS" -r '.items[] | select(.metadata.namespace == $ns) | .metadata.name' | wc -l | xargs)
-    PDB_STATUS="MISSING"
-    if [ "$PDB_EXISTS" -gt 0 ]; then
-        PDB_STATUS="OK ($PDB_EXISTS)"
-    fi
-
-    # Check for local storage (emptyDir)
-    HAS_LOCAL_STORAGE=$(echo "$PODS_JSON" | jq --arg ns "$NS" --arg name "$NAME" -r '.items[] | select(.metadata.namespace == $ns and .metadata.name == $name) | .spec.volumes[]?.emptyDir' | grep -v "null" | wc -l | xargs)
-    LOCAL_VOL="NO"
-    if [ "$HAS_LOCAL_STORAGE" -gt 0 ]; then
-        LOCAL_VOL="YES"
-    fi
-
-    printf "%-30s %-20s %-10s %-10s %-10s\n" "$NS/$NAME" "$OWNER" "$PDB_STATUS" "$LOCAL_VOL" "$PHASE"
+echo "$RESULT" | while IFS=$'\t' read -r pod controller pdb local_vol ready; do
+    printf "%-30s %-20s %-10s %-10s %-10s\n" "$pod" "$controller" "$pdb" "$local_vol" "$ready"
 done
 
 echo "--------------------------------------------------------------------------------"
