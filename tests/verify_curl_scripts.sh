@@ -87,6 +87,8 @@ if [ "$HAS_K_STDIN" = true ]; then
             echo '{"jobs": [{"id": 456, "name": "test-job", "conclusion": "failure"}]}'
         elif [[ "$*" == *"jobs/456/logs"* ]]; then
             echo "Mock logs content"
+        elif [[ "$*" == *"graphql"* ]]; then
+            echo '{"data": {"repository": {"pullRequests": {"nodes": [{"number": 1, "title": "Test PR", "additions": 10, "deletions": 5}]}}}}'
         else
             echo "{}"
         fi
