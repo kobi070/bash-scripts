@@ -64,3 +64,7 @@
 ## 2024-05-30 - [O(N) to O(1) process forks in K8s Secret Audit]
 **Learning:** Consolidating multiple 'jq' calls and eliminating per-iteration 'date' command forks significantly improves performance in resource audits. However, relying on OpenSSL 3.0 specific flags like '-dateopt iso_8601' breaks compatibility in older environments. Standard OpenSSL date formats can be parsed portably within 'jq' using 'strptime("%b %e %H:%M:%S %Y %Z") | mktime', where '%e' correctly handles the leading space in single-digit days.
 **Action:** Use 'jq' stream processing for data transformation and avoid OpenSSL 3.0+ specific output flags to maintain broad compatibility across Linux and macOS environments.
+
+## 2025-06-05 - [O(N) to O(1) GitHub PR size auditing]
+**Learning:** Sequential REST API calls to fetch details for individual resources in a loop (like Pull Request additions/deletions) create a massive network bottleneck ($O(N)$ round-trips). The GitHub GraphQL API allows fetching all required fields for a collection in a single $O(1)$ query, providing a ~99% latency reduction for large datasets.
+**Action:** Replace $O(N)$ sequential REST API calls with a single GraphQL query for batch resource analysis tasks.
