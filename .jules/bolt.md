@@ -61,6 +61,10 @@
 **Learning:** Auditing mandatory tags on cloud resources by iterating over each resource and then each tag in Bash with internal `jq` calls is extremely inefficient ($O(N \times M)$ process forks). Consolidating the tag presence check into a single `jq` pipeline by pre-calculating the target JSON array once and passing it via `--argjson` and the `any()` function reduces the overhead to $O(1)$ process forks for the entire resource set.
 **Action:** Use `jq` with `--argjson` to pass mandatory requirements (like tags or labels) and perform bulk validation within a single JSON processing stream.
 
+## 2026-06-14 - [O(N) to O(1) GitHub PR Audit]
+**Learning:** Auditing Pull Request sizes by performing sequential REST API calls for each PR's details creates a major performance bottleneck ($O(N)$ network latency). The GitHub GraphQL API enables retrieving both the list of PRs and their specific metrics (like additions and deletions) in a single request ($O(1)$ complexity). Furthermore, moving size categorization and arithmetic into the `jq` pipeline eliminates $O(N)$ process forks and shell-based calculation overhead.
+**Action:** Prefer GraphQL for bulk data retrieval from the GitHub API and consolidate all processing into a single `jq` pipeline to maximize performance.
+
 ## 2024-05-30 - [O(N) to O(1) process forks in K8s Secret Audit]
 **Learning:** Consolidating multiple 'jq' calls and eliminating per-iteration 'date' command forks significantly improves performance in resource audits. However, relying on OpenSSL 3.0 specific flags like '-dateopt iso_8601' breaks compatibility in older environments. Standard OpenSSL date formats can be parsed portably within 'jq' using 'strptime("%b %e %H:%M:%S %Y %Z") | mktime', where '%e' correctly handles the leading space in single-digit days.
 **Action:** Use 'jq' stream processing for data transformation and avoid OpenSSL 3.0+ specific output flags to maintain broad compatibility across Linux and macOS environments.

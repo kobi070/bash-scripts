@@ -41,56 +41,80 @@ if [ -z "${GITHUB_TOKEN:-}" ]; then
     exit 1
 fi
 
-REPO=$1
+REPO_FULL=$1
+OWNER=$(echo "$REPO_FULL" | cut -d'/' -f1)
+REPO_NAME=$(echo "$REPO_FULL" | cut -d'/' -f2)
 
-echo "Fetching open PRs for $REPO..."
-
-# Fetch open PRs (first 100)
-PRS=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
-    curl -s -K- -H "Accept: application/vnd.github.v3+json" \
-    "https://api.github.com/repos/$REPO/pulls?state=open&per_page=100")
-
-# Check if PRS is an array
-if ! echo "$PRS" | jq -e 'if type == "array" then . else error("Not an array") end' > /dev/null 2>&1; then
-    echo "Error: Failed to fetch PRs or repository not found."
-    echo "$PRS" | jq -c .
+if [ -z "$OWNER" ] || [ -z "$REPO_NAME" ]; then
+    echo "Error: Invalid repository format. Use owner/repo."
     exit 1
 fi
 
-PR_COUNT=$(echo "$PRS" | jq '. | length')
+echo "Fetching and analyzing open PRs for $REPO_FULL via GraphQL..."
 
-if [ "$PR_COUNT" -eq 0 ]; then
-    echo "No open PRs found for $REPO."
+# GraphQL query to fetch additions and deletions for the first 100 open PRs
+# Bolt optimization: Consolidate N+1 REST calls into 1 GraphQL call.
+QUERY="query {
+  repository(owner: \"$OWNER\", name: \"$REPO_NAME\") {
+    pullRequests(states: OPEN, first: 100) {
+      nodes {
+        number
+        title
+        additions
+        deletions
+      }
+    }
+  }
+}"
+
+# Package query into JSON and escape for curl config
+JSON_QUERY=$(jq -nc --arg q "$QUERY" '{"query": $q}')
+ESCAPED_QUERY=$(echo "$JSON_QUERY" | sed 's/\\/\\\\/g; s/"/\\"/g')
+
+# Fetch data using curl -K- pattern for security
+RESPONSE=$(printf "header = \"Authorization: Bearer %s\"\ndata = \"%s\"\n" "$GITHUB_TOKEN" "$ESCAPED_QUERY" | \
+    curl -s -K- -H "Content-Type: application/json" "https://api.github.com/graphql")
+
+# Check for GraphQL errors
+if echo "$RESPONSE" | jq -e '.errors' > /dev/null; then
+    echo "Error from GitHub GraphQL API:"
+    echo "$RESPONSE" | jq -r '.errors[0].message'
+    exit 1
+fi
+
+PR_DATA=$(echo "$RESPONSE" | jq -c '.data.repository.pullRequests.nodes')
+
+if [ "$PR_DATA" == "null" ] || [ "$PR_DATA" == "[]" ]; then
+    echo "No open PRs found for $REPO_FULL."
     exit 0
 fi
 
+PR_COUNT=$(echo "$PR_DATA" | jq 'length')
 echo "Analyzing $PR_COUNT PRs..."
 echo "--------------------------------------------------------------------------------"
 printf "%-10s %-50s %-10s %-10s\n" "PR #" "TITLE" "CHANGES" "SIZE"
 echo "--------------------------------------------------------------------------------"
 
-echo "$PRS" | jq -r '.[] | [.number, .title, .url] | @tsv' | while IFS=$'\t' read -r NUM TITLE URL; do
-    # Fetch PR details for additions/deletions
-    DETAILS=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
-        curl -s -K- -H "Accept: application/vnd.github.v3+json" \
-        "$URL")
-
-    ADDITIONS=$(echo "$DETAILS" | jq -r '.additions // 0')
-    DELETIONS=$(echo "$DETAILS" | jq -r '.deletions // 0')
-    TOTAL=$((ADDITIONS + DELETIONS))
-
-    SIZE="XS"
-    if [ "$TOTAL" -ge 500 ]; then SIZE="XL";
-    elif [ "$TOTAL" -ge 200 ]; then SIZE="L";
-    elif [ "$TOTAL" -ge 50 ]; then SIZE="M";
-    elif [ "$TOTAL" -ge 10 ]; then SIZE="S";
-    fi
-
-    # Truncate title if too long
-    TRUNC_TITLE="${TITLE:0:47}"
-    if [ "${#TITLE}" -gt 47 ]; then TRUNC_TITLE="${TRUNC_TITLE}..."; fi
-
-    printf "%-10s %-50s %-10s %-10s\n" "#$NUM" "$TRUNC_TITLE" "$TOTAL" "$SIZE"
+# Bolt optimization: Consolidate arithmetic and formatting into a single jq pipeline.
+# This eliminates the O(N) while-read loop and shell arithmetic.
+echo "$PR_DATA" | jq -r '
+  .[] |
+  .number as $num |
+  .title as $title |
+  (.additions + .deletions) as $total |
+  (if $total >= 500 then "XL"
+   elif $total >= 200 then "L"
+   elif $total >= 50 then "M"
+   elif $total >= 10 then "S"
+   else "XS" end) as $size |
+  ([
+    ("#\($num)"),
+    (if ($title | length) > 47 then ($title | .[0:47] + "...") else $title end),
+    ($total | tonumber),
+    $size
+  ] | @tsv)
+' | while IFS=$'\t' read -r num title total size; do
+    printf "%-10s %-50s %-10s %-10s\n" "$num" "$title" "$total" "$size"
 done
 
 echo "--------------------------------------------------------------------------------"

@@ -69,6 +69,8 @@ if [ "$HAS_K_STDIN" = true ]; then
         # Return a mock JSON response for the scripts to continue
         if echo "$STDIN_CONTENT" | grep -q "hooks.slack.com"; then
             echo "ok"
+        elif [[ "$*" == *"graphql"* ]]; then
+            echo '{"data": {"repository": {"pullRequests": {"nodes": [{"number": 1, "title": "Test PR", "additions": 10, "deletions": 5}]}}}}'
         elif [[ "$*" == *"releases/latest"* ]]; then
             echo '{"tag_name": "v1.0.0", "assets": [{"name": "asset.zip", "browser_download_url": "https://example.com/asset.zip"}]}'
         elif [[ "$*" == *"example.com/asset.zip"* ]]; then
