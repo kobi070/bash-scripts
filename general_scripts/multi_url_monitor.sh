@@ -146,10 +146,12 @@ if [ ${#FAILED_URLS[@]} -ne 0 ]; then
 Some services are down:
 \`\`\`$RESULTS_STR\`\`\`" '{text: $text}')
 
-            # Use curl config file via stdin to prevent leaking SLACK_WEBHOOK_URL in process lists (ps)
-            # We must escape backslashes and double quotes for the curl config parser
+            # Use curl config file via stdin to prevent leaking SLACK_WEBHOOK_URL in process lists (ps).
+            # We must escape backslashes and double quotes for the curl config parser to prevent
+            # configuration injection if a variable contains malicious characters.
+            ESCAPED_WEBHOOK_URL=$(echo "$SLACK_WEBHOOK_URL" | sed 's/\\/\\\\/g; s/"/\\"/g')
             ESCAPED_PAYLOAD=$(echo "$PAYLOAD" | sed 's/\\/\\\\/g; s/"/\\"/g')
-            printf "url = \"%s\"\ndata = \"%s\"" "$SLACK_WEBHOOK_URL" "$ESCAPED_PAYLOAD" | curl -s -X POST -H 'Content-type: application/json' -K- > /dev/null || echo "Error: Failed to send Slack notification."
+            printf "url = \"%s\"\ndata = \"%s\"" "$ESCAPED_WEBHOOK_URL" "$ESCAPED_PAYLOAD" | curl -s -X POST -H 'Content-type: application/json' -K- > /dev/null || echo "Error: Failed to send Slack notification."
             echo "Slack notification sent."
         fi
     fi

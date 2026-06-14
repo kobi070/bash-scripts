@@ -61,3 +61,8 @@
 **Vulnerability:** Using `$(variable)` instead of `${variable}` in `echo` or other commands causes Bash to attempt to execute the value of the variable as a command.
 **Learning:** This is a common typo that results in an unintended subshell. If the variable's value (e.g., a version string parsed from a file) can be influenced by an untrusted source, it leads to arbitrary command execution.
 **Prevention:** Strictly use `${variable}` or `$variable` for variable expansion. Avoid the `$(...)` syntax unless command substitution is explicitly intended. Regularly audit scripts for this pattern, especially in log/echo statements.
+
+## 2025-05-14 - Configuration Injection in curl -K-
+**Vulnerability:** While using `curl -K-` protects secrets from the process list, failing to escape variables (URLs, tokens, payloads) before embedding them in the config string allows configuration injection. A secret containing a double quote can prematurely close a value and start a new curl option (e.g., `url = "..."`).
+**Learning:** The `curl` configuration parser treats double quotes as delimiters. If an attacker-controlled or malformed secret contains these characters, they can inject arbitrary curl flags, potentially leading to SSRF, file leakage (via `--upload-file`), or header manipulation.
+**Prevention:** Always escape backslashes and double quotes in EVERY variable used within a `curl -K-` configuration template using `sed 's/\\/\\\\/g; s/"/\\"/g'`.

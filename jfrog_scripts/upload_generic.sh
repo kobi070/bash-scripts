@@ -25,8 +25,11 @@ if [ ! -f "$LOCAL_FILE" ]; then
   exit 1
 fi
 
-# Use curl config file via stdin to prevent leaking JFROG_API_KEY in process lists (ps)
-printf "header = \"X-JFrog-Art-Api: %s\"\n" "$JFROG_API_KEY" | curl -sS -K- \
+# Use curl config file via stdin to prevent leaking JFROG_API_KEY in process lists (ps).
+# We must escape backslashes and double quotes for the curl config parser to prevent
+# configuration injection if a variable contains malicious characters.
+ESCAPED_TOKEN=$(echo "$JFROG_API_KEY" | sed 's/\\/\\\\/g; s/"/\\"/g')
+printf "header = \"X-JFrog-Art-Api: %s\"\n" "$ESCAPED_TOKEN" | curl -sS -K- \
   -H "Content-Type: application/octet-stream" \
   -T "$LOCAL_FILE" \
   "$JFROG_URL/$JFROG_REPO/$TARGET_PATH"
