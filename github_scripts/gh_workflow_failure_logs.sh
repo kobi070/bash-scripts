@@ -43,7 +43,9 @@ WORKFLOW=$2
 echo "Fetching last failed run for $WORKFLOW in $REPO..."
 
 # Get the latest failed run ID
-RUN_ID=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
+# Security Pattern: Escape backslashes and double quotes for curl config parser
+ESCAPED_TOKEN=$(echo "$GITHUB_TOKEN" | sed 's/\\/\\\\/g; s/"/\\"/g')
+RUN_ID=$(printf "header = \"Authorization: Bearer %s\"\n" "$ESCAPED_TOKEN" | \
     curl -s -K- "https://api.github.com/repos/$REPO/actions/workflows/$WORKFLOW/runs?status=failure&per_page=1" \
     | jq -r '.workflow_runs[0].id')
 
@@ -55,7 +57,7 @@ fi
 echo "Found failed run ID: $RUN_ID. Fetching jobs..."
 
 # Get jobs data for the failed run once
-JOBS_DATA=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
+JOBS_DATA=$(printf "header = \"Authorization: Bearer %s\"\n" "$ESCAPED_TOKEN" | \
     curl -s -K- "https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/jobs")
 
 # Extract IDs and names of failed jobs
@@ -70,7 +72,7 @@ echo "$FAILED_JOBS" | while IFS='|' read -r JOB_ID JOB_NAME; do
     echo "---------------------------------------------------------"
 
     # Fetch logs for the job
-    printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
+    printf "header = \"Authorization: Bearer %s\"\n" "$ESCAPED_TOKEN" | \
         curl -s -K- -L "https://api.github.com/repos/$REPO/actions/jobs/$JOB_ID/logs"
 
     echo ""

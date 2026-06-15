@@ -11,6 +11,11 @@ fi
 
 # Validate environment variables
 for var in JFROG_API_KEY JFROG_URL JFROG_REPO; do
+  # Security Pattern: Prevent command injection via indirect expansion by validating the variable name
+  if [[ ! "$var" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+    echo "Error: $var is not a valid environment variable name."
+    exit 1
+  fi
   if [ -z "${!var:-}" ]; then
     echo "Error: Environment variable $var is not set."
     exit 1
@@ -26,7 +31,9 @@ if [ ! -f "$LOCAL_FILE" ]; then
 fi
 
 # Use curl config file via stdin to prevent leaking JFROG_API_KEY in process lists (ps)
-printf "header = \"X-JFrog-Art-Api: %s\"\n" "$JFROG_API_KEY" | curl -sS -K- \
+# Security Pattern: Escape backslashes and double quotes for curl config parser
+ESCAPED_KEY=$(echo "$JFROG_API_KEY" | sed 's/\\/\\\\/g; s/"/\\"/g')
+printf "header = \"X-JFrog-Art-Api: %s\"\n" "$ESCAPED_KEY" | curl -sS -K- \
   -H "Content-Type: application/octet-stream" \
   -T "$LOCAL_FILE" \
   "$JFROG_URL/$JFROG_REPO/$TARGET_PATH"

@@ -60,7 +60,9 @@ PAYLOAD=$(jq -n \
 
 # Send the request
 # Use curl config file via stdin to prevent leaking GITHUB_TOKEN in process lists (ps)
-RESPONSE=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | curl -s -X POST -K- \
+# Security Pattern: Escape backslashes and double quotes for curl config parser
+ESCAPED_TOKEN=$(echo "$GITHUB_TOKEN" | sed 's/\\/\\\\/g; s/"/\\"/g')
+RESPONSE=$(printf "header = \"Authorization: Bearer %s\"\n" "$ESCAPED_TOKEN" | curl -s -X POST -K- \
     -H "Accept: application/vnd.github.v3+json" \
     -d "$PAYLOAD" \
     "https://api.github.com/repos/$REPO/releases")

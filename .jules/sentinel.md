@@ -61,3 +61,8 @@
 **Vulnerability:** Using `$(variable)` instead of `${variable}` in `echo` or other commands causes Bash to attempt to execute the value of the variable as a command.
 **Learning:** This is a common typo that results in an unintended subshell. If the variable's value (e.g., a version string parsed from a file) can be influenced by an untrusted source, it leads to arbitrary command execution.
 **Prevention:** Strictly use `${variable}` or `$variable` for variable expansion. Avoid the `$(...)` syntax unless command substitution is explicitly intended. Regularly audit scripts for this pattern, especially in log/echo statements.
+
+## 2026-06-01 - Command Injection via Indirect Variable Expansion
+**Vulnerability:** Bash indirect expansion `${!VAR_NAME}` evaluates the content of `VAR_NAME`. If `VAR_NAME` contains array indices like `A[$(command)]`, Bash executes the command during expansion.
+**Learning:** This vulnerability occurs even if the expansion is used within a check like `[ -z "${!VAR_NAME}" ]`. It is a subtle form of command injection that is often overlooked in shell scripts that dynamically check environment variables.
+**Prevention:** Strictly validate that any variable name used for indirect expansion is a valid shell identifier using the regex `[[ "$VAR_NAME" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]` before expansion.

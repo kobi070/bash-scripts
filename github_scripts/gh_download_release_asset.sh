@@ -46,7 +46,9 @@ echo "Searching for latest release asset matching '$PATTERN' in $REPO..."
 # Get latest release JSON
 # Use curl config file via stdin to prevent leaking GITHUB_TOKEN in process lists (ps)
 if [ -n "${GITHUB_TOKEN:-}" ]; then
-    RELEASE_JSON=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | curl -s -K- "https://api.github.com/repos/$REPO/releases/latest")
+    # Security Pattern: Escape backslashes and double quotes for curl config parser
+    ESCAPED_TOKEN=$(echo "$GITHUB_TOKEN" | sed 's/\\/\\\\/g; s/"/\\"/g')
+    RELEASE_JSON=$(printf "header = \"Authorization: Bearer %s\"\n" "$ESCAPED_TOKEN" | curl -s -K- "https://api.github.com/repos/$REPO/releases/latest")
 else
     RELEASE_JSON=$(curl -s "https://api.github.com/repos/$REPO/releases/latest")
 fi
@@ -72,7 +74,9 @@ echo "Downloading asset from: $DOWNLOAD_URL"
 echo "Saving to: $OUTPUT_PATH"
 
 if [ -n "${GITHUB_TOKEN:-}" ]; then
-    printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | curl -L -s -K- -o "$OUTPUT_PATH" "$DOWNLOAD_URL"
+    # Security Pattern: Escape backslashes and double quotes for curl config parser
+    ESCAPED_TOKEN=$(echo "$GITHUB_TOKEN" | sed 's/\\/\\\\/g; s/"/\\"/g')
+    printf "header = \"Authorization: Bearer %s\"\n" "$ESCAPED_TOKEN" | curl -L -s -K- -o "$OUTPUT_PATH" "$DOWNLOAD_URL"
 else
     curl -L -s -o "$OUTPUT_PATH" "$DOWNLOAD_URL"
 fi

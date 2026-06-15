@@ -40,7 +40,9 @@ REPO=$1
 # Fetch latest release from GitHub API
 # Use curl config file via stdin to prevent leaking GITHUB_TOKEN in process lists (ps)
 if [ -n "${GITHUB_TOKEN:-}" ]; then
-    RESPONSE=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | curl -s -K- "https://api.github.com/repos/$REPO/releases/latest")
+    # Security Pattern: Escape backslashes and double quotes for curl config parser
+    ESCAPED_TOKEN=$(echo "$GITHUB_TOKEN" | sed 's/\\/\\\\/g; s/"/\\"/g')
+    RESPONSE=$(printf "header = \"Authorization: Bearer %s\"\n" "$ESCAPED_TOKEN" | curl -s -K- "https://api.github.com/repos/$REPO/releases/latest")
 else
     RESPONSE=$(curl -s "https://api.github.com/repos/$REPO/releases/latest")
 fi
