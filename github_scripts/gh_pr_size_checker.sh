@@ -2,6 +2,7 @@
 
 # Script to categorize open Pull Requests in a GitHub repository by size.
 # Size is determined by the total number of additions and deletions.
+# Optimized with Bolt: Uses a single GraphQL query to reduce process forks from O(N) to O(1).
 # Usage: ./gh_pr_size_checker.sh <owner/repo>
 # Example: ./gh_pr_size_checker.sh kubernetes/kubernetes
 
@@ -21,15 +22,12 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 fi
 
 # Check for required tools
-if ! command -v curl &> /dev/null; then
-    echo "Error: curl is not installed or not in PATH."
-    exit 1
-fi
-
-if ! command -v jq &> /dev/null; then
-    echo "Error: jq is not installed or not in PATH."
-    exit 1
-fi
+for tool in curl jq; do
+    if ! command -v "$tool" &> /dev/null; then
+        echo "Error: $tool is not installed or not in PATH."
+        exit 1
+    fi
+done
 
 # Input validation
 if [ "$#" -lt 1 ]; then
@@ -42,56 +40,87 @@ if [ -z "${GITHUB_TOKEN:-}" ]; then
 fi
 
 REPO=$1
+OWNER="${REPO%/*}"
+REPO_NAME="${REPO#*/}"
 
-echo "Fetching open PRs for $REPO..."
-
-# Fetch open PRs (first 100)
-PRS=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
-    curl -s -K- -H "Accept: application/vnd.github.v3+json" \
-    "https://api.github.com/repos/$REPO/pulls?state=open&per_page=100")
-
-# Check if PRS is an array
-if ! echo "$PRS" | jq -e 'if type == "array" then . else error("Not an array") end' > /dev/null 2>&1; then
-    echo "Error: Failed to fetch PRs or repository not found."
-    echo "$PRS" | jq -c .
+if [[ "$OWNER" == "$REPO" ]]; then
+    echo "Error: Repository must be in 'owner/repo' format."
     exit 1
 fi
 
-PR_COUNT=$(echo "$PRS" | jq '. | length')
+echo "Fetching open PRs for $REPO via GraphQL..."
 
-if [ "$PR_COUNT" -eq 0 ]; then
+# GraphQL query to fetch PR details in bulk
+# We fetch the first 100 open PRs.
+QUERY='query($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
+    pullRequests(states: OPEN, first: 100, orderBy: {field: CREATED_AT, direction: DESC}) {
+      nodes {
+        number
+        title
+        additions
+        deletions
+      }
+    }
+  }
+}'
+
+# Construct JSON payload using compact output for curl compatibility
+JSON_PAYLOAD=$(jq -nc \
+  --arg query "$QUERY" \
+  --arg owner "$OWNER" \
+  --arg name "$REPO_NAME" \
+  '{query: $query, variables: {owner: $owner, name: $name}}')
+
+# Escape the payload for use in curl's -K- configuration
+ESCAPED_PAYLOAD=$(echo "$JSON_PAYLOAD" | sed 's/\\/\\\\/g; s/"/\\"/g')
+
+# Execute GraphQL request
+# Bolt: Use curl -K- for secure token handling and consolidated API call.
+RESPONSE=$(printf "header = \"Authorization: Bearer %s\"\ndata = \"%s\"\n" "$GITHUB_TOKEN" "$ESCAPED_PAYLOAD" | \
+    curl -s -K- -H "Content-Type: application/json" \
+    "https://api.github.com/graphql")
+
+# Check for errors in response
+if echo "$RESPONSE" | jq -e '.errors' > /dev/null; then
+    echo "Error: GitHub API returned errors:"
+    echo "$RESPONSE" | jq -r '.errors[].message'
+    exit 1
+fi
+
+# Bolt optimization: Consolidate categorization and formatting into a single jq pipeline.
+# This eliminates shell loops and multiple printf forks for large PR lists.
+RESULT=$(echo "$RESPONSE" | jq -r '
+  .data.repository.pullRequests.nodes |
+  if length == 0 then empty else .[] end |
+  .number as $num |
+  (.additions + .deletions) as $total |
+  (if $total >= 500 then "XL"
+   elif $total >= 200 then "L"
+   elif $total >= 50 then "M"
+   elif $total >= 10 then "S"
+   else "XS" end) as $size |
+  .title as $title |
+  ($title[0:47] + (if ($title | length) > 47 then "..." else "" end)) as $trunc_title |
+  "\($num)\t\($trunc_title)\t\($total)\t\($size)"
+')
+
+if [ -z "$RESULT" ]; then
     echo "No open PRs found for $REPO."
     exit 0
 fi
+
+PR_COUNT=$(echo "$RESULT" | wc -l)
 
 echo "Analyzing $PR_COUNT PRs..."
 echo "--------------------------------------------------------------------------------"
 printf "%-10s %-50s %-10s %-10s\n" "PR #" "TITLE" "CHANGES" "SIZE"
 echo "--------------------------------------------------------------------------------"
 
-echo "$PRS" | jq -r '.[] | [.number, .title, .url] | @tsv' | while IFS=$'\t' read -r NUM TITLE URL; do
-    # Fetch PR details for additions/deletions
-    DETAILS=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
-        curl -s -K- -H "Accept: application/vnd.github.v3+json" \
-        "$URL")
-
-    ADDITIONS=$(echo "$DETAILS" | jq -r '.additions // 0')
-    DELETIONS=$(echo "$DETAILS" | jq -r '.deletions // 0')
-    TOTAL=$((ADDITIONS + DELETIONS))
-
-    SIZE="XS"
-    if [ "$TOTAL" -ge 500 ]; then SIZE="XL";
-    elif [ "$TOTAL" -ge 200 ]; then SIZE="L";
-    elif [ "$TOTAL" -ge 50 ]; then SIZE="M";
-    elif [ "$TOTAL" -ge 10 ]; then SIZE="S";
-    fi
-
-    # Truncate title if too long
-    TRUNC_TITLE="${TITLE:0:47}"
-    if [ "${#TITLE}" -gt 47 ]; then TRUNC_TITLE="${TRUNC_TITLE}..."; fi
-
-    printf "%-10s %-50s %-10s %-10s\n" "#$NUM" "$TRUNC_TITLE" "$TOTAL" "$SIZE"
-done
+# Format output using printf for alignment
+while IFS=$'\t' read -r num title total size; do
+    printf "%-10s %-50s %-10s %-10s\n" "#$num" "$title" "$total" "$size"
+done <<< "$RESULT"
 
 echo "--------------------------------------------------------------------------------"
 echo "Size Legend: XS < 10, S < 50, M < 200, L < 500, XL >= 500 changes."
