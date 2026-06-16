@@ -43,18 +43,10 @@ fi
 
 echo "Fetching logs for pods with label '$LABEL_SELECTOR' in namespace '$NAMESPACE'..."
 
-# Get all pod names matching the label
-PODS=$(kubectl get pods -n "$NAMESPACE" -l "$LABEL_SELECTOR" -o jsonpath='{.items[*].metadata.name}')
+# BOLT Optimization: Use a single kubectl logs call with -l and --prefix=true.
+# This reduces the process forks from O(N) to O(1) by avoiding the need to
+# first fetch all pod names and then iterate through them sequentially.
+# The --prefix=true flag ensures that each log line is prefixed with the pod name.
+kubectl logs -n "$NAMESPACE" -l "$LABEL_SELECTOR" --prefix=true $TAIL_ARG || echo "No pods found or failed to fetch logs for '$LABEL_SELECTOR'"
 
-if [ -z "$PODS" ]; then
-    echo "No pods found matching label '$LABEL_SELECTOR' in namespace '$NAMESPACE'."
-    exit 0
-fi
-
-for POD in $PODS; do
-    echo "================================================================================"
-    echo "Logs for pod: $POD"
-    echo "================================================================================"
-    kubectl logs -n "$NAMESPACE" "$POD" $TAIL_ARG || echo "Failed to fetch logs for $POD"
-    echo -e "\n"
-done
+echo -e "\nDone."
