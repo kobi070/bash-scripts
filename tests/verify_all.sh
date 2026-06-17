@@ -281,6 +281,34 @@ else
     exit 1
 fi
 
+# --- 11b. Mock for k8s_pod_logs_by_label.sh ---
+cat <<'EOF' > "$MOCK_BIN/kubectl"
+#!/bin/bash
+if [[ "$*" == *"get pods"* ]]; then
+  if [[ "$*" == *"app=web"* ]]; then
+    echo "pod/web-1"
+    echo "pod/web-2"
+  fi
+elif [[ "$*" == *"logs"* ]]; then
+  if [[ "$*" == *"-l app=web"* ]] && [[ "$*" == *"--prefix=true"* ]]; then
+    echo "[pod/web-1] log line 1"
+    echo "[pod/web-2] log line 1"
+  fi
+fi
+EOF
+chmod +x "$MOCK_BIN/kubectl"
+
+echo "Testing k8s_pod_logs_by_label.sh..."
+OUTPUT=$(./k8s_scripts/k8s_pod_logs_by_label.sh app=web prod 2>&1)
+if echo "$OUTPUT" | grep -q "\[pod/web-1\]" && echo "$OUTPUT" | grep -q "\[pod/web-2\]"; then
+    echo "  ✔ Fetched logs with prefix for all pods"
+else
+    echo "  ✖ Failed to fetch logs correctly"
+    echo "Output was:"
+    echo "$OUTPUT"
+    exit 1
+fi
+
 # --- 12. Mock for aws_ebs_unencrypted_volumes.sh ---
 cat <<'EOF' > "$MOCK_BIN/aws"
 #!/bin/bash
