@@ -64,3 +64,7 @@
 ## 2024-05-30 - [O(N) to O(1) process forks in K8s Secret Audit]
 **Learning:** Consolidating multiple 'jq' calls and eliminating per-iteration 'date' command forks significantly improves performance in resource audits. However, relying on OpenSSL 3.0 specific flags like '-dateopt iso_8601' breaks compatibility in older environments. Standard OpenSSL date formats can be parsed portably within 'jq' using 'strptime("%b %e %H:%M:%S %Y %Z") | mktime', where '%e' correctly handles the leading space in single-digit days.
 **Action:** Use 'jq' stream processing for data transformation and avoid OpenSSL 3.0+ specific output flags to maintain broad compatibility across Linux and macOS environments.
+
+## 2024-06-01 - [Consolidated Kubernetes Node Drain impact analysis]
+**Learning:** Auditing pod impact for node draining by iterating over pods and calling `kubectl` and `jq` for each one is extremely inefficient ($O(N)$ process forks). Consolidating the entire analysis into a single `jq` pipeline using `--argjson` to pass PDB data reduces process forks to $O(1)$ and enables accurate label selector matching between Pods and PDBs within the JSON stream.
+**Action:** Consolidate multi-resource correlations (like Pods to PDBs or Pods to Secrets) into a single `jq` pass by pre-fetching secondary resources and passing them as JSON arguments.

@@ -20,15 +20,12 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 fi
 
 # Check for required tools
-if ! command -v kubectl &> /dev/null; then
-    echo "Error: kubectl is not installed or not in PATH."
-    exit 1
-fi
-
-if ! command -v jq &> /dev/null; then
-    echo "Error: jq is not installed or not in PATH."
-    exit 1
-fi
+for tool in kubectl jq; do
+    if ! command -v "$tool" &> /dev/null; then
+        echo "Error: $tool is not installed or not in PATH."
+        exit 1
+    fi
+done
 
 # Input validation
 if [ "$#" -lt 1 ]; then
@@ -45,8 +42,13 @@ fi
 
 echo "Analyzing impact of draining node: $NODE_NAME..."
 
-# Get all pods on the node
+# Bolt optimization: Consolidate pod analysis and PDB matching into a single jq pipeline.
+# This reduces process forks from O(N) to O(1) and improves PDB matching accuracy.
+
+# Get all PDBs and Pods on the node in bulk
+PDBS_JSON=$(kubectl get pdb --all-namespaces -o json)
 PODS_JSON=$(kubectl get pods --all-namespaces --field-selector spec.nodeName="$NODE_NAME" -o json)
+
 POD_COUNT=$(echo "$PODS_JSON" | jq '.items | length')
 
 if [ "$POD_COUNT" -eq 0 ]; then
@@ -59,29 +61,31 @@ echo "--------------------------------------------------------------------------
 printf "%-30s %-20s %-10s %-10s %-10s\n" "NAMESPACE/POD" "CONTROLLER" "PDB" "LOCAL-VOL" "READY"
 echo "--------------------------------------------------------------------------------"
 
-# Get all PDBs once to avoid repeated calls
-PDBS_JSON=$(kubectl get pdb --all-namespaces -o json)
+# Process all pods in one jq pass
+echo "$PODS_JSON" | jq -r --argjson pdbs "$PDBS_JSON" '
+  .items[] |
+  .metadata.namespace as $ns |
+  .metadata.name as $name |
+  .metadata.labels as $labels |
+  (.metadata.ownerReferences[0].kind // "None") as $owner |
+  .status.phase as $phase |
 
-echo "$PODS_JSON" | jq -r '.items[] | [.metadata.namespace, .metadata.name, (.metadata.ownerReferences[0].kind // "None"), .status.phase] | @tsv' | while IFS=$'\t' read -r NS NAME OWNER PHASE; do
+  # Check for PDB matching this pod
+  ([
+    $pdbs.items[] |
+    select(.metadata.namespace == $ns) |
+    .spec.selector.matchLabels as $s |
+    # A PDB matches if its selector is not empty and is a subset of the pod labels
+    select($s != null and ($s | length) > 0 and all($s | to_entries[]; $labels[.key] == .value))
+  ] | length) as $pdb_count |
+  (if $pdb_count > 0 then "OK (\($pdb_count))" else "MISSING" end) as $pdb_status |
 
-    # Check for PDB
-    # A pod is covered by a PDB if the PDB's selector matches the pod's labels.
-    # For simplicity in this script, we'll check if any PDB in the same namespace exists.
-    # A more robust check would involve matching selectors.
-    PDB_EXISTS=$(echo "$PDBS_JSON" | jq --arg ns "$NS" -r '.items[] | select(.metadata.namespace == $ns) | .metadata.name' | wc -l | xargs)
-    PDB_STATUS="MISSING"
-    if [ "$PDB_EXISTS" -gt 0 ]; then
-        PDB_STATUS="OK ($PDB_EXISTS)"
-    fi
+  # Check for local storage (emptyDir)
+  (if any(.spec.volumes[]?; .emptyDir != null) then "YES" else "NO" end) as $local_vol |
 
-    # Check for local storage (emptyDir)
-    HAS_LOCAL_STORAGE=$(echo "$PODS_JSON" | jq --arg ns "$NS" --arg name "$NAME" -r '.items[] | select(.metadata.namespace == $ns and .metadata.name == $name) | .spec.volumes[]?.emptyDir' | grep -v "null" | wc -l | xargs)
-    LOCAL_VOL="NO"
-    if [ "$HAS_LOCAL_STORAGE" -gt 0 ]; then
-        LOCAL_VOL="YES"
-    fi
-
-    printf "%-30s %-20s %-10s %-10s %-10s\n" "$NS/$NAME" "$OWNER" "$PDB_STATUS" "$LOCAL_VOL" "$PHASE"
+  "\($ns)/\($name)\t\($owner)\t\($pdb_status)\t\($local_vol)\t\($phase)"
+' | while IFS=$'\t' read -r pod_full owner pdb_status local_vol phase; do
+    printf "%-30s %-20s %-10s %-10s %-10s\n" "$pod_full" "$owner" "$pdb_status" "$local_vol" "$phase"
 done
 
 echo "--------------------------------------------------------------------------------"
