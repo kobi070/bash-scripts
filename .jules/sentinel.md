@@ -61,3 +61,8 @@
 **Vulnerability:** Using `$(variable)` instead of `${variable}` in `echo` or other commands causes Bash to attempt to execute the value of the variable as a command.
 **Learning:** This is a common typo that results in an unintended subshell. If the variable's value (e.g., a version string parsed from a file) can be influenced by an untrusted source, it leads to arbitrary command execution.
 **Prevention:** Strictly use `${variable}` or `$variable` for variable expansion. Avoid the `$(...)` syntax unless command substitution is explicitly intended. Regularly audit scripts for this pattern, especially in log/echo statements.
+
+## 2025-06-03 - Secure Piping of Secrets to CLI Tools
+**Vulnerability:** Using `echo "$SECRET" | cli-tool` can lead to unintended behavior if the secret contains backslashes that `echo` might interpret as escape sequences (e.g., `\n`, `\t`).
+**Learning:** `printf "%s" "$SECRET"` is the most robust way to pipe secrets to a command's standard input. It ensures the string is handled literally and avoids adding a trailing newline which might invalidate some tokens or passwords.
+**Prevention:** Standardize on `printf "%s" "$SECRET" | ...` for all operations that pipe sensitive credentials to CLI tools like `docker login` or `az devops login`.

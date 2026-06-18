@@ -560,4 +560,57 @@ else
     exit 1
 fi
 
+# --- 24. Mock for az_devops_config.sh ---
+cat <<'EOF' > "$MOCK_BIN/az"
+#!/bin/bash
+if [[ "$*" == *"extension show --name azure-devops"* ]]; then
+  exit 0
+elif [[ "$*" == *"devops login"* ]]; then
+  # Read from stdin
+  READ_PAT=$(cat -)
+  if [[ -z "$READ_PAT" ]]; then
+    echo "Error: PAT not received via stdin" >&2
+    exit 1
+  fi
+  echo "Success: Logged in with PAT via stdin"
+elif [[ "$*" == *"devops configure"* ]]; then
+  echo "Success: Configured defaults"
+fi
+EOF
+chmod +x "$MOCK_BIN/az"
+
+echo "Testing az_devops_config.sh security..."
+export AZ_DEVOPS_PAT="mock-pat"
+if ./az_scripts/az_devops_config.sh https://dev.azure.com/org 2>&1 | grep -q "Success: Azure DevOps CLI configured for https://dev.azure.com/org"; then
+    echo "  ✔ az_devops_config.sh passed secure login check"
+else
+    echo "  ✖ az_devops_config.sh failed secure login check"
+    exit 1
+fi
+
+echo "Testing az_devops_config.sh argument validation..."
+if ./az_scripts/az_devops_config.sh https://dev.azure.com/org pat extra 2>&1 | grep -q "Usage:"; then
+    echo "  ✔ az_devops_config.sh correctly handles too many arguments"
+else
+    echo "  ✖ az_devops_config.sh failed argument count check"
+    exit 1
+fi
+
+echo "Testing az_devops_config.sh URL validation..."
+if ./az_scripts/az_devops_config.sh "invalid-url" 2>&1 | grep -q "Error: Invalid Organization URL format"; then
+    echo "  ✔ az_devops_config.sh correctly validates URL format"
+else
+    echo "  ✖ az_devops_config.sh failed URL validation"
+    exit 1
+fi
+
+echo "Testing az_devops_config.sh on-prem URL support..."
+if ./az_scripts/az_devops_config.sh https://tfs.company.com:8080/tfs 2>&1 | grep -q "Success: Azure DevOps CLI configured"; then
+    echo "  ✔ az_devops_config.sh supports port numbers in URL"
+else
+    echo "  ✖ az_devops_config.sh failed on-prem URL support"
+    exit 1
+fi
+unset AZ_DEVOPS_PAT
+
 echo "All logic verifications passed!"
