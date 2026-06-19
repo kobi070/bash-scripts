@@ -61,3 +61,8 @@
 **Vulnerability:** Using `$(variable)` instead of `${variable}` in `echo` or other commands causes Bash to attempt to execute the value of the variable as a command.
 **Learning:** This is a common typo that results in an unintended subshell. If the variable's value (e.g., a version string parsed from a file) can be influenced by an untrusted source, it leads to arbitrary command execution.
 **Prevention:** Strictly use `${variable}` or `$variable` for variable expansion. Avoid the `$(...)` syntax unless command substitution is explicitly intended. Regularly audit scripts for this pattern, especially in log/echo statements.
+
+## 2026-06-05 - Hidden Audit Logs via Undefined Variables
+**Vulnerability:** Using an uninitialized variable in a file path (e.g., `$ts.audit.txt`) causes Bash to expand it to an empty string, resulting in hidden files (like `.audit.txt`) in the working directory.
+**Learning:** Shell scripts are highly sensitive to undefined variables. Without `set -u`, these failures are silent and can lead to data being written to unintended locations or security audits being "lost" in hidden files.
+**Prevention:** Always use `set -euo pipefail` to ensure the script terminates on undefined variables. Initialize all variables used in file paths or critical logic with sensible defaults or dynamic values like timestamps.
