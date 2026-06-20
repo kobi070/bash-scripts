@@ -560,4 +560,38 @@ else
     exit 1
 fi
 
+# --- 24. Mock for docker_push_to_repo.sh security ---
+cat <<'EOF' > "$MOCK_BIN/docker"
+#!/bin/bash
+if [[ "$*" == "info" ]]; then
+    echo "something else"
+elif [[ "$*" == *"login"* ]]; then
+    # Read password from stdin
+    read -r PASSWORD_IN
+    if [[ "$PASSWORD_IN" == "my-secret-pass" ]]; then
+        echo "Login Succeeded"
+    else
+        echo "Login Failed"
+        exit 1
+    fi
+elif [[ "$*" == *"build"* ]]; then
+    echo "Build Succeeded"
+elif [[ "$*" == *"push"* ]]; then
+    echo "Push Succeeded"
+fi
+EOF
+chmod +x "$MOCK_BIN/docker"
+
+echo "Testing docker_push_to_repo.sh security..."
+export DOCKER_USERNAME="my-user"
+export DOCKER_PASSWORD="my-secret-pass"
+if ./docker_scripts/docker_push_to_repo.sh my-img v1 my-repo 2>&1 | grep -q "Login Succeeded"; then
+    echo "  ✔ docker_push_to_repo.sh passed security verification"
+else
+    echo "  ✖ docker_push_to_repo.sh failed security verification"
+    exit 1
+fi
+unset DOCKER_USERNAME
+unset DOCKER_PASSWORD
+
 echo "All logic verifications passed!"

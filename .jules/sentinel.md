@@ -61,3 +61,8 @@
 **Vulnerability:** Using `$(variable)` instead of `${variable}` in `echo` or other commands causes Bash to attempt to execute the value of the variable as a command.
 **Learning:** This is a common typo that results in an unintended subshell. If the variable's value (e.g., a version string parsed from a file) can be influenced by an untrusted source, it leads to arbitrary command execution.
 **Prevention:** Strictly use `${variable}` or `$variable` for variable expansion. Avoid the `$(...)` syntax unless command substitution is explicitly intended. Regularly audit scripts for this pattern, especially in log/echo statements.
+
+## 2026-06-01 - Docker Login Security and Syntax Error Fixes
+**Vulnerability:** Redundant and broken login logic in `docker_push_to_repo.sh` with a dangling `fi` caused syntax errors. Additionally, using `echo` for piping passwords to `docker login` exposed secrets to potential interpretation of backslashes or leading dashes.
+**Learning:** Shell scripts often accumulate redundant logic over time, leading to syntax errors and inconsistent variable naming (e.g., `username` vs `USERNAME`). `echo` is inherently unsafe for secrets that might contain characters `echo` treats as flags or escapes.
+**Prevention:** Consolidate authentication logic into single-purpose blocks and use `printf "%s" "$PASSWORD"` for all secret piping. Always run `bash -n` to catch syntax errors after refactoring.

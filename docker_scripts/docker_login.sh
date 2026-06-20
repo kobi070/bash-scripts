@@ -46,8 +46,8 @@ if ! docker info | grep -q 'Username:'; then
         exit 1
     fi
 
-    # Secure login
-    echo "$PASSWORD" | docker login -u "$USERNAME" --password-stdin
+    # Secure login: use printf to avoid issues with special characters and piping to stdin
+    printf "%s" "$PASSWORD" | docker login -u "$USERNAME" --password-stdin
 
     unset PASSWORD
 fi
