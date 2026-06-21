@@ -29,6 +29,13 @@ MISSING_VARS=()
 echo "Validating environment variables..."
 
 for VAR_NAME in "$@"; do
+    # Security check: Ensure VAR_NAME is a valid shell identifier to prevent command injection via indirect expansion.
+    if [[ ! "$VAR_NAME" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+        echo "  [FAIL] $VAR_NAME is NOT a valid environment variable name."
+        MISSING_VARS+=("$VAR_NAME")
+        continue
+    fi
+
     if [ -z "${!VAR_NAME:-}" ]; then
         echo "  [FAIL] $VAR_NAME is NOT set or is empty."
         MISSING_VARS+=("$VAR_NAME")
