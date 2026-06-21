@@ -37,6 +37,10 @@ echo "---------------------------------------------------------"
 
 ALL_PASSED=true
 
+# BOLT Optimization: Run the check command once and store the output.
+# This reduces the number of process forks from O(N) to O(1).
+LISTENING_PORTS_DATA=$($CHECK_CMD)
+
 for PORT in "$@"; do
     # Validate that the port is a number
     if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
@@ -46,8 +50,9 @@ for PORT in "$@"; do
     fi
 
     # Check if the port is listening
-    # Using grep with boundaries to avoid partial matches (e.g., 80 matching 8080)
-    if $CHECK_CMD | grep -Eq ":$PORT\s"; then
+    # Using Bash built-in regex matching to avoid process forks in the loop.
+    # The regex matches :PORT followed by a space (typical for ss/netstat output).
+    if [[ "$LISTENING_PORTS_DATA" =~ :$PORT[[:space:]] ]]; then
         echo "  [PASS] Port $PORT is LISTENING"
     else
         echo "  [FAIL] Port $PORT is NOT listening"
