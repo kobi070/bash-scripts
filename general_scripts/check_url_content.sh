@@ -82,12 +82,12 @@ while [ $SECONDS -lt $end_time ]; do
     # -i: include headers (to get the status code)
     # We'll use -w to get the status code separately for easier checking
 
-    response=$(curl -sL -w "%{http_code}" "$URL" || true)
+    response=$(curl -sL -w "%{http_code}" -- "$URL" || true)
     http_code="${response: -3}"
     body="${response%???}"
 
     if [[ "$http_code" == "200" ]]; then
-        if echo "$body" | grep -q "$SEARCH_STRING"; then
+        if echo "$body" | grep -q -- "$SEARCH_STRING"; then
             echo "Success: URL is reachable and contains the search string."
             exit 0
         else

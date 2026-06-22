@@ -67,7 +67,9 @@ if [ "$HAS_K_STDIN" = true ]; then
        (echo "$STDIN_CONTENT" | grep -q "url = \"https://hooks.slack.com/services/mock_webhook\"" && \
         echo "$STDIN_CONTENT" | grep -q "data = "); then
         # Return a mock JSON response for the scripts to continue
-        if echo "$STDIN_CONTENT" | grep -q "hooks.slack.com"; then
+        if [[ "$*" == *"releases"* ]] && [[ "$*" != *"latest"* ]]; then
+            echo '{"id": 12345, "html_url": "https://github.com/owner/repo/releases/tag/v1.0.0"}'
+        elif echo "$STDIN_CONTENT" | grep -q "hooks.slack.com"; then
             echo "ok"
         elif [[ "$*" == *"releases/latest"* ]]; then
             echo '{"tag_name": "v1.0.0", "assets": [{"name": "asset.zip", "browser_download_url": "https://example.com/asset.zip"}]}'
@@ -124,6 +126,16 @@ if grep -q "1" /tmp/out; then
     echo "  ✔ gh_list_pull_requests.sh passed verification"
 else
     echo "  ✖ gh_list_pull_requests.sh failed verification"
+    cat /tmp/out
+    false
+fi
+
+echo "Verifying gh_create_release.sh..."
+./github_scripts/gh_create_release.sh owner/repo v1.0.0 > /tmp/out 2>&1 || (cat /tmp/out; false)
+if grep -q "Success: Release created successfully" /tmp/out; then
+    echo "  ✔ gh_create_release.sh passed verification"
+else
+    echo "  ✖ gh_create_release.sh failed verification"
     cat /tmp/out
     false
 fi

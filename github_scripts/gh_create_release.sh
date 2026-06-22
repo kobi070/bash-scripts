@@ -52,17 +52,18 @@ BODY=${4:-"Release $TAG"}
 echo "Creating GitHub release for $REPO at tag $TAG..."
 
 # Prepare the JSON payload
-PAYLOAD=$(jq -n \
+PAYLOAD=$(jq -n -c \
     --arg tag "$TAG" \
     --arg name "$NAME" \
     --arg body "$BODY" \
     '{tag_name: $tag, name: $name, body: $body, draft: false, prerelease: false}')
 
 # Send the request
-# Use curl config file via stdin to prevent leaking GITHUB_TOKEN in process lists (ps)
-RESPONSE=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | curl -s -X POST -K- \
+# Use curl config file via stdin to prevent leaking GITHUB_TOKEN and payload in process lists (ps)
+ESCAPED_TOKEN=$(echo "$GITHUB_TOKEN" | sed 's/\\/\\\\/g; s/"/\\"/g')
+ESCAPED_PAYLOAD=$(echo "$PAYLOAD" | sed 's/\\/\\\\/g; s/"/\\"/g')
+RESPONSE=$(printf "header = \"Authorization: Bearer %s\"\ndata = \"%s\"" "$ESCAPED_TOKEN" "$ESCAPED_PAYLOAD" | curl -s -X POST -K- \
     -H "Accept: application/vnd.github.v3+json" \
-    -d "$PAYLOAD" \
     "https://api.github.com/repos/$REPO/releases")
 
 # Check for errors

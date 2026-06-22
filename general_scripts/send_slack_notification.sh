@@ -72,8 +72,9 @@ PAYLOAD=$(jq -n -c \
 # Send POST request to Slack
 # Use curl config file via stdin to prevent leaking WEBHOOK_URL in process lists (ps)
 # We must escape backslashes and double quotes for the curl config parser
+ESCAPED_WEBHOOK_URL=$(echo "$WEBHOOK_URL" | sed 's/\\/\\\\/g; s/"/\\"/g')
 ESCAPED_PAYLOAD=$(echo "$PAYLOAD" | sed 's/\\/\\\\/g; s/"/\\"/g')
-RESPONSE=$(printf "url = \"%s\"\ndata = \"%s\"" "$WEBHOOK_URL" "$ESCAPED_PAYLOAD" | curl -s -X POST -H 'Content-type: application/json' -K- || echo "connection_error")
+RESPONSE=$(printf "url = \"%s\"\ndata = \"%s\"" "$ESCAPED_WEBHOOK_URL" "$ESCAPED_PAYLOAD" | curl -s -X POST -H 'Content-type: application/json' -K- || echo "connection_error")
 
 if [ "$RESPONSE" == "ok" ]; then
     echo "Success: Slack notification sent."
