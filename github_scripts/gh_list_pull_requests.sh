@@ -48,9 +48,9 @@ API_URL="https://api.github.com/repos/$REPO/pulls?state=$STATE"
 
 # Use curl config file via stdin to prevent leaking GITHUB_TOKEN in process lists (ps)
 if [ -n "${GITHUB_TOKEN:-}" ]; then
-    PRS=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | curl -s -K- -H "Accept: application/vnd.github.v3+json" "$API_URL")
+    PRS=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | curl -s -K- -H "Accept: application/vnd.github.v3+json" -- "$API_URL")
 else
-    PRS=$(curl -s -H "Accept: application/vnd.github.v3+json" "$API_URL")
+    PRS=$(curl -s -H "Accept: application/vnd.github.v3+json" -- "$API_URL")
 fi
 
 # Check for errors in response

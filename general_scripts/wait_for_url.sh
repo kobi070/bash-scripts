@@ -42,7 +42,7 @@ echo "Waiting for URL $URL to return 200 OK (timeout: ${TIMEOUT}s, interval: ${I
 SECONDS=0
 
 while [ "$SECONDS" -lt "$TIMEOUT" ]; do
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || true)
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -- "$URL" || true)
 
     if [ "$HTTP_CODE" == "200" ]; then
         echo "Success: URL $URL is reachable and returned 200 OK."
