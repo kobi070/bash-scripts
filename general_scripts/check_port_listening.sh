@@ -35,6 +35,11 @@ fi
 echo "Checking listening ports..."
 echo "---------------------------------------------------------"
 
+# Bolt optimization: Consolidate the check command output into a variable.
+# This reduces process forks from O(N) to O(1), where N is the number of ports.
+# We also use Bash built-in regex matching instead of grep to further reduce forks.
+LISTENING_DATA=$($CHECK_CMD)
+
 ALL_PASSED=true
 
 for PORT in "$@"; do
@@ -46,8 +51,8 @@ for PORT in "$@"; do
     fi
 
     # Check if the port is listening
-    # Using grep with boundaries to avoid partial matches (e.g., 80 matching 8080)
-    if $CHECK_CMD | grep -Eq ":$PORT\s"; then
+    # Using regex with boundaries to avoid partial matches (e.g., 80 matching 8080)
+    if [[ "$LISTENING_DATA" =~ :$PORT([[:space:]]|$) ]]; then
         echo "  [PASS] Port $PORT is LISTENING"
     else
         echo "  [FAIL] Port $PORT is NOT listening"
