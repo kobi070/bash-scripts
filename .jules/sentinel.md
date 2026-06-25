@@ -61,3 +61,8 @@
 **Vulnerability:** Using `$(variable)` instead of `${variable}` in `echo` or other commands causes Bash to attempt to execute the value of the variable as a command.
 **Learning:** This is a common typo that results in an unintended subshell. If the variable's value (e.g., a version string parsed from a file) can be influenced by an untrusted source, it leads to arbitrary command execution.
 **Prevention:** Strictly use `${variable}` or `$variable` for variable expansion. Avoid the `$(...)` syntax unless command substitution is explicitly intended. Regularly audit scripts for this pattern, especially in log/echo statements.
+
+## 2026-06-01 - Argument Injection via Unquoted Optional Flags
+**Vulnerability:** Passing optional flags to CLI tools using unquoted variables (e.g., `kubectl logs $TAIL_ARG`) allows for argument injection or unintended word splitting if the variable contains spaces or multiple arguments.
+**Learning:** Even if the variable is constructed safely in the script, using it unquoted during expansion is a weak point. If the input validation is bypassed or incomplete, it can lead to command or argument injection.
+**Prevention:** Use shell arrays to store optional arguments (e.g., `ARGS=("--flag=$VAL")`) and expand them using quoted array syntax `"${ARGS[@]}"`. This ensures that each element of the array is treated as a single word, preventing injection and correctly handling cases where no arguments are provided. Always combine this with strict input validation.
