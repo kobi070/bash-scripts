@@ -55,22 +55,35 @@ aws ec2 describe-instances $REGION_ARG --query 'Reservations[*].Instances[*].{In
 echo -e "\nAuditing S3 Buckets..."
 echo "--------------------------------------------------------------------------------"
 
-# Bolt optimization: Consolidate S3 tag auditing into a single jq call per bucket.
-# This reduces process forks from O(M) to O(1) per bucket.
-# Re-use TARGETS_JSON to eliminate forks inside the loop.
-aws s3api list-buckets --query 'Buckets[*].Name' --output json | jq -r '.[]' | while read -r bucket; do
-    # get-bucket-tagging returns an error if no tags exist
-    TAG_OUTPUT=$(aws s3api get-bucket-tagging --bucket "$bucket" $REGION_ARG 2>/dev/null || echo '{"TagSet": []}')
+# Bolt optimization: Consolidate S3 tag auditing into a single batch API call for all buckets.
+# This reduces process forks from O(N) to O(Pages), where N is the number of buckets.
+# We join the full bucket list with the tagging API results to catch buckets with NO tags.
+BUCKETS_JSON=$(aws s3api list-buckets --query 'Buckets[*].Name' --output json)
 
-    MISSING=$(echo "$TAG_OUTPUT" | jq -r --argjson targets "$TARGETS_JSON" '
-      (.TagSet // []) as $tags |
-      ($targets - [ $tags[].Key ]) |
-      join(" ")
-    ')
+# Fetch all tagged S3 buckets, handling pagination explicitly.
+TAGS_JSON="[]"
+NEXT_TOKEN=""
+while :; do
+    RESPONSE=$(aws resourcegroupstaggingapi get-resources --resource-type-filters s3:bucket $REGION_ARG ${NEXT_TOKEN:+--pagination-token "$NEXT_TOKEN"} --output json)
+    TAGS_JSON=$(echo "$TAGS_JSON" "$RESPONSE" | jq -s '.[0] + (.[1].ResourceTagMappingList // [])')
+    NEXT_TOKEN=$(echo "$RESPONSE" | jq -r '.PaginationToken // empty')
+    [[ -z "$NEXT_TOKEN" || "$NEXT_TOKEN" == "null" ]] && break
+done
 
-    if [ -n "$MISSING" ]; then
-        echo "S3 [$bucket] is missing tags: $MISSING"
-    fi
+echo "$BUCKETS_JSON" | jq -r --argjson tags_data "$TAGS_JSON" --argjson targets "$TARGETS_JSON" '
+  # Bolt optimization: Create a map of ARN to Tags for O(1) lookup
+  # Using reduce for better compatibility with older jq versions (<1.5)
+  ($tags_data | reduce .[] as $item ({}; .[$item.ResourceARN] = $item.Tags)) as $tags_map |
+  .[] | . as $bucket |
+  "arn:aws:s3:::\($bucket)" as $arn |
+  # Retrieve tags from map
+  ($tags_map[$arn] // []) as $tags |
+  # Calculate missing mandatory tags
+  ($targets - [ $tags[].Key ]) as $missing |
+  select(($missing | length) > 0) |
+  "\($bucket)\t\($missing | join(" "))"
+' | while IFS=$'\t' read -r bucket missing; do
+    echo "S3 [$bucket] is missing tags: $missing"
 done
 
 echo "================================================================================"

@@ -407,8 +407,9 @@ if [[ "$*" == *"ec2 describe-instances"* ]]; then
   echo '[[{"InstanceId": "i-999", "Tags": [{"Key": "Name", "Value": "untagged-vm"}]}]]'
 elif [[ "$*" == *"s3api list-buckets"* ]]; then
   echo '["missing-tags-bucket"]'
-elif [[ "$*" == *"s3api get-bucket-tagging"* ]]; then
-  exit 255 # Simulate no tags
+elif [[ "$*" == *"resourcegroupstaggingapi get-resources"* ]]; then
+  # Return no tags for any bucket to simulate missing tags
+  echo '{"ResourceTagMappingList": [], "PaginationToken": null}'
 fi
 EOF
 chmod +x "$MOCK_BIN/aws"

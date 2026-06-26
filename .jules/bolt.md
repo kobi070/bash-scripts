@@ -64,3 +64,7 @@
 ## 2024-05-30 - [O(N) to O(1) process forks in K8s Secret Audit]
 **Learning:** Consolidating multiple 'jq' calls and eliminating per-iteration 'date' command forks significantly improves performance in resource audits. However, relying on OpenSSL 3.0 specific flags like '-dateopt iso_8601' breaks compatibility in older environments. Standard OpenSSL date formats can be parsed portably within 'jq' using 'strptime("%b %e %H:%M:%S %Y %Z") | mktime', where '%e' correctly handles the leading space in single-digit days.
 **Action:** Use 'jq' stream processing for data transformation and avoid OpenSSL 3.0+ specific output flags to maintain broad compatibility across Linux and macOS environments.
+
+## 2026-05-31 - [Batch API for AWS Tag Auditing]
+**Learning:** Auditing S3 bucket tags using $O(N)$ sequential `aws s3api get-bucket-tagging` calls is extremely slow. The `resourcegroupstaggingapi get-resources` API allows fetching tags for multiple resources in a single call. However, this API requires explicit pagination handling in the script as the CLI auto-paginator may not aggregate nested lists for this specific command, and using `INDEX` in `jq` should be replaced with `reduce` for maximum compatibility across environments.
+**Action:** Use `resourcegroupstaggingapi get-resources` with a pagination loop and `jq` `reduce` for $O(1)$ network complexity audits.
