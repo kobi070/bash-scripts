@@ -30,6 +30,20 @@ PID=$1
 DURATION=${2:-60}
 INTERVAL=${3:-5}
 
+# Security check: Ensure inputs are numeric to prevent shell arithmetic injection
+if [[ ! "$PID" =~ ^[0-9]+$ ]]; then
+    echo "Error: PID must be a positive numeric integer."
+    exit 1
+fi
+if [[ ! "$DURATION" =~ ^[0-9]+$ ]]; then
+    echo "Error: DURATION must be a positive numeric integer."
+    exit 1
+fi
+if [[ ! "$INTERVAL" =~ ^[0-9]+$ ]]; then
+    echo "Error: INTERVAL must be a positive numeric integer."
+    exit 1
+fi
+
 # Verify PID exists
 if ! ps -p "$PID" > /dev/null; then
     echo "Error: Process with PID $PID does not exist."
@@ -44,36 +58,49 @@ echo "--------------------------------------------------------------------------
 printf "%-10s | %-10s | %-10s\n" "TIME" "%CPU" "%MEM"
 echo "--------------------------------------------------------------------------------"
 
-# Bolt optimization: Use Bash builtin $SECONDS to avoid repetitive 'date' process forks
+# Bolt optimization: Detect Bash version to use fast builtins if available
+# printf %T was introduced in Bash 4.2
+HAS_PRINTF_T=false
+if (( BASH_VERSINFO[0] > 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] >= 2) )); then
+    HAS_PRINTF_T=true
+fi
+
 SECONDS=0
-MAX_CPU=0
-MAX_MEM=0
-SUM_CPU=0
-SUM_MEM=0
 COUNT=0
+ALL_CPU=""
+ALL_MEM=""
 
 while [ "$SECONDS" -lt "$DURATION" ]; do
-    # Verify PID still exists
-    if ! ps -p "$PID" > /dev/null; then
+    # Bolt optimization: Combine existence check and data extraction into a single ps call.
+    # We use standard portable -o %cpu,%mem and skip the header line using Bash manipulation.
+    # This avoids the Linux-specific %cpu= syntax while still saving a process fork (tail).
+    STATS_RAW=$(ps -p "$PID" -o %cpu,%mem 2>/dev/null || true)
+
+    if [ -z "$STATS_RAW" ]; then
         echo "Process $PID terminated."
         break
     fi
 
-    # Optimized: use a single awk command to extract CPU and MEM
-    # ps -p $PID -o %cpu,%mem --no-headers
-    # Some ps versions might not support --no-headers, use tail -n +2
-    STATS=$(ps -p "$PID" -o %cpu,%mem | tail -n +2)
-    CPU=$(echo "$STATS" | awk '{print $1}')
-    MEM=$(echo "$STATS" | awk '{print $2}')
+    # Extract the second line (data) from the ps output using Bash parameter expansion
+    # This replaces 'tail -n +2'
+    STATS="${STATS_RAW#*$'\n'}"
 
-    TIME_STR=$(date +"%H:%M:%S")
+    # Bolt optimization: Use read builtin to parse ps output
+    read -r CPU MEM <<< "$STATS"
+
+    # Bolt optimization: Use Bash builtin printf %T for timestamp if supported, else fallback to date
+    if [ "$HAS_PRINTF_T" = true ]; then
+        printf -v TIME_STR "%(%H:%M:%S)T" -1
+    else
+        TIME_STR=$(date +"%H:%M:%S")
+    fi
+
     printf "%-10s | %-10s | %-10s\n" "$TIME_STR" "$CPU" "$MEM"
 
-    # Update stats
-    MAX_CPU=$(awk "BEGIN {if ($CPU > $MAX_CPU) print $CPU; else print $MAX_CPU}")
-    MAX_MEM=$(awk "BEGIN {if ($MEM > $MAX_MEM) print $MEM; else print $MAX_MEM}")
-    SUM_CPU=$(awk "BEGIN {print $SUM_CPU + $CPU}")
-    SUM_MEM=$(awk "BEGIN {print $SUM_MEM + $MEM}")
+    # Bolt optimization: Accumulate raw data for a single bulk calculation at the end,
+    # avoiding 4 awk forks per iteration.
+    ALL_CPU+="$CPU "
+    ALL_MEM+="$MEM "
     COUNT=$((COUNT + 1))
 
     sleep "$INTERVAL"
@@ -82,8 +109,25 @@ done
 echo "--------------------------------------------------------------------------------"
 echo "SUMMARY for $COMMAND (PID: $PID):"
 if [ "$COUNT" -gt 0 ]; then
-    AVG_CPU=$(awk "BEGIN {printf \"%.2f\", $SUM_CPU / $COUNT}")
-    AVG_MEM=$(awk "BEGIN {printf \"%.2f\", $SUM_MEM / $COUNT}")
+    # Bolt optimization: Perform all summary calculations in a single awk call.
+    # This reduces process forks from 4*N to 1.
+    STATS_OUT=$(echo "$ALL_CPU $ALL_MEM" | awk -v count="$COUNT" '
+    {
+        for(i=1; i<=count; i++) {
+            cpu=$(i);
+            sum_cpu += cpu;
+            if (cpu > max_cpu) max_cpu = cpu;
+        }
+        for(i=count+1; i<=2*count; i++) {
+            mem=$(i);
+            sum_mem += mem;
+            if (mem > max_mem) max_mem = mem;
+        }
+        printf "%.2f %.2f %.2f %.2f", sum_cpu/count, max_cpu, sum_mem/count, max_mem
+    }')
+
+    read -r AVG_CPU MAX_CPU AVG_MEM MAX_MEM <<< "$STATS_OUT"
+
     echo "Average CPU: $AVG_CPU%"
     echo "Peak CPU:    $MAX_CPU%"
     echo "Average MEM: $AVG_MEM%"
