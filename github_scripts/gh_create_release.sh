@@ -51,19 +51,21 @@ BODY=${4:-"Release $TAG"}
 
 echo "Creating GitHub release for $REPO at tag $TAG..."
 
-# Prepare the JSON payload
-PAYLOAD=$(jq -n \
+# Prepare the JSON payload (compact for curl -K-)
+PAYLOAD=$(jq -nc \
     --arg tag "$TAG" \
     --arg name "$NAME" \
     --arg body "$BODY" \
     '{tag_name: $tag, name: $name, body: $body, draft: false, prerelease: false}')
 
+# Escape variables for curl config format to prevent configuration injection
+ESCAPED_TOKEN=$(printf "%s" "$GITHUB_TOKEN" | sed 's/\\/\\\\/g; s/"/\\"/g')
+ESCAPED_PAYLOAD=$(printf "%s" "$PAYLOAD" | sed 's/\\/\\\\/g; s/"/\\"/g')
+
 # Send the request
-# Use curl config file via stdin to prevent leaking GITHUB_TOKEN in process lists (ps)
-RESPONSE=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | curl -s -X POST -K- \
-    -H "Accept: application/vnd.github.v3+json" \
-    -d "$PAYLOAD" \
-    "https://api.github.com/repos/$REPO/releases")
+# Use curl config file via stdin to prevent leaking GITHUB_TOKEN and PAYLOAD in process lists (ps)
+RESPONSE=$(printf "header = \"Authorization: Bearer %s\"\nheader = \"Accept: application/vnd.github.v3+json\"\ndata = \"%s\"\n" "$ESCAPED_TOKEN" "$ESCAPED_PAYLOAD" | \
+    curl -s -X POST -K- -- "https://api.github.com/repos/$REPO/releases")
 
 # Check for errors
 if echo "$RESPONSE" | jq -e '.id' > /dev/null; then

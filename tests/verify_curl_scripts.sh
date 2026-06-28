@@ -87,6 +87,8 @@ if [ "$HAS_K_STDIN" = true ]; then
             echo '{"jobs": [{"id": 456, "name": "test-job", "conclusion": "failure"}]}'
         elif [[ "$*" == *"jobs/456/logs"* ]]; then
             echo "Mock logs content"
+        elif [[ "$*" == *"releases"* ]] && [[ "$*" != *"releases/latest"* ]]; then
+            echo '{"id": 789, "html_url": "https://github.com/owner/repo/releases/tag/v1.0.0"}'
         else
             echo "{}"
         fi
@@ -168,6 +170,16 @@ else
     false
 fi
 rm -f /tmp/mock_asset
+
+echo "Verifying gh_create_release.sh..."
+./github_scripts/gh_create_release.sh owner/repo v1.0.0 "Release v1.0.0" "Description" > /tmp/out 2>&1 || (cat /tmp/out; false)
+if grep -q "Success: Release created successfully" /tmp/out; then
+    echo "  ✔ gh_create_release.sh passed verification"
+else
+    echo "  ✖ gh_create_release.sh failed verification"
+    cat /tmp/out
+    false
+fi
 
 echo "Verifying send_slack_notification.sh..."
 ./general_scripts/send_slack_notification.sh "ignored" "Test message" > /tmp/out 2>&1 || (cat /tmp/out; false)
