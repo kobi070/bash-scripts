@@ -573,4 +573,29 @@ else
     exit 1
 fi
 
+# --- 24. Test for validate_env_vars.sh security ---
+echo "Testing validate_env_vars.sh security..."
+export TEST_VAR_OK="value"
+if ./general_scripts/validate_env_vars.sh TEST_VAR_OK 2>&1 | grep -q "OK"; then
+    echo "  ✔ Valid variable name passed"
+else
+    echo "  ✖ Valid variable name failed"
+    exit 1
+fi
+
+# Attempt injection
+# Note: Use single quotes to ensure the subshell is NOT executed by this test script itself
+if ./general_scripts/validate_env_vars.sh 'INVALID[$(touch SHOULD_NOT_EXIST)]' 2>&1 | grep -q "not a valid environment variable name"; then
+    if [ ! -f SHOULD_NOT_EXIST ]; then
+        echo "  ✔ Invalid variable name blocked and no command execution"
+    else
+        echo "  ✖ Invalid variable name ALLOWED command execution!"
+        rm SHOULD_NOT_EXIST
+        exit 1
+    fi
+else
+    echo "  ✖ Failed to detect invalid variable name"
+    exit 1
+fi
+
 echo "All logic verifications passed!"

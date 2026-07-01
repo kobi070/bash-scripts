@@ -69,6 +69,8 @@ if [ "$HAS_K_STDIN" = true ]; then
         # Return a mock JSON response for the scripts to continue
         if echo "$STDIN_CONTENT" | grep -q "hooks.slack.com"; then
             echo "ok"
+        elif echo "$STDIN_CONTENT" | grep -q "api.github.com/graphql" || echo "$STDIN_CONTENT" | grep -q "\"query\":"; then
+            echo '{"data": {"repository": {"pullRequests": {"nodes": [{"number": 1, "title": "Test PR", "additions": 10, "deletions": 5}]}}}}'
         elif [[ "$*" == *"releases/latest"* ]]; then
             echo '{"tag_name": "v1.0.0", "assets": [{"name": "asset.zip", "browser_download_url": "https://example.com/asset.zip"}]}'
         elif [[ "$*" == *"example.com/asset.zip"* ]]; then
@@ -87,6 +89,8 @@ if [ "$HAS_K_STDIN" = true ]; then
             echo '{"jobs": [{"id": 456, "name": "test-job", "conclusion": "failure"}]}'
         elif [[ "$*" == *"jobs/456/logs"* ]]; then
             echo "Mock logs content"
+        elif [[ "$*" == *"releases"* ]] && [[ "$*" != *"releases/latest"* ]]; then
+            echo '{"id": 789, "html_url": "https://github.com/owner/repo/releases/tag/v1.0.0"}'
         else
             echo "{}"
         fi
@@ -168,6 +172,16 @@ else
     false
 fi
 rm -f /tmp/mock_asset
+
+echo "Verifying gh_create_release.sh..."
+./github_scripts/gh_create_release.sh owner/repo v1.0.0 "Release v1.0.0" "Description" > /tmp/out 2>&1 || (cat /tmp/out; false)
+if grep -q "Success: Release created successfully" /tmp/out; then
+    echo "  ✔ gh_create_release.sh passed verification"
+else
+    echo "  ✖ gh_create_release.sh failed verification"
+    cat /tmp/out
+    false
+fi
 
 echo "Verifying send_slack_notification.sh..."
 ./general_scripts/send_slack_notification.sh "ignored" "Test message" > /tmp/out 2>&1 || (cat /tmp/out; false)

@@ -61,3 +61,20 @@
 **Vulnerability:** Using `$(variable)` instead of `${variable}` in `echo` or other commands causes Bash to attempt to execute the value of the variable as a command.
 **Learning:** This is a common typo that results in an unintended subshell. If the variable's value (e.g., a version string parsed from a file) can be influenced by an untrusted source, it leads to arbitrary command execution.
 **Prevention:** Strictly use `${variable}` or `$variable` for variable expansion. Avoid the `$(...)` syntax unless command substitution is explicitly intended. Regularly audit scripts for this pattern, especially in log/echo statements.
+
+## 2026-06-01 - Argument Injection via Unquoted Optional Flags
+**Vulnerability:** Passing optional flags to CLI tools using unquoted variables (e.g., `kubectl logs $TAIL_ARG`) allows for argument injection or unintended word splitting if the variable contains spaces or multiple arguments.
+**Learning:** Even if the variable is constructed safely in the script, using it unquoted during expansion is a weak point. If the input validation is bypassed or incomplete, it can lead to command or argument injection.
+**Prevention:** Use shell arrays to store optional arguments (e.g., `ARGS=("--flag=$VAL")`) and expand them using quoted array syntax `"${ARGS[@]}"`. This ensures that each element of the array is treated as a single word, preventing injection and correctly handling cases where no arguments are provided. Always combine this with strict input validation.
+## 2026-06-01 - Command Injection via Indirect Expansion
+**Vulnerability:** Bash's indirect expansion `${!VAR_NAME}` evaluates array indices within the variable name. If `VAR_NAME` is user-controlled and contains a payload like `arr[$(command)]`, the command will be executed during expansion.
+**Learning:** Indirect expansion is a powerful feature often used for dynamic variable access (e.g., in validation loops), but it is a sink for command injection if the variable name itself is not sanitized.
+**Prevention:** Always validate that the variable name used for indirect expansion is a valid shell identifier using a strict whitelist regex: `[[ "$VAR_NAME" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]`.
+## 2025-06-05 - Command Injection via Indirect Variable Expansion
+**Vulnerability:** Using Bash indirect expansion `${!VAR_NAME}` on untrusted input allows arbitrary command execution if the input contains array index syntax with command substitution (e.g., `VAR[$(command)]`).
+**Learning:** Bash evaluates the content of the variable name in an arithmetic context if it looks like an array reference, even during indirect expansion. This can be exploited to execute commands.
+**Prevention:** Always validate that the variable name string matches a strict whitelist (e.g., `^[a-zA-Z_][a-zA-Z0-9_]*$`) before using it in an indirect expansion `${!VAR_NAME}`.
+## 2025-07-01 - Argument Injection in curl via Hyphenated URLs
+**Vulnerability:** URLs starting with a hyphen (e.g., `-V`) passed to `curl` without a separator are interpreted as command-line options, leading to argument injection.
+**Learning:** Even if a variable is quoted, shell commands like `curl` that parse options before positional arguments can be tricked if the variable's value starts with a dash.
+**Prevention:** Always use the `--` separator to explicitly mark the end of options and the beginning of positional arguments when passing user-supplied variables to commands like `curl`, `grep`, or `sed`.

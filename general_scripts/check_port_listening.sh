@@ -32,6 +32,11 @@ else
     exit 1
 fi
 
+# Bolt optimization: Consolidate the listening data retrieval outside the loop.
+# This reduces process forks from O(N) to O(1) and uses Bash built-in regex matching
+# to avoid forking grep in each iteration.
+LISTENING_DATA=$($CHECK_CMD)
+
 echo "Checking listening ports..."
 echo "---------------------------------------------------------"
 
@@ -46,8 +51,9 @@ for PORT in "$@"; do
     fi
 
     # Check if the port is listening
-    # Using grep with boundaries to avoid partial matches (e.g., 80 matching 8080)
-    if $CHECK_CMD | grep -Eq ":$PORT\s"; then
+    # Using Bash regex matching to avoid grep process forks.
+    # Pattern looks for :PORT followed by space or end of line.
+    if [[ "$LISTENING_DATA" =~ :$PORT([[:space:]]|$) ]]; then
         echo "  [PASS] Port $PORT is LISTENING"
     else
         echo "  [FAIL] Port $PORT is NOT listening"
