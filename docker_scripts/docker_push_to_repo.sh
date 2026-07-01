@@ -35,13 +35,14 @@ DOCKER_REPO=${3:-$DEFAULT_REPO}
 # Check if login is required
 # Optimization: Consolidated grep and awk into a single awk command to reduce process forking.
 if [ -z "$(docker info | awk '/Username: / {print $2}')" ]; then
-    echo "You are not logged in to Docker Hub."
-    read -p "Enter DockerHub Username: " username
-    read -s -p "Enter DockerHub Password: " password
-    echo
-    echo "$password" | docker login -u "$username" --password-stdin
-    unset password
-fi
+    echo "You are not logged in to Docker Hub. Attempting login..."
+
+    USERNAME=${DOCKER_USERNAME:-}
+    PASSWORD=${DOCKER_PASSWORD:-}
+
+    if [ -z "$USERNAME" ]; then
+        read -p "Enter DockerHub Username: " USERNAME
+    fi
 
     if [ -z "$PASSWORD" ]; then
         read -s -p "Enter DockerHub Password: " PASSWORD
@@ -53,7 +54,11 @@ fi
         exit 1
     fi
 
-    echo "$PASSWORD" | docker login -u "$USERNAME" --password-stdin
+    # Secure login: Use --password-stdin to avoid leaking the password in the process list
+    # Use printf to safely handle passwords that might start with a hyphen
+    printf "%s" "$PASSWORD" | docker login -u "$USERNAME" --password-stdin
+
+    # Sentinel: Unset sensitive variable as soon as it is no longer needed
     unset PASSWORD
 fi
 

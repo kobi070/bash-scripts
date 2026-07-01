@@ -54,8 +54,8 @@ else
 fi
 
 # Check for errors in response
-if echo "$RESPONSE" | jq -e '.message' > /dev/null; then
-    MESSAGE=$(echo "$RESPONSE" | jq -r '.message')
+if echo "$RESPONSE" | jq -e '.message?' > /dev/null; then
+    MESSAGE=$(echo "$RESPONSE" | jq -r '.message?')
     echo "Error from GitHub API: $MESSAGE"
     exit 1
 fi
