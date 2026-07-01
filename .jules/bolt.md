@@ -65,6 +65,9 @@
 **Learning:** Consolidating multiple 'jq' calls and eliminating per-iteration 'date' command forks significantly improves performance in resource audits. However, relying on OpenSSL 3.0 specific flags like '-dateopt iso_8601' breaks compatibility in older environments. Standard OpenSSL date formats can be parsed portably within 'jq' using 'strptime("%b %e %H:%M:%S %Y %Z") | mktime', where '%e' correctly handles the leading space in single-digit days.
 **Action:** Use 'jq' stream processing for data transformation and avoid OpenSSL 3.0+ specific output flags to maintain broad compatibility across Linux and macOS environments.
 
+## 2026-06-17 - [O(N) to O(1) Kubernetes Pod Log Retrieval]
+**Learning:** Fetching logs from multiple pods by iterating over pod names and calling 'kubectl logs' individually is inefficient ((N)$ process forks and API requests). Since Kubernetes 1.17, 'kubectl logs' supports the '-l' (label selector) and '--prefix' flags, which allow retrieving logs from all matching pods in a single (1)$ operation while maintaining clear log attribution.
+**Action:** Use 'kubectl logs -l <selector> --prefix=true' to fetch logs from multiple pods concurrently and efficiently.
 ## 2025-06-19 - [O(G) to O(1) AWS IAM Permission Auditing]
 **Learning:** Auditing IAM policies and group memberships by iterating over groups and calling `aws iam get-group` ($O(G)$ API calls) is slow and network-intensive. The `aws iam get-account-authorization-details` API provides a complete snapshot of users, groups, and their attached policies in a single bulk response, enabling $O(1)$ network complexity.
 **Action:** Use `aws iam get-account-authorization-details` with `--filter` to fetch and correlate complex IAM relationships (users, groups, policies) in a single pass using `jq`.
