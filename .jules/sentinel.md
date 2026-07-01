@@ -62,6 +62,10 @@
 **Learning:** This is a common typo that results in an unintended subshell. If the variable's value (e.g., a version string parsed from a file) can be influenced by an untrusted source, it leads to arbitrary command execution.
 **Prevention:** Strictly use `${variable}` or `$variable` for variable expansion. Avoid the `$(...)` syntax unless command substitution is explicitly intended. Regularly audit scripts for this pattern, especially in log/echo statements.
 
+## 2026-06-01 - Command Injection via Indirect Expansion
+**Vulnerability:** Bash's indirect expansion `${!VAR_NAME}` evaluates array indices within the variable name. If `VAR_NAME` is user-controlled and contains a payload like `arr[$(command)]`, the command will be executed during expansion.
+**Learning:** Indirect expansion is a powerful feature often used for dynamic variable access (e.g., in validation loops), but it is a sink for command injection if the variable name itself is not sanitized.
+**Prevention:** Always validate that the variable name used for indirect expansion is a valid shell identifier using a strict whitelist regex: `[[ "$VAR_NAME" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]`.
 ## 2025-06-05 - Command Injection via Indirect Variable Expansion
 **Vulnerability:** Using Bash indirect expansion `${!VAR_NAME}` on untrusted input allows arbitrary command execution if the input contains array index syntax with command substitution (e.g., `VAR[$(command)]`).
 **Learning:** Bash evaluates the content of the variable name in an arithmetic context if it looks like an array reference, even during indirect expansion. This can be exploited to execute commands.
