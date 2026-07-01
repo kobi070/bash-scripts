@@ -4,6 +4,7 @@
 # Size is determined by the total number of additions and deletions.
 # Usage: ./gh_pr_size_checker.sh <owner/repo>
 # Example: ./gh_pr_size_checker.sh kubernetes/kubernetes
+# Bolt optimization: Uses GitHub GraphQL API to fetch all PR data in a single O(1) request.
 
 set -euo pipefail
 
@@ -21,15 +22,12 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 fi
 
 # Check for required tools
-if ! command -v curl &> /dev/null; then
-    echo "Error: curl is not installed or not in PATH."
-    exit 1
-fi
-
-if ! command -v jq &> /dev/null; then
-    echo "Error: jq is not installed or not in PATH."
-    exit 1
-fi
+for tool in curl jq; do
+    if ! command -v "$tool" &> /dev/null; then
+        echo "Error: $tool is not installed or not in PATH."
+        exit 1
+    fi
+done
 
 # Input validation
 if [ "$#" -lt 1 ]; then
@@ -42,41 +40,67 @@ if [ -z "${GITHUB_TOKEN:-}" ]; then
 fi
 
 REPO=$1
+OWNER="${REPO%/*}"
+NAME="${REPO#*/}"
 
-echo "Fetching open PRs for $REPO..."
-
-# Fetch open PRs (first 100)
-PRS=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
-    curl -s -K- -H "Accept: application/vnd.github.v3+json" \
-    "https://api.github.com/repos/$REPO/pulls?state=open&per_page=100")
-
-# Check if PRS is an array
-if ! echo "$PRS" | jq -e 'if type == "array" then . else error("Not an array") end' > /dev/null 2>&1; then
-    echo "Error: Failed to fetch PRs or repository not found."
-    echo "$PRS" | jq -c .
+# Ensure repository is in owner/repo format
+if [[ "$REPO" != */* ]] || [[ -z "$OWNER" ]] || [[ -z "$NAME" ]]; then
+    echo "Error: Invalid repository format. Use 'owner/repo'."
     exit 1
 fi
 
-PR_COUNT=$(echo "$PRS" | jq '. | length')
+echo "Fetching open PRs for $REPO via GraphQL..."
 
-if [ "$PR_COUNT" -eq 0 ]; then
+# GraphQL query to fetch PR details in bulk
+QUERY='query($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
+    pullRequests(states: OPEN, first: 100, orderBy: {field: CREATED_AT, direction: DESC}) {
+      nodes {
+        number
+        title
+        additions
+        deletions
+      }
+    }
+  }
+}'
+
+# Safely construct the compact JSON payload
+JSON_PAYLOAD=$(jq -n -c \
+  --arg query "$QUERY" \
+  --arg owner "$OWNER" \
+  --arg name "$NAME" \
+  '{query: $query, variables: {owner: $owner, name: $name}}')
+
+# Escape backslashes and double quotes for curl config parser
+# We use -c in jq to keep it on a single line, as curl -K data strings cannot contain literal newlines.
+ESCAPED_PAYLOAD=$(echo "$JSON_PAYLOAD" | sed 's/\\/\\\\/g; s/"/\\"/g')
+
+# Execute GraphQL request using curl config via stdin for security
+RESPONSE=$(printf "header = \"Authorization: Bearer %s\"\nurl = \"https://api.github.com/graphql\"\ndata = \"%s\"" "$GITHUB_TOKEN" "$ESCAPED_PAYLOAD" | curl -s -K-)
+
+# Check for errors in the GraphQL response
+if echo "$RESPONSE" | jq -e '.errors' > /dev/null; then
+    echo "Error from GitHub GraphQL API:"
+    echo "$RESPONSE" | jq -r '.errors[0].message'
+    exit 1
+fi
+
+PRS=$(echo "$RESPONSE" | jq -r '.data.repository.pullRequests.nodes')
+
+if [ "$PRS" == "null" ] || [ "$PRS" == "[]" ]; then
     echo "No open PRs found for $REPO."
     exit 0
 fi
+
+PR_COUNT=$(echo "$PRS" | jq 'length')
 
 echo "Analyzing $PR_COUNT PRs..."
 echo "--------------------------------------------------------------------------------"
 printf "%-10s %-50s %-10s %-10s\n" "PR #" "TITLE" "CHANGES" "SIZE"
 echo "--------------------------------------------------------------------------------"
 
-echo "$PRS" | jq -r '.[] | [.number, .title, .url] | @tsv' | while IFS=$'\t' read -r NUM TITLE URL; do
-    # Fetch PR details for additions/deletions
-    DETAILS=$(printf "header = \"Authorization: Bearer %s\"\n" "$GITHUB_TOKEN" | \
-        curl -s -K- -H "Accept: application/vnd.github.v3+json" \
-        "$URL")
-
-    ADDITIONS=$(echo "$DETAILS" | jq -r '.additions // 0')
-    DELETIONS=$(echo "$DETAILS" | jq -r '.deletions // 0')
+echo "$PRS" | jq -r '.[] | "\(.number)\t\(.title)\t\(.additions)\t\(.deletions)"' | while IFS=$'\t' read -r NUM TITLE ADDITIONS DELETIONS; do
     TOTAL=$((ADDITIONS + DELETIONS))
 
     SIZE="XS"
@@ -95,3 +119,4 @@ done
 
 echo "--------------------------------------------------------------------------------"
 echo "Size Legend: XS < 10, S < 50, M < 200, L < 500, XL >= 500 changes."
+echo "Bolt Optimization: Reduced O(N) API calls to O(1) using GraphQL."
