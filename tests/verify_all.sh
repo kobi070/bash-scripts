@@ -97,6 +97,8 @@ elif [[ "$*" == *"get-credential-report"* ]]; then
   # access_key_1_last_used_date is field 11, access_key_2_last_used_date is field 16
   CSV_CONTENT="user,arn,user_creation_time,password_enabled,password_last_used,password_last_changed,password_next_rotation,mfa_active,access_key_1_active,access_key_1_last_rotated,access_key_1_last_used_date,access_key_1_last_used_region,access_key_1_last_used_service,access_key_2_active,access_key_2_last_rotated,access_key_2_last_used_date\njules-user,arn:aws:iam::123456789012:user/jules-user,2023-01-01T00:00:00+00:00,true,2023-11-01T00:00:00+00:00,2023-01-01T00:00:00+00:00,N/A,true,true,2023-01-01T00:00:00+00:00,2023-11-02T00:00:00+00:00,us-east-1,ec2,false,N/A,N/A"
   echo -e "$CSV_CONTENT" | base64 | tr -d '\n'
+elif [[ "$*" == *"get-account-authorization-details"* ]]; then
+  echo '{"UserDetailList": [{"UserName": "admin-user", "AttachedManagedPolicies": [{"PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess"}]}, {"UserName": "group-member", "GroupList": ["admin-group"]}], "GroupDetailList": [{"GroupName": "admin-group", "AttachedManagedPolicies": [{"PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess"}]}]}'
 fi
 EOF
 chmod +x "$MOCK_BIN/aws"
@@ -114,6 +116,17 @@ if ./aws_scripts/aws_list_iam_users_last_login.sh 2>&1 | grep -q "2023-11-02T00:
     echo "  ✔ Found last key usage in credential report"
 else
     echo "  ✖ Failed to find last key usage"
+    exit 1
+fi
+
+echo "Testing aws_iam_admin_audit.sh..."
+OUTPUT=$(./aws_scripts/aws_iam_admin_audit.sh 2>&1)
+if echo "$OUTPUT" | grep -q "admin-user" && echo "$OUTPUT" | grep -q "admin-group" && echo "$OUTPUT" | grep -q "group-member"; then
+    echo "  ✔ Audited IAM admin access correctly"
+else
+    echo "  ✖ Failed IAM admin audit"
+    echo "Output was:"
+    echo "$OUTPUT"
     exit 1
 fi
 

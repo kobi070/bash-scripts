@@ -31,31 +31,33 @@ ADMIN_POLICY_ARN="arn:aws:iam::aws:policy/AdministratorAccess"
 echo "Auditing AWS IAM for AdministratorAccess..."
 echo "-------------------------------------------"
 
-# Find entities with the policy directly attached
-echo "Searching for Users with direct AdministratorAccess..."
-USERS=$(aws iam list-entities-for-policy --policy-arn "$ADMIN_POLICY_ARN" --query 'PolicyUsers[].UserName' --output json)
-if [ "$(echo "$USERS" | jq '. | length')" -eq 0 ]; then
-    echo "  None found."
-else
-    echo "$USERS" | jq -r '.[]' | sed 's/^/  - /'
-fi
+# Bolt optimization: Use O(1) get-account-authorization-details to fetch all auth data in a single call.
+# This reduces API calls from O(G) to O(1), where G is the number of admin groups.
+# All filtering and formatting is consolidated into a single jq pipeline to minimize process forks.
+aws iam get-account-authorization-details --filter User Group --output json | jq -r --arg arn "$ADMIN_POLICY_ARN" '
+  . as $root |
+  (.UserDetailList // []) as $users |
+  (.GroupDetailList // []) as $groups |
 
-echo ""
-echo "Searching for Groups with AdministratorAccess..."
-GROUPS=$(aws iam list-entities-for-policy --policy-arn "$ADMIN_POLICY_ARN" --query 'PolicyGroups[].GroupName' --output json)
-if [ "$(echo "$GROUPS" | jq '. | length')" -eq 0 ]; then
-    echo "  None found."
-else
-    echo "$GROUPS" | jq -r '.[]' | sed 's/^/  - /'
+  [ $users[] | select(.AttachedManagedPolicies[]?.PolicyArn == $arn) | .UserName ] as $direct_admins |
+  [ $groups[] | select(.AttachedManagedPolicies[]?.PolicyArn == $arn) | .GroupName ] as $admin_groups |
 
-    echo ""
-    echo "Checking users within these groups..."
-    for group in $(echo "$GROUPS" | jq -r '.[]'); do
-        echo "  Group: $group"
-        GROUP_USERS=$(aws iam get-group --group-name "$group" --query 'Users[].UserName' --output json)
-        echo "$GROUP_USERS" | jq -r '.[]' | sed 's/^/    - /'
-    done
-fi
+  "Searching for Users with direct AdministratorAccess...",
+  (if ($direct_admins | length) == 0 then "  None found." else ($direct_admins[] | "  - \(.)") end),
+  "",
+  "Searching for Groups with AdministratorAccess...",
+  (if ($admin_groups | length) == 0 then "  None found." else ($admin_groups[] | "  - \(.)") end),
+  (if ($admin_groups | length) > 0 then
+    "",
+    "Checking users within these groups...",
+    ($admin_groups[] | . as $g |
+      "  Group: \($g)",
+      ([ $users[] | select(.GroupList[]? == $g) | .UserName ] | if length == 0 then empty else .[] | "    - \(.)" end)
+    )
+  else
+    empty
+  end)
+'
 
 echo "-------------------------------------------"
 echo "Audit complete."
