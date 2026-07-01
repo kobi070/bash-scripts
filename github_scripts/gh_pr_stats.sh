@@ -29,18 +29,25 @@ for tool in gh jq; do
     fi
 done
 
-REPO_ARG=""
+ARGS=()
 if [ "$#" -ge 1 ]; then
-    REPO_ARG="-R $1"
+    ARGS+=("-R" "$1")
 fi
 
 LIMIT=${2:-30}
+
+# Security Pattern: validate numeric input to prevent arithmetic injection
+if [[ ! "$LIMIT" =~ ^[0-9]+$ ]]; then
+    echo "Error: limit must be a positive integer."
+    exit 1
+fi
 
 echo "Fetching statistics for the last $LIMIT merged PRs..."
 
 # Fetch merged PRs with their creation and merge timestamps
 # Bolt optimization: process data in a single jq pipeline
-PR_DATA=$(gh pr list $REPO_ARG --state merged --limit "$LIMIT" --json createdAt,mergedAt,title,number)
+# Security Pattern: Use array for arguments to prevent injection
+PR_DATA=$(gh pr list "${ARGS[@]}" --state merged --limit "$LIMIT" --json createdAt,mergedAt,title,number)
 
 if [ "$(echo "$PR_DATA" | jq '. | length')" -eq 0 ]; then
     echo "No merged Pull Requests found."
