@@ -36,13 +36,25 @@ URL=$1
 TIMEOUT=${2:-60}
 INTERVAL=${3:-5}
 
+# Security check: Ensure TIMEOUT and INTERVAL are numeric integers to prevent shell arithmetic injection
+if [[ ! "$TIMEOUT" =~ ^[0-9]+$ ]]; then
+    echo "Error: TIMEOUT must be a positive numeric integer."
+    exit 1
+fi
+
+if [[ ! "$INTERVAL" =~ ^[0-9]+$ ]]; then
+    echo "Error: INTERVAL must be a positive numeric integer."
+    exit 1
+fi
+
 echo "Waiting for URL $URL to return 200 OK (timeout: ${TIMEOUT}s, interval: ${INTERVAL}s)..."
 
 # Optimized: Use Bash builtin $SECONDS to avoid repetitive 'date' process forks
 SECONDS=0
 
 while [ "$SECONDS" -lt "$TIMEOUT" ]; do
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || true)
+    # Use -- to prevent argument injection if URL starts with a hyphen
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -- "$URL" || true)
 
     if [ "$HTTP_CODE" == "200" ]; then
         echo "Success: URL $URL is reachable and returned 200 OK."
