@@ -64,3 +64,7 @@
 ## 2024-05-30 - [O(N) to O(1) process forks in K8s Secret Audit]
 **Learning:** Consolidating multiple 'jq' calls and eliminating per-iteration 'date' command forks significantly improves performance in resource audits. However, relying on OpenSSL 3.0 specific flags like '-dateopt iso_8601' breaks compatibility in older environments. Standard OpenSSL date formats can be parsed portably within 'jq' using 'strptime("%b %e %H:%M:%S %Y %Z") | mktime', where '%e' correctly handles the leading space in single-digit days.
 **Action:** Use 'jq' stream processing for data transformation and avoid OpenSSL 3.0+ specific output flags to maintain broad compatibility across Linux and macOS environments.
+
+## 2026-06-01 - [O(1) process forks in process monitoring]
+**Learning:** High-frequency monitoring loops often fork multiple processes (`ps`, `date`, `awk`, `tail`) per iteration, creating significant system overhead and potentially skewing results. Consolidating data extraction into a single `ps` call, using Bash 4.2+ `printf %T` (with fallback) for timestamps, and performing bulk calculations at the end reduces the per-iteration fork count from ~9 to 1. Additionally, using Bash string manipulation (`${STATS_RAW#*$\'\n\'}`) to remove command headers is more portable than Linux-specific CLI flags (like `ps --no-headers`).
+**Action:** Minimize process forks in loops by using Bash built-ins for string manipulation and time, and consolidate multi-field data extraction into a single command call while maintaining portability.
