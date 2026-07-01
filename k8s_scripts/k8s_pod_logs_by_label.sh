@@ -36,9 +36,15 @@ LABEL_SELECTOR=$1
 NAMESPACE=${2:-default}
 TAIL=${3:-""}
 
-TAIL_ARG=""
+TAIL_ARGS=()
 if [ -n "$TAIL" ]; then
-    TAIL_ARG="--tail=$TAIL"
+    # Security check: Ensure TAIL is a numeric integer to prevent shell arithmetic injection
+    # and to ensure it is a valid value for --tail
+    if [[ ! "$TAIL" =~ ^[0-9]+$ ]]; then
+        echo "Error: tail_lines must be a positive numeric integer."
+        exit 1
+    fi
+    TAIL_ARGS=("--tail=$TAIL")
 fi
 
 echo "Fetching logs for pods with label '$LABEL_SELECTOR' in namespace '$NAMESPACE'..."
@@ -53,5 +59,10 @@ if [[ $(kubectl get pods -n "$NAMESPACE" -l "$LABEL_SELECTOR" -o name 2>/dev/nul
     exit 0
 fi
 
-# Fetch logs for all matching pods in a single operation
-kubectl logs -n "$NAMESPACE" -l "$LABEL_SELECTOR" --prefix=true $TAIL_ARG
+for POD in $PODS; do
+    echo "================================================================================"
+    echo "Logs for pod: $POD"
+    echo "================================================================================"
+    kubectl logs -n "$NAMESPACE" "$POD" "${TAIL_ARGS[@]}" || echo "Failed to fetch logs for $POD"
+    echo -e "\n"
+done
