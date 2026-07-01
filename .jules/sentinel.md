@@ -61,3 +61,8 @@
 **Vulnerability:** Using `$(variable)` instead of `${variable}` in `echo` or other commands causes Bash to attempt to execute the value of the variable as a command.
 **Learning:** This is a common typo that results in an unintended subshell. If the variable's value (e.g., a version string parsed from a file) can be influenced by an untrusted source, it leads to arbitrary command execution.
 **Prevention:** Strictly use `${variable}` or `$variable` for variable expansion. Avoid the `$(...)` syntax unless command substitution is explicitly intended. Regularly audit scripts for this pattern, especially in log/echo statements.
+
+## 2025-07-01 - Argument Injection in curl via Hyphenated URLs
+**Vulnerability:** URLs starting with a hyphen (e.g., `-V`) passed to `curl` without a separator are interpreted as command-line options, leading to argument injection.
+**Learning:** Even if a variable is quoted, shell commands like `curl` that parse options before positional arguments can be tricked if the variable's value starts with a dash.
+**Prevention:** Always use the `--` separator to explicitly mark the end of options and the beginning of positional arguments when passing user-supplied variables to commands like `curl`, `grep`, or `sed`.
