@@ -62,6 +62,10 @@
 **Learning:** This is a common typo that results in an unintended subshell. If the variable's value (e.g., a version string parsed from a file) can be influenced by an untrusted source, it leads to arbitrary command execution.
 **Prevention:** Strictly use `${variable}` or `$variable` for variable expansion. Avoid the `$(...)` syntax unless command substitution is explicitly intended. Regularly audit scripts for this pattern, especially in log/echo statements.
 
+## 2025-06-05 - Command Injection via Indirect Variable Expansion
+**Vulnerability:** Using Bash indirect expansion `${!VAR_NAME}` on untrusted input allows arbitrary command execution if the input contains array index syntax with command substitution (e.g., `VAR[$(command)]`).
+**Learning:** Bash evaluates the content of the variable name in an arithmetic context if it looks like an array reference, even during indirect expansion. This can be exploited to execute commands.
+**Prevention:** Always validate that the variable name string matches a strict whitelist (e.g., `^[a-zA-Z_][a-zA-Z0-9_]*$`) before using it in an indirect expansion `${!VAR_NAME}`.
 ## 2025-07-01 - Argument Injection in curl via Hyphenated URLs
 **Vulnerability:** URLs starting with a hyphen (e.g., `-V`) passed to `curl` without a separator are interpreted as command-line options, leading to argument injection.
 **Learning:** Even if a variable is quoted, shell commands like `curl` that parse options before positional arguments can be tricked if the variable's value starts with a dash.
