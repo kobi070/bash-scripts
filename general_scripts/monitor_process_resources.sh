@@ -30,6 +30,12 @@ PID=$1
 DURATION=${2:-60}
 INTERVAL=${3:-5}
 
+# Security Pattern: validate numeric input to prevent injection
+if [[ ! "$PID" =~ ^[0-9]+$ ]] || [[ ! "$DURATION" =~ ^[0-9]+$ ]] || [[ ! "$INTERVAL" =~ ^[0-9]+$ ]]; then
+    echo "Error: PID, duration, and interval must be positive integers."
+    exit 1
+fi
+
 # Verify PID exists
 if ! ps -p "$PID" > /dev/null; then
     echo "Error: Process with PID $PID does not exist."
@@ -44,36 +50,45 @@ echo "--------------------------------------------------------------------------
 printf "%-10s | %-10s | %-10s\n" "TIME" "%CPU" "%MEM"
 echo "--------------------------------------------------------------------------------"
 
-# Bolt optimization: Use Bash builtin $SECONDS to avoid repetitive 'date' process forks
+# Bolt optimization: check for Bash 4.2+ printf %(fmt)T support to avoid 'date' forks
+HAS_PRINTF_T=false
+if printf "%(%H:%M:%S)T" -1 &>/dev/null; then
+    HAS_PRINTF_T=true
+fi
+
 SECONDS=0
-MAX_CPU=0
-MAX_MEM=0
-SUM_CPU=0
-SUM_MEM=0
+SAMPLES=""
 COUNT=0
 
 while [ "$SECONDS" -lt "$DURATION" ]; do
-    # Verify PID still exists
-    if ! ps -p "$PID" > /dev/null; then
+    # Bolt optimization: consolidate existence check and data extraction into 1 ps call.
+    # We use portable flags and remove the header using Bash string manipulation.
+    STATS_RAW=$(ps -p "$PID" -o %cpu,%mem 2>/dev/null || true)
+
+    if [ -z "$STATS_RAW" ]; then
         echo "Process $PID terminated."
         break
     fi
 
-    # Optimized: use a single awk command to extract CPU and MEM
-    # ps -p $PID -o %cpu,%mem --no-headers
-    # Some ps versions might not support --no-headers, use tail -n +2
-    STATS=$(ps -p "$PID" -o %cpu,%mem | tail -n +2)
-    CPU=$(echo "$STATS" | awk '{print $1}')
-    MEM=$(echo "$STATS" | awk '{print $2}')
+    # Optimization/Portability: remove headers using Bash string manipulation (no fork)
+    # This is faster than 'tail' or 'sed' and works on both Linux and macOS.
+    STATS="${STATS_RAW#*$'\n'}"
 
-    TIME_STR=$(date +"%H:%M:%S")
+    # Read CPU and MEM directly into variables using shell built-in (no fork)
+    read -r CPU MEM <<< "$STATS"
+
+    # Use Bash builtin printf %T if supported, otherwise fall back to date
+    if [ "$HAS_PRINTF_T" = true ]; then
+        printf -v TIME_STR "%(%H:%M:%S)T" -1
+    else
+        TIME_STR=$(date +"%H:%M:%S")
+    fi
+
     printf "%-10s | %-10s | %-10s\n" "$TIME_STR" "$CPU" "$MEM"
 
-    # Update stats
-    MAX_CPU=$(awk "BEGIN {if ($CPU > $MAX_CPU) print $CPU; else print $MAX_CPU}")
-    MAX_MEM=$(awk "BEGIN {if ($MEM > $MAX_MEM) print $MEM; else print $MAX_MEM}")
-    SUM_CPU=$(awk "BEGIN {print $SUM_CPU + $CPU}")
-    SUM_MEM=$(awk "BEGIN {print $SUM_MEM + $MEM}")
+    # Bolt optimization: Store samples for bulk calculation at the end instead of
+    # calling 'awk' in every iteration to update statistics.
+    SAMPLES+="$CPU $MEM "
     COUNT=$((COUNT + 1))
 
     sleep "$INTERVAL"
@@ -82,12 +97,21 @@ done
 echo "--------------------------------------------------------------------------------"
 echo "SUMMARY for $COMMAND (PID: $PID):"
 if [ "$COUNT" -gt 0 ]; then
-    AVG_CPU=$(awk "BEGIN {printf \"%.2f\", $SUM_CPU / $COUNT}")
-    AVG_MEM=$(awk "BEGIN {printf \"%.2f\", $SUM_MEM / $COUNT}")
-    echo "Average CPU: $AVG_CPU%"
-    echo "Peak CPU:    $MAX_CPU%"
-    echo "Average MEM: $AVG_MEM%"
-    echo "Peak MEM:    $MAX_MEM%"
+    # Bolt optimization: Single bulk awk call to calculate all statistics at once.
+    # This replaces multiple awk calls per iteration and multiple awk calls in the summary.
+    echo "$SAMPLES" | awk -v count="$COUNT" '
+    {
+        for (i=1; i<=NF; i+=2) {
+            cpu=$i; mem=$(i+1)
+            sum_cpu += cpu; sum_mem += mem
+            if (cpu > max_cpu) max_cpu = cpu
+            if (mem > max_mem) max_mem = mem
+        }
+        printf "Average CPU: %.2f%%\n", sum_cpu / count
+        printf "Peak CPU:    %.2f%%\n", max_cpu
+        printf "Average MEM: %.2f%%\n", sum_mem / count
+        printf "Peak MEM:    %.2f%%\n", max_mem
+    }'
 else
     echo "No samples collected."
 fi

@@ -11,9 +11,9 @@ fi
 
 # Validate environment variables
 for var in JFROG_API_KEY JFROG_URL JFROG_REPO; do
-  # Security check: Ensure var is a valid shell identifier to prevent command injection via indirect expansion
+  # Security check: Validate variable name to prevent command injection via indirect expansion
   if [[ ! "$var" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-    echo "Error: Invalid environment variable name $var."
+    echo "Error: Invalid environment variable name: $var"
     exit 1
   fi
 
