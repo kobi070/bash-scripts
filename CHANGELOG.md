@@ -13,6 +13,12 @@ follow [Semantic Versioning](https://semver.org/). On `develop`, the top entry
 is always the **next** version in progress; each push to `develop` publishes a
 `vX.Y.Z-rc.N` prerelease tag.
 
+## v1.3.0 - ArgoCD health tooling (in development)
+
+### Added
+- `argocd_scripts/argocd_app_degraded.sh`: checks whether an ArgoCD app (or all apps with `--all`) is Degraded and lists which resources/services are degraded. Flags: `--show-all` (every non-Healthy state), `--warn-only` (always exit 0), `--json`. Exits 1 when unhealthy resources are found, for CI/monitoring gates.
+- Test `tests/argocd_scripts/test_argocd_app_degraded.sh` (mocked argocd CLI, 19 assertions).
+
 ## v1.2.0 - CI/CD hardening & workflow enforcement (in development)
 
 ### Added
