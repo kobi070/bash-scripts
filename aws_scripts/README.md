@@ -44,7 +44,19 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 13. **aws_audit.sh**
     Unified audit dispatcher. Runs one, several, or all of the audit scripts in this directory (`--type sg,iam-admin,...|all`), forwards `--region`/`--days` where applicable, and prints a pass/fail/skip summary. Use `--list` to see all audit types.
 
+14. **aws_profile_manager.sh**
+    Manages AWS CLI profiles: list, view (secrets masked, optional `--json`), add, edit, delete, and switch. Supports access-key, SSO, and assume-role profiles. Works interactively (menu, run with no arguments) or non-interactively via flags. Switching supports `--persist` (copies profile into `[default]`) or `--env` (prints `export AWS_PROFILE=...` for `eval`). Backs up `~/.aws/config` and `~/.aws/credentials` before any mutation; optional `--validate` runs `sts get-caller-identity`.
+
 ## 🚀 Usage examples
+
+### Manage AWS profiles
+```bash
+./aws_profile_manager.sh                 # interactive menu
+./aws_profile_manager.sh list
+./aws_profile_manager.sh add -p dev --access-key AKIA... --secret-key xxx --region us-east-1
+./aws_profile_manager.sh switch -p dev --validate
+eval "$(./aws_profile_manager.sh switch -p dev --env)"   # session-only switch
+```
 
 ### Inventory all resources (Tagging API)
 ```bash
