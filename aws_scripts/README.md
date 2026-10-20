@@ -38,7 +38,33 @@ This directory contains scripts for automating **AWS** operations, primarily foc
 11. **aws_resource_tag_audit.sh**
     Audits EC2 instances and S3 buckets for missing mandatory tags (e.g., 'Owner', 'Environment').
 
+12. **aws_resource_inventory.sh**
+    Inventories AWS resources. Default mode lists ALL taggable resources via the Resource Groups Tagging API grouped by service; `--services` mode runs native CLI calls for richer details on selected services (ec2, s3, iam, rds, lambda, vpc, ebs, sg, elb, eks). Supports `--region`, `--profile` and `--output table|json`.
+
+13. **aws_audit.sh**
+    Unified audit dispatcher. Runs one, several, or all of the audit scripts in this directory (`--type sg,iam-admin,...|all`), forwards `--region`/`--days` where applicable, and prints a pass/fail/skip summary. Use `--list` to see all audit types.
+
 ## 🚀 Usage examples
+
+### Inventory all resources (Tagging API)
+```bash
+./aws_resource_inventory.sh --all
+```
+
+### Inventory selected services with details
+```bash
+./aws_resource_inventory.sh --services ec2,s3,iam --region us-east-1 --output json
+```
+
+### Run all audits with a summary report
+```bash
+./aws_audit.sh --type all --region us-east-1
+```
+
+### Run selected audits with custom age threshold
+```bash
+./aws_audit.sh --type iam-keys,secrets,snapshots --days 60
+```
 
 ### Sync local directory to S3
 ```bash
