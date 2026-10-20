@@ -1,0 +1,71 @@
+# Stage template mirroring .github/workflows/rc-release.yml
+# For the develop branch: parses the top CHANGELOG.md version, validates it is
+# ahead of the latest stable tag, then creates the next vX.Y.Z-rc.N prerelease tag.
+# Requires: pipeline identity with 'Contribute' + 'Create tag' permissions on the repo.
+# No triggers here — include from a pipeline targeting the develop branch.
+parameters:
+  - name: stageName
+    type: string
+    default: 'RC_Prerelease'
+  - name: vmImage
+    type: string
+    default: 'ubuntu-latest'
+  - name: changelogPath
+    type: string
+    default: 'CHANGELOG.md'
+
+stages:
+  - stage: ${{ parameters.stageName }}
+    displayName: 'RC prerelease from CHANGELOG.md'
+    jobs:
+      - job: RcTag
+        displayName: 'Validate & tag vX.Y.Z-rc.N'
+        pool:
+          vmImage: ${{ parameters.vmImage }}
+        steps:
+          - checkout: self
+            fetchDepth: 0
+            persistCredentials: true
+          - bash: |
+              set -euo pipefail
+              changelog='${{ parameters.changelogPath }}'
+              [[ -f "$changelog" ]] || { echo "##vso[task.logissue type=error]$changelog not found"; exit 1; }
+
+              raw=$(grep -m1 -E '^##[[:space:]]+v[0-9]' "$changelog" \
+                | sed -E 's/^##[[:space:]]+(v[0-9][0-9.,]*).*/\1/')
+              [[ -n "$raw" ]] || { echo "##vso[task.logissue type=error]No '## vX.Y.Z' entry"; exit 1; }
+
+              version="${raw//,/.}"
+              IFS='.' read -r major minor patch <<< "${version#v}"
+              version="v${major}.${minor:-0}.${patch:-0}"
+              [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+                || { echo "##vso[task.logissue type=error]'$version' is not valid semver"; exit 1; }
+
+              # develop must be strictly ahead of the latest stable release
+              latest=$(git tag -l 'v*' --sort=-v:refname | grep -v -- '-rc' | head -n1 || true)
+              if [[ -n "$latest" ]]; then
+                if [[ "$version" == "$latest" ]]; then
+                  echo "##vso[task.logissue type=error]develop version ($version) equals released version. Bump CHANGELOG.md — develop must be one version ahead of main."
+                  exit 1
+                fi
+                highest=$(printf '%s\n%s\n' "${latest#v}" "${version#v}" | sort -V | tail -n1)
+                [[ "$highest" == "${version#v}" ]] \
+                  || { echo "##vso[task.logissue type=error]$version is lower than $latest"; exit 1; }
+              fi
+
+              # Next rc number for this version
+              last_rc=$(git tag -l "${version}-rc.*" --sort=-v:refname | head -n1 || true)
+              if [[ -n "$last_rc" ]]; then
+                n=$(( ${last_rc##*-rc.} + 1 ))
+              else
+                n=1
+              fi
+              rc_tag="${version}-rc.${n}"
+              echo "Creating $rc_tag"
+
+              git config user.name "azure-pipelines"
+              git config user.email "azure-pipelines@noreply.local"
+              git tag -a "$rc_tag" -m "Pre-release $rc_tag"
+              git push origin "$rc_tag"
+              echo "Created and pushed $rc_tag"
+            displayName: 'Parse, validate, tag RC'

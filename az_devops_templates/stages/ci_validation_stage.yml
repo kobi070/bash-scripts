@@ -1,0 +1,90 @@
+# Stage template mirroring .github/workflows/ci.yml
+# Validates shell scripts, YAML, runs the mock test suite, and scans for secrets.
+# No triggers here — include from a pipeline (see AGENTS.md trigger conventions).
+parameters:
+  - name: stageName
+    type: string
+    default: 'CI_Validation'
+  - name: vmImage
+    type: string
+    default: 'ubuntu-latest'
+  - name: runTests
+    type: boolean
+    default: true
+  - name: enableGitleaks
+    type: boolean
+    default: true
+  - name: failOnShellCheckErrors
+    type: boolean
+    default: true
+
+stages:
+  - stage: ${{ parameters.stageName }}
+    displayName: 'CI Validation (lint, tests, security)'
+    jobs:
+      - job: LintShell
+        displayName: 'Shell syntax & lint'
+        pool:
+          vmImage: ${{ parameters.vmImage }}
+        steps:
+          - checkout: self
+          - bash: |
+              set -euo pipefail
+              status=0
+              while IFS= read -r -d '' script; do
+                if ! bash -n "$script"; then
+                  echo "##vso[task.logissue type=error;sourcepath=$script]Bash syntax error"
+                  status=1
+                fi
+              done < <(find . -name '*.sh' -type f -not -path './.git/*' -print0)
+              exit "$status"
+            displayName: 'Bash syntax check (bash -n)'
+          - ${{ if eq(parameters.failOnShellCheckErrors, true) }}:
+            - bash: |
+                set -euo pipefail
+                sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+                find . -name '*.sh' -type f -not -path './.git/*' -print0 \
+                  | xargs -0 shellcheck --severity=error
+              displayName: 'ShellCheck'
+
+      - job: LintYaml
+        displayName: 'YAML validation'
+        pool:
+          vmImage: ${{ parameters.vmImage }}
+        steps:
+          - checkout: self
+          - bash: |
+              set -euo pipefail
+              pip install --quiet pyyaml
+              status=0
+              while IFS= read -r -d '' file; do
+                if ! python3 -c "import sys, yaml; yaml.safe_load(open(sys.argv[1]))" "$file"; then
+                  echo "##vso[task.logissue type=error;sourcepath=$file]Invalid YAML"
+                  status=1
+                fi
+              done < <(find . \( -name '*.yml' -o -name '*.yaml' \) -type f -not -path './.git/*' -print0)
+              exit "$status"
+            displayName: 'Validate YAML files'
+
+      - ${{ if eq(parameters.runTests, true) }}:
+        - job: Tests
+          displayName: 'Mock-based script tests'
+          pool:
+            vmImage: ${{ parameters.vmImage }}
+          steps:
+            - checkout: self
+            - bash: bash tests/run_all.sh
+              displayName: 'Run test suite'
+
+      - ${{ if eq(parameters.enableGitleaks, true) }}:
+        - job: SecretScan
+          displayName: 'Secret scanning'
+          pool:
+            vmImage: ${{ parameters.vmImage }}
+          steps:
+            - checkout: self
+              fetchDepth: 0
+            - template: ../common/security_scans.yml
+              parameters:
+                enableGitleaks: true
+                enableSonar: false

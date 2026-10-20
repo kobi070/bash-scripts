@@ -1,0 +1,81 @@
+# Stage template mirroring .github/workflows/release.yml
+# Parses the top '## vX.Y.Z' entry in CHANGELOG.md (normalizing legacy vX,Y / vX.Y),
+# validates it against the latest stable git tag, then creates the tag.
+# Requires: pipeline identity with 'Contribute' + 'Create tag' permissions on the repo
+# (or pass a PAT via a secret variable and set gitAuthHeader accordingly).
+# No triggers here — include from a pipeline targeting the main branch.
+parameters:
+  - name: stageName
+    type: string
+    default: 'Release'
+  - name: vmImage
+    type: string
+    default: 'ubuntu-latest'
+  - name: changelogPath
+    type: string
+    default: 'CHANGELOG.md'
+  - name: pushTag
+    type: boolean
+    default: true
+
+stages:
+  - stage: ${{ parameters.stageName }}
+    displayName: 'Tag & release from CHANGELOG.md'
+    jobs:
+      - job: Release
+        displayName: 'Determine version, validate, tag'
+        pool:
+          vmImage: ${{ parameters.vmImage }}
+        steps:
+          - checkout: self
+            fetchDepth: 0
+            persistCredentials: true
+          - bash: |
+              set -euo pipefail
+              changelog='${{ parameters.changelogPath }}'
+              [[ -f "$changelog" ]] || { echo "##vso[task.logissue type=error]$changelog not found"; exit 1; }
+
+              raw=$(grep -m1 -E '^##[[:space:]]+v[0-9]' "$changelog" \
+                | sed -E 's/^##[[:space:]]+(v[0-9][0-9.,]*).*/\1/')
+              [[ -n "$raw" ]] || { echo "##vso[task.logissue type=error]No '## vX.Y.Z' entry in $changelog"; exit 1; }
+
+              # Normalize legacy vX,Y / vX.Y -> vX.Y.0
+              version="${raw//,/.}"
+              IFS='.' read -r major minor patch <<< "${version#v}"
+              version="v${major}.${minor:-0}.${patch:-0}"
+              [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+                || { echo "##vso[task.logissue type=error]Parsed '$version' is not valid semver"; exit 1; }
+
+              echo "Parsed version: $version"
+              echo "##vso[task.setvariable variable=releaseVersion;isOutput=true]$version"
+            name: parse
+            displayName: 'Parse version from CHANGELOG.md'
+          - bash: |
+              set -euo pipefail
+              version="$(parse.releaseVersion)"
+              latest=$(git tag -l 'v*' --sort=-v:refname | grep -v -- '-rc' | head -n1 || true)
+              echo "Latest stable tag: ${latest:-<none>}"
+
+              if [[ -n "$latest" ]]; then
+                if [[ "$version" == "$latest" ]]; then
+                  echo "Version already tagged. Skipping."
+                  echo "##vso[task.setvariable variable=doRelease]false"
+                  exit 0
+                fi
+                highest=$(printf '%s\n%s\n' "${latest#v}" "${version#v}" | sort -V | tail -n1)
+                [[ "$highest" == "${version#v}" ]] \
+                  || { echo "##vso[task.logissue type=error]$version is lower than $latest"; exit 1; }
+              fi
+              echo "##vso[task.setvariable variable=doRelease]true"
+            displayName: 'Validate against latest tag'
+          - ${{ if eq(parameters.pushTag, true) }}:
+            - bash: |
+                set -euo pipefail
+                [[ "$(doRelease)" == "true" ]] || { echo "Skipping tag creation."; exit 0; }
+                version="$(parse.releaseVersion)"
+                git config user.name "azure-pipelines"
+                git config user.email "azure-pipelines@noreply.local"
+                git tag -a "$version" -m "Release $version"
+                git push origin "$version"
+                echo "Created and pushed tag $version"
+              displayName: 'Create & push release tag'

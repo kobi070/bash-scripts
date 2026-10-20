@@ -59,10 +59,7 @@ if [[ $(kubectl get pods -n "$NAMESPACE" -l "$LABEL_SELECTOR" -o name 2>/dev/nul
     exit 0
 fi
 
-for POD in $PODS; do
-    echo "================================================================================"
-    echo "Logs for pod: $POD"
-    echo "================================================================================"
-    kubectl logs -n "$NAMESPACE" "$POD" "${TAIL_ARGS[@]}" || echo "Failed to fetch logs for $POD"
-    echo -e "\n"
-done
+# Bolt optimization: single kubectl logs call using the label selector with
+# --prefix (K8s >= 1.17) instead of O(N) per-pod calls.
+kubectl logs -n "$NAMESPACE" -l "$LABEL_SELECTOR" --prefix=true ${TAIL_ARGS[@]+"${TAIL_ARGS[@]}"} \
+    || echo "Failed to fetch logs for label '$LABEL_SELECTOR'"

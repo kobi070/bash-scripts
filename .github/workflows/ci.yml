@@ -5,6 +5,7 @@ on:
     branches:
       - develop
       - main
+      - 'feature/**'
 
 permissions:
   contents: read
@@ -24,7 +25,7 @@ jobs:
           case "$BASE_REF" in
             main)
               case "$HEAD_REF" in
-                develop|hotfix/*|feature/aws)
+                develop|hotfix/*)
                   echo "OK: '$HEAD_REF' is allowed to target 'main'." ;;
                 *)
                   echo "::error::Only 'develop' or 'hotfix/*' branches may target 'main'. Got '$HEAD_REF'."
@@ -37,6 +38,16 @@ jobs:
                   echo "OK: '$HEAD_REF' is allowed to target 'develop'." ;;
                 *)
                   echo "::error::Only 'feature/*', 'bugfix/*' or 'fix/*' branches may target 'develop'. Got '$HEAD_REF'."
+                  exit 1 ;;
+              esac
+              ;;
+            feature/*)
+              # Stacked branches: a branch cut from a feature branch must PR back to it.
+              case "$HEAD_REF" in
+                feature/*|bugfix/*|fix/*)
+                  echo "OK: stacked PR '$HEAD_REF' -> '$BASE_REF'." ;;
+                *)
+                  echo "::error::Only 'feature/*', 'bugfix/*' or 'fix/*' branches may target '$BASE_REF'. Got '$HEAD_REF'."
                   exit 1 ;;
               esac
               ;;
@@ -88,3 +99,61 @@ jobs:
             fi
           done < <(find . \( -name '*.yml' -o -name '*.yaml' \) -type f -not -path './.git/*' -print0)
           exit "$status"
+
+  tests:
+    name: Mock-based script tests
+    if: github.base_ref == 'develop' || github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run test suite
+        run: bash tests/run_all.sh
+
+  secret-scan:
+    name: Secret scanning (Gitleaks)
+    if: github.base_ref == 'develop' || github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  readme-freshness:
+    name: README freshness check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Warn when scripts change without README updates
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          # Soft gate: warn (don't fail) so refactors aren't blocked.
+          # The hard policy lives in AGENTS.md.
+          mapfile -t changed < <(git diff --name-only "$BASE_SHA"...HEAD)
+          declare -A touched_readme=()
+          declare -A script_dirs=()
+          for f in "${changed[@]}"; do
+            dir="${f%%/*}"
+            [[ "$f" == *.sh && "$f" == */* ]] && script_dirs["$dir"]=1
+            [[ "$f" == "$dir/README.md" ]] && touched_readme["$dir"]=1
+          done
+          for dir in "${!script_dirs[@]}"; do
+            [[ "$dir" == tests ]] && continue
+            if [[ -f "$dir/README.md" && -z "${touched_readme[$dir]:-}" ]]; then
+              echo "::warning::Scripts changed in '$dir/' but '$dir/README.md' was not updated. Per AGENTS.md, document script changes in the folder README."
+            fi
+          done
+          echo "README freshness check done (warnings only)."
