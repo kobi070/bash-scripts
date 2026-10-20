@@ -386,6 +386,13 @@ To run all logic verifications locally:
 
 Feel free to submit pull requests with additional scripts or improvements. Please ensure new scripts follow the guidelines in `AGENTS.md` and align with **Bolt** and **Sentinel** principles.
 
+### Authoring conventions
+- **Branch flow**: `feature/*` → `develop` → `main`, everything through PRs (stacked branches PR back to their base). Pushes to `develop` publish `vX.Y.Z-rc.N` prereleases; pushes to `main` release the version from the top `## vX.Y.Z` entry in [CHANGELOG.md](./CHANGELOG.md).
+- **Skeletons**: start new scripts from [`templates/script_skeleton.sh`](./templates/script_skeleton.sh) and the target folder's `SKELETON.md` (naming, structure, constraints).
+- **Tests are mandatory**: every new script ships with `tests/<folder>/test_<script>.sh` — see [tests/README.md](./tests/README.md). Run `tests/run_all.sh` before opening a PR.
+- **Docs are mandatory**: update the folder `README.md` (and this file for structural changes) in the same PR.
+- **CI/CD parity**: every GitHub Actions workflow gets a matching Azure DevOps stage template in [`az_devops_templates/stages/`](./az_devops_templates/stages/).
+
 ---
 
 <h2 id="license">📜 License</h2>
