@@ -15,3 +15,10 @@ script_gen*.sh
 
 # Ignore test_bash.sh
 test_bash.sh
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfplan
