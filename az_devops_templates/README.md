@@ -29,6 +29,12 @@ Ready-to-use pipeline examples for different stacks:
 - **utils/agent_maintenance.yml**: Self-hosted agent cleanup and maintenance.
 - **utils/compliance_scan.yml**: Periodic compliance and security audit pipeline.
 
+### 4. GitFlow CI/CD Stages (`stages/`)
+Stage templates mirroring this repository's GitHub Actions workflows (see `stages/README.md`):
+- **ci_validation_stage.yml**: bash syntax, ShellCheck, YAML validation, mock test suite, Gitleaks.
+- **release_stage.yml**: CHANGELOG.md-driven release tagging for `main`.
+- **rc_prerelease_stage.yml**: `vX.Y.Z-rc.N` prerelease tagging for `develop`.
+
 ## 🚀 Usage examples
 
 Reference these templates in your `azure-pipelines.yml` file:

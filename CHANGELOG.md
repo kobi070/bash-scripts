@@ -16,15 +16,20 @@ is always the **next** version in progress; each push to `develop` publishes a
 ## v1.2.0 - CI/CD hardening & workflow enforcement (in development)
 
 ### Added
+- Testing infrastructure: `tests/run_all.sh` runner, `tests/lib/mock.sh` helper, per-script tests (`tests/<folder>/test_<script>.sh`) seeded for aws_resource_inventory, aws_audit, aws_profile_manager, auto_completion; `tests/README.md`.
+- Authoring skeletons: `templates/script_skeleton.sh` + `SKELETON.md` in every scripts folder (naming, structure, constraints, PR checklist).
+- Azure DevOps GitFlow stage templates (`az_devops_templates/stages/`): `ci_validation_stage.yml`, `release_stage.yml`, `rc_prerelease_stage.yml` — one per GitHub Actions workflow.
+- CI README-freshness check: warns when a folder's scripts change without its README.md.
 - `.github/workflows/rc-release.yml`: every push to `develop` tags `vX.Y.Z-rc.N` and publishes a GitHub prerelease from the top CHANGELOG entry; validates develop stays one version ahead of main.
-- CI quality gates on PRs to `develop`: mock-based test harness (`tests/`) and Gitleaks secret scanning.
+- CI quality gates on PRs to `develop`: full test suite (`tests/run_all.sh`) and Gitleaks secret scanning.
 - CI branch-flow enforcement for stacked branches: `feature/*` cut from another `feature/*` must PR back to its base.
 - `general_scripts/auto_completion.sh`: `<app>_completer` fallback (AWS CLI v2 support).
 - `aws_scripts/aws_profile_manager.sh`: manage AWS CLI profiles (add/edit/delete/view/list/switch).
 
 ### Changed
 - `release.yml`: latest-tag detection now ignores `-rc` prerelease tags.
-- `AGENTS.md`: PR-only workflow rules, stacked-branch policy, RC/versioning conventions.
+- `AGENTS.md`: PR-only workflow rules, stacked-branch policy, RC/versioning conventions, mandatory tests/docs/ADO-parity conventions.
+- `aws_resource_inventory.sh`: exits non-zero when requested services are unsupported.
 - Hardened docker & minikube scripts (`set -euo pipefail`, proper tool checks).
 
 ## v1.1.0 - AWS inventory & unified audit, CI/CD release pipeline

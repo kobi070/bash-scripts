@@ -108,13 +108,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run test harness
-        run: |
-          set -euo pipefail
-          for t in tests/verify_all.sh tests/verify_curl_scripts.sh; do
-            echo "=== Running $t ==="
-            bash "$t"
-          done
+      - name: Run test suite
+        run: bash tests/run_all.sh
 
   secret-scan:
     name: Secret scanning (Gitleaks)
@@ -130,3 +125,35 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  readme-freshness:
+    name: README freshness check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Warn when scripts change without README updates
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          # Soft gate: warn (don't fail) so refactors aren't blocked.
+          # The hard policy lives in AGENTS.md.
+          mapfile -t changed < <(git diff --name-only "$BASE_SHA"...HEAD)
+          declare -A touched_readme=()
+          declare -A script_dirs=()
+          for f in "${changed[@]}"; do
+            dir="${f%%/*}"
+            [[ "$f" == *.sh && "$f" == */* ]] && script_dirs["$dir"]=1
+            [[ "$f" == "$dir/README.md" ]] && touched_readme["$dir"]=1
+          done
+          for dir in "${!script_dirs[@]}"; do
+            [[ "$dir" == tests ]] && continue
+            if [[ -f "$dir/README.md" && -z "${touched_readme[$dir]:-}" ]]; then
+              echo "::warning::Scripts changed in '$dir/' but '$dir/README.md' was not updated. Per AGENTS.md, document script changes in the folder README."
+            fi
+          done
+          echo "README freshness check done (warnings only)."

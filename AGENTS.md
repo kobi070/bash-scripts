@@ -34,6 +34,13 @@ trigger:
 - Always include a `usage()` function.
 - Use `set -euo pipefail` for robustness.
 - Explicitly check for required CLI tools (e.g., `command -v jf`).
+- **Follow the skeleton**: start new scripts from `templates/script_skeleton.sh` and the folder's `SKELETON.md` — they are the authoring source of truth (naming, structure, constraints).
+
+## 🧪 Testing & Documentation Conventions
+
+- **Every new script MUST ship with a test**: create `tests/<folder>/test_<script_name>.sh` using the mock helper (`tests/lib/mock.sh`). Large integration flows may additionally extend `tests/verify_all.sh`. Run `tests/run_all.sh` before opening a PR.
+- **Every change MUST update documentation**: update the affected folder's `README.md` (script list + usage example); update the root `README.md` when structure or feature-level behavior changes.
+- **Every new GitHub Actions workflow MUST get an Azure DevOps equivalent**: add a matching stage template under `az_devops_templates/stages/` and document it.
 
 ## 🔀 Git Workflow (GitFlow)
 

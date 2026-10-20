@@ -207,5 +207,6 @@ else
     if [[ "$FAILED" -gt 0 ]]; then
         echo ""
         echo "Completed with $FAILED skipped/unsupported service(s)."
+        exit 1
     fi
 fi
