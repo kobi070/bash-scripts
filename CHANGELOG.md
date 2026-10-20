@@ -9,7 +9,23 @@ matching tag and GitHub Release. Legacy `vX,Y` / `vX.Y` formats are normalized
 to `vX.Y.0`.
 
 Format inspired by [Keep a Changelog](https://keepachangelog.com/). Versions
-follow [Semantic Versioning](https://semver.org/).
+follow [Semantic Versioning](https://semver.org/). On `develop`, the top entry
+is always the **next** version in progress; each push to `develop` publishes a
+`vX.Y.Z-rc.N` prerelease tag.
+
+## v1.2.0 - CI/CD hardening & workflow enforcement (in development)
+
+### Added
+- `.github/workflows/rc-release.yml`: every push to `develop` tags `vX.Y.Z-rc.N` and publishes a GitHub prerelease from the top CHANGELOG entry; validates develop stays one version ahead of main.
+- CI quality gates on PRs to `develop`: mock-based test harness (`tests/`) and Gitleaks secret scanning.
+- CI branch-flow enforcement for stacked branches: `feature/*` cut from another `feature/*` must PR back to its base.
+- `general_scripts/auto_completion.sh`: `<app>_completer` fallback (AWS CLI v2 support).
+- `aws_scripts/aws_profile_manager.sh`: manage AWS CLI profiles (add/edit/delete/view/list/switch).
+
+### Changed
+- `release.yml`: latest-tag detection now ignores `-rc` prerelease tags.
+- `AGENTS.md`: PR-only workflow rules, stacked-branch policy, RC/versioning conventions.
+- Hardened docker & minikube scripts (`set -euo pipefail`, proper tool checks).
 
 ## v1.1.0 - AWS inventory & unified audit, CI/CD release pipeline
 
