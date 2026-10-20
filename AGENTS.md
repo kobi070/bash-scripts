@@ -35,6 +35,14 @@ trigger:
 - Use `set -euo pipefail` for robustness.
 - Explicitly check for required CLI tools (e.g., `command -v jf`).
 
+## 🔀 Git Workflow (GitFlow)
+
+- **Branch flow is strict**: `feature/*` → `develop` → `main`. Never commit or push directly to `main` or `develop`.
+- **Always confirm with the repository owner before committing and pushing** any changes. Do not auto-commit.
+- New work starts from an up-to-date `develop` on a `feature/*` branch; open a PR to `develop`.
+- Releases: PR `develop` → `main`. A push to `main` triggers the release workflow, which reads the version from the top `## vX.Y.Z` entry in `CHANGELOG.md` and creates the tag + GitHub Release. Bump `CHANGELOG.md` in the release PR.
+- Hotfixes: `hotfix/*` → `main`, then sync back to `develop`.
+
 ## ✅ Verification
 
 Before submitting changes:
