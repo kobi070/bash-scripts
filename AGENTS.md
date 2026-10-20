@@ -42,6 +42,11 @@ trigger:
 - **Every change MUST update documentation**: update the affected folder's `README.md` (script list + usage example); update the root `README.md` when structure or feature-level behavior changes.
 - **Every new GitHub Actions workflow MUST get an Azure DevOps equivalent**: add a matching stage template under `az_devops_templates/stages/` and document it.
 
+### Terraform Authoring
+
+- **All Terraform code in this repo MUST follow** `terraform_scripts/templates/TERRAFORM_BEST_PRACTICES.md` — it is the source of truth for structure, naming, pinning, security, and testing.
+- The generic project template lives at `terraform_scripts/templates/generic/`; start new Terraform projects from it.
+
 ## 🔀 Git Workflow (GitFlow)
 
 - **Branch flow is strict**: `feature/*` → `develop` → `main`. Never commit or push directly to `main` or `develop`.

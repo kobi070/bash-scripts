@@ -13,11 +13,15 @@ follow [Semantic Versioning](https://semver.org/). On `develop`, the top entry
 is always the **next** version in progress; each push to `develop` publishes a
 `vX.Y.Z-rc.N` prerelease tag.
 
-## v1.3.0 - ArgoCD health tooling (in development)
+## v1.3.0 - ArgoCD health tooling & Terraform templates (in development)
 
 ### Added
 - `argocd_scripts/argocd_app_degraded.sh`: checks whether an ArgoCD app (or all apps with `--all`) is Degraded and lists which resources/services are degraded. Flags: `--show-all` (every non-Healthy state), `--warn-only` (always exit 0), `--json`. Exits 1 when unhealthy resources are found, for CI/monitoring gates.
 - Test `tests/argocd_scripts/test_argocd_app_degraded.sh` (mocked argocd CLI, 19 assertions).
+- `terraform_scripts/templates/TERRAFORM_BEST_PRACTICES.md`: Terraform best-practices doc (source of truth for all Terraform code in the repo).
+- `terraform_scripts/templates/generic/`: reusable Terraform project template — `modules/s3_bucket` secure-S3 example module, `modules/_template` TODO-guided starter, and `live/{dev,staging,prod}` environment scaffolds; includes `tftest` suite with `mock_provider` tests.
+- `terraform_scripts/templates/SKELETON.md`: authoring guide for new Terraform templates.
+- Test `tests/terraform_scripts/test_templates_generic.sh` (fmt-check, validate, terraform test, static guardrails).
 
 ## v1.2.0 - CI/CD hardening & workflow enforcement (in development)
 

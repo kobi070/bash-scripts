@@ -1,0 +1,32 @@
+# Sample native terraform test (https://developer.hashicorp.com/terraform/language/tests).
+#
+# This file is suffixed `.sample` so `terraform test` ignores it.
+# To activate: rename to `example.tftest.hcl` and adapt the assertions.
+#
+#   - `command = plan` for fast unit-style tests.
+#   - `command = apply` for integration tests in a sandbox account.
+#   - `mock_provider` keeps tests from touching real cloud APIs.
+
+mock_provider "aws" {
+  # Optionally mock data/resource attributes:
+  # mock_data "aws_caller_identity" {
+  #   defaults = {
+  #     account_id = "123456789012"
+  #   }
+  # }
+}
+
+variables {
+  project     = "demo"
+  environment = "dev"
+}
+
+run "validates_inputs" {
+  command = plan
+
+  # TODO: assert on real module resources, e.g.:
+  # assert {
+  #   condition     = aws_s3_bucket.this.bucket == "demo-dev-artifacts"
+  #   error_message = "Bucket name must follow the <project>-<environment> prefix."
+  # }
+}
