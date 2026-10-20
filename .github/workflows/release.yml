@@ -58,8 +58,8 @@ jobs:
           set -euo pipefail
           version="${{ steps.version.outputs.version }}"
 
-          latest=$(git tag -l 'v*' --sort=-v:refname | head -n1)
-          echo "Latest existing tag: ${latest:-<none>}"
+          latest=$(git tag -l 'v*' --sort=-v:refname | grep -v -- '-rc' | head -n1 || true)
+          echo "Latest existing stable tag: ${latest:-<none>}"
 
           if [[ -z "$latest" ]]; then
             echo "No existing tags; releasing $version."

@@ -5,6 +5,7 @@ on:
     branches:
       - develop
       - main
+      - 'feature/**'
 
 permissions:
   contents: read
@@ -24,7 +25,7 @@ jobs:
           case "$BASE_REF" in
             main)
               case "$HEAD_REF" in
-                develop|hotfix/*|feature/aws)
+                develop|hotfix/*)
                   echo "OK: '$HEAD_REF' is allowed to target 'main'." ;;
                 *)
                   echo "::error::Only 'develop' or 'hotfix/*' branches may target 'main'. Got '$HEAD_REF'."
@@ -37,6 +38,16 @@ jobs:
                   echo "OK: '$HEAD_REF' is allowed to target 'develop'." ;;
                 *)
                   echo "::error::Only 'feature/*', 'bugfix/*' or 'fix/*' branches may target 'develop'. Got '$HEAD_REF'."
+                  exit 1 ;;
+              esac
+              ;;
+            feature/*)
+              # Stacked branches: a branch cut from a feature branch must PR back to it.
+              case "$HEAD_REF" in
+                feature/*|bugfix/*|fix/*)
+                  echo "OK: stacked PR '$HEAD_REF' -> '$BASE_REF'." ;;
+                *)
+                  echo "::error::Only 'feature/*', 'bugfix/*' or 'fix/*' branches may target '$BASE_REF'. Got '$HEAD_REF'."
                   exit 1 ;;
               esac
               ;;
@@ -88,3 +99,34 @@ jobs:
             fi
           done < <(find . \( -name '*.yml' -o -name '*.yaml' \) -type f -not -path './.git/*' -print0)
           exit "$status"
+
+  tests:
+    name: Mock-based script tests
+    if: github.base_ref == 'develop' || github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run test harness
+        run: |
+          set -euo pipefail
+          for t in tests/verify_all.sh tests/verify_curl_scripts.sh; do
+            echo "=== Running $t ==="
+            bash "$t"
+          done
+
+  secret-scan:
+    name: Secret scanning (Gitleaks)
+    if: github.base_ref == 'develop' || github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,103 @@
+name: RC Pre-release
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: write
+
+jobs:
+  rc-release:
+    name: Tag RC from CHANGELOG.md
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version from CHANGELOG.md
+        id: version
+        run: |
+          set -euo pipefail
+
+          if [[ ! -f CHANGELOG.md ]]; then
+            echo "::error::CHANGELOG.md not found; it is the release version source of truth."
+            exit 1
+          fi
+
+          raw=$(grep -m1 -E '^##[[:space:]]+v[0-9]' CHANGELOG.md \
+            | sed -E 's/^##[[:space:]]+(v[0-9][0-9.,]*).*/\1/')
+
+          if [[ -z "$raw" ]]; then
+            echo "::error::No '## vX.Y.Z' entry found at the top of CHANGELOG.md."
+            exit 1
+          fi
+
+          version="${raw//,/.}"
+          IFS='.' read -r major minor patch <<< "${version#v}"
+          version="v${major}.${minor:-0}.${patch:-0}"
+
+          if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Parsed version '$version' (from '$raw') is not valid semver."
+            exit 1
+          fi
+
+          echo "Parsed develop version: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Validate develop is ahead of main's latest release
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+
+          # Latest STABLE tag only (exclude -rc prereleases).
+          latest=$(git tag -l 'v*' --sort=-v:refname | grep -v -- '-rc' | head -n1 || true)
+          echo "Latest stable tag: ${latest:-<none>}"
+
+          if [[ -z "$latest" ]]; then
+            echo "No stable tags yet; proceeding with $version."
+            exit 0
+          fi
+
+          if [[ "$version" == "$latest" ]]; then
+            echo "::error::develop CHANGELOG version ($version) equals the released version. develop must be one version ahead of main — add the next '## vX.Y.Z' entry to CHANGELOG.md."
+            exit 1
+          fi
+
+          highest=$(printf '%s\n%s\n' "${latest#v}" "${version#v}" | sort -V | tail -n1)
+          if [[ "$highest" != "${version#v}" ]]; then
+            echo "::error::develop CHANGELOG version ($version) is lower than latest release ($latest)."
+            exit 1
+          fi
+          echo "OK: develop ($version) is ahead of main ($latest)."
+
+      - name: Create RC tag and prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+
+          # Next rc number for this version.
+          last_rc=$(git tag -l "${version}-rc.*" --sort=-v:refname | head -n1 || true)
+          if [[ -n "$last_rc" ]]; then
+            n=$(( ${last_rc##*-rc.} + 1 ))
+          else
+            n=1
+          fi
+          rc_tag="${version}-rc.${n}"
+          echo "Creating $rc_tag"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$rc_tag" -m "Pre-release $rc_tag"
+          git push origin "$rc_tag"
+
+          awk '/^##[[:space:]]+v[0-9]/{ if (found) exit; found=1; next } found' CHANGELOG.md > rc_notes.md
+          gh release create "$rc_tag" \
+            --title "$rc_tag" \
+            --prerelease \
+            --notes-file rc_notes.md
