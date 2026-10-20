@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Tag & release from CHANGELOG.md
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version from CHANGELOG.md
+        id: version
+        run: |
+          set -euo pipefail
+
+          if [[ ! -f CHANGELOG.md ]]; then
+            echo "::error::CHANGELOG.md not found; it is the release version source of truth."
+            exit 1
+          fi
+
+          # First '## v...' heading wins.
+          raw=$(grep -m1 -E '^##[[:space:]]+v[0-9]' CHANGELOG.md \
+            | sed -E 's/^##[[:space:]]+(v[0-9][0-9.,]*).*/\1/')
+
+          if [[ -z "$raw" ]]; then
+            echo "::error::No '## vX.Y.Z' entry found at the top of CHANGELOG.md."
+            exit 1
+          fi
+
+          # Normalize legacy formats: vX,Y -> vX.Y ; then pad to vX.Y.Z
+          version="${raw//,/.}"
+          IFS='.' read -r major minor patch <<< "${version#v}"
+          minor="${minor:-0}"
+          patch="${patch:-0}"
+          version="v${major}.${minor}.${patch}"
+
+          if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Parsed version '$version' (from '$raw') is not valid semver."
+            exit 1
+          fi
+
+          echo "Parsed version: $version (raw: $raw)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Validate against latest tag
+        id: validate
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+
+          latest=$(git tag -l 'v*' --sort=-v:refname | head -n1)
+          echo "Latest existing tag: ${latest:-<none>}"
+
+          if [[ -z "$latest" ]]; then
+            echo "No existing tags; releasing $version."
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ "$version" == "$latest" ]]; then
+            echo "CHANGELOG version $version already tagged. Skipping release."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Semver compare: version must be strictly greater than latest.
+          highest=$(printf '%s\n%s\n' "${latest#v}" "${version#v}" | sort -V | tail -n1)
+          if [[ "$highest" != "${version#v}" ]]; then
+            echo "::error::CHANGELOG version $version is lower than latest tag $latest. Bump CHANGELOG.md."
+            exit 1
+          fi
+
+          echo "Releasing $version (previous: $latest)."
+          echo "release=true" >> "$GITHUB_OUTPUT"
+
+      - name: Extract release notes from CHANGELOG.md
+        if: steps.validate.outputs.release == 'true'
+        run: |
+          set -euo pipefail
+          # Grab the body of the first '## v...' section (until next '## ' heading).
+          awk '/^##[[:space:]]+v[0-9]/{ if (found) exit; found=1; next } found' CHANGELOG.md > release_notes.md
+          echo "--- Release notes ---"
+          cat release_notes.md
+
+      - name: Create tag and GitHub Release
+        if: steps.validate.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$version" -m "Release $version"
+          git push origin "$version"
+
+          gh release create "$version" \
+            --title "$version" \
+            --notes-file release_notes.md

@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  enforce-branch-flow:
+    name: Enforce GitFlow branch flow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR source branch
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          echo "PR: $HEAD_REF -> $BASE_REF"
+          case "$BASE_REF" in
+            main)
+              case "$HEAD_REF" in
+                develop|hotfix/*|feature/aws)
+                  echo "OK: '$HEAD_REF' is allowed to target 'main'." ;;
+                *)
+                  echo "::error::Only 'develop' or 'hotfix/*' branches may target 'main'. Got '$HEAD_REF'."
+                  exit 1 ;;
+              esac
+              ;;
+            develop)
+              case "$HEAD_REF" in
+                feature/*|bugfix/*|fix/*)
+                  echo "OK: '$HEAD_REF' is allowed to target 'develop'." ;;
+                *)
+                  echo "::error::Only 'feature/*', 'bugfix/*' or 'fix/*' branches may target 'develop'. Got '$HEAD_REF'."
+                  exit 1 ;;
+              esac
+              ;;
+          esac
+
+  lint-shell:
+    name: Shell syntax & lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Bash syntax check (bash -n)
+        run: |
+          set -euo pipefail
+          status=0
+          while IFS= read -r -d '' script; do
+            if ! bash -n "$script"; then
+              echo "::error file=$script::Bash syntax error"
+              status=1
+            fi
+          done < <(find . -name '*.sh' -type f -not -path './.git/*' -print0)
+          exit "$status"
+
+      - name: ShellCheck
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          # Informational severity gate: fail only on errors.
+          find . -name '*.sh' -type f -not -path './.git/*' -print0 \
+            | xargs -0 shellcheck --severity=error
+
+  lint-yaml:
+    name: YAML validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate YAML files
+        run: |
+          set -euo pipefail
+          pip install --quiet pyyaml
+          status=0
+          while IFS= read -r -d '' file; do
+            if ! python3 -c "import sys, yaml; yaml.safe_load(open(sys.argv[1]))" "$file"; then
+              echo "::error file=$file::Invalid YAML"
+              status=1
+            fi
+          done < <(find . \( -name '*.yml' -o -name '*.yaml' \) -type f -not -path './.git/*' -print0)
+          exit "$status"
