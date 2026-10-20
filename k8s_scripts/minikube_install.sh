@@ -1,22 +1,24 @@
 #!/bin/bash
+set -euo pipefail
+
 echo "Checking if Minikube exists in your machine..."
 
 # Check if docker is installed
 # You got to have docker installed to run this version of minikube
-if ! [ docker ]; then
+if ! command -v docker &> /dev/null; then
     echo 'Error: docker is not installed.' >&2
     exit 1
 fi
 
-Checks if minikube is already installed in your machine
-if [ minikube ]; then
+# Checks if minikube is already installed in your machine
+if command -v minikube &> /dev/null; then
     echo "Minikube already exist in your machine"
     exit 1
 else
     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
     sudo dpkg -i minikube_latest_amd64.deb
 
-    read -p "Would you like to alias ['minikube kubectl --'] ? [Y/N] " useranswer
+    read -rp "Would you like to alias ['minikube kubectl --'] ? [Y/N] " useranswer
 
     if [ "$useranswer" == "Y" ]; then
         alias kubectl="minikube kubectl --"

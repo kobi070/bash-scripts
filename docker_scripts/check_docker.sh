@@ -1,15 +1,15 @@
 #!/bin/bash
-set -e # Exit if any command fails
+set -euo pipefail
 
 
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
   echo "Please run as root"
-  exit
+  exit 1
 fi
 
 # Check if docker is installed
-if ! [ docker ]; then
+if ! command -v docker &> /dev/null; then
   echo 'Error: docker is not installed.' >&2
   exit 1
 fi
