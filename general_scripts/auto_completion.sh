@@ -30,14 +30,18 @@ fi
 
 # Try to enable autocompletion
 completion_output="$($userapp completion bash 2>/dev/null || true)"
-if [[ -z "$completion_output" ]]; then
+if [[ -n "$completion_output" ]]; then
+    completion_cmd="source <($userapp completion bash)"
+# Fall back to a '<app>_completer' binary (e.g. AWS CLI v2's aws_completer)
+elif command -v "${userapp}_completer" >/dev/null 2>&1; then
+    completion_cmd="complete -C '$(command -v "${userapp}_completer")' $userapp"
+else
     echo "⚠️  No bash completion available from '$userapp'."
     exit 1
 fi
 
 # Add to ~/.bashrc
 echo "Enabling autocomplete for '$userapp'..."
-completion_cmd="source <($userapp completion bash)"
 if ! grep -q "$completion_cmd" ~/.bashrc; then
     echo "$completion_cmd" >>~/.bashrc
     echo "✅ Added to ~/.bashrc"
